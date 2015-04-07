@@ -16,20 +16,15 @@ package com.liferay.portal.model;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.xml.Document;
-import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReader;
-import com.liferay.portal.service.ClassNameLocalServiceUtil;
-import com.liferay.portal.util.PropsUtil;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 import java.net.URL;
@@ -45,12 +40,16 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Tomas Polesovsky
+ * @author Raymond Augé
  */
-@DoPrivileged
-public class ModelHintsImpl implements ModelHints {
+public abstract class BaseModelHintsImpl implements ModelHints {
 
 	public void afterPropertiesSet() {
 		_hintCollections = new HashMap<>();
@@ -61,10 +60,7 @@ public class ModelHintsImpl implements ModelHints {
 		try {
 			ClassLoader classLoader = getClass().getClassLoader();
 
-			String[] configs = StringUtil.split(
-				PropsUtil.get(PropsKeys.MODEL_HINTS_CONFIGS));
-
-			for (String config : configs) {
+			for (String config : getModelHintsConfigs()) {
 				if (config.startsWith("classpath*:")) {
 					String name = config.substring("classpath*:".length());
 
@@ -87,7 +83,22 @@ public class ModelHintsImpl implements ModelHints {
 					}
 				}
 				else {
-					read(classLoader, config);
+					InputStream inputStream = classLoader.getResourceAsStream(
+						config);
+
+					if (inputStream == null) {
+						File file = new File(config);
+
+						if (!file.exists()) {
+							return;
+						}
+
+						inputStream = new FileInputStream(file);
+					}
+
+					try (InputStream curInputStream = inputStream) {
+						read(classLoader, config, curInputStream);
+					}
 				}
 			}
 		}
@@ -108,9 +119,7 @@ public class ModelHintsImpl implements ModelHints {
 	}
 
 	@Override
-	public com.liferay.portal.kernel.xml.Element getFieldsEl(
-		String model, String field) {
-
+	public Object getFieldsElement(String model, String field) {
 		Map<String, Object> fields = (Map<String, Object>)_modelFields.get(
 			model);
 
@@ -157,6 +166,10 @@ public class ModelHintsImpl implements ModelHints {
 		return maxLength;
 	}
 
+	public abstract ModelHintsCallback getModelHintsCallback();
+
+	public abstract String[] getModelHintsConfigs();
+
 	@Override
 	public List<String> getModels() {
 		return ListUtil.fromCollection(_models);
@@ -198,6 +211,8 @@ public class ModelHintsImpl implements ModelHints {
 
 		return sanitizeTuples;
 	}
+
+	public abstract SAXReader getSAXReader();
 
 	@Override
 	public String getType(String model, String field) {
@@ -309,7 +324,9 @@ public class ModelHintsImpl implements ModelHints {
 			}
 		}
 
-		Document document = _saxReader.read(inputStream);
+		SAXReader saxReader = getSAXReader();
+
+		Document document = saxReader.read(inputStream);
 
 		Element rootElement = document.getRootElement();
 
@@ -341,9 +358,9 @@ public class ModelHintsImpl implements ModelHints {
 		for (Element modelElement : rootElements) {
 			String name = modelElement.attributeValue("name");
 
-			if (classLoader != ModelHintsImpl.class.getClassLoader()) {
-				ClassNameLocalServiceUtil.getClassName(name);
-			}
+			ModelHintsCallback modelHintsCallback = getModelHintsCallback();
+
+			modelHintsCallback.execute(classLoader, name);
 
 			Map<String, String> defaultHints = new HashMap<>();
 
@@ -464,10 +481,6 @@ public class ModelHintsImpl implements ModelHints {
 		}
 	}
 
-	public void setSAXReader(SAXReader saxReader) {
-		_saxReader = saxReader;
-	}
-
 	@Override
 	public String trimString(String model, String field, String value) {
 		if (value == null) {
@@ -496,12 +509,12 @@ public class ModelHintsImpl implements ModelHints {
 
 	private static final String _VALIDATORS_SUFFIX = "_VALIDATORS";
 
-	private static final Log _log = LogFactoryUtil.getLog(ModelHintsImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		BaseModelHintsImpl.class);
 
 	private Map<String, Map<String, String>> _defaultHints;
 	private Map<String, Map<String, String>> _hintCollections;
 	private Map<String, Object> _modelFields;
 	private Set<String> _models;
-	private SAXReader _saxReader;
 
 }

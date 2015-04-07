@@ -181,6 +181,9 @@ public class TestPropsValues
 	public static final String MARKETPLACE_EMAIL_PASSWORD_5 = TestPropsUtil.get(
 		"marketplace.email.password.5");
 
+	public static final String MOBILE_ANDROID_HOME = TestPropsUtil.get(
+		"mobile.android.home");
+
 	public static final boolean MOBILE_DEVICE_ENABLED = GetterUtil.getBoolean(
 		TestPropsUtil.get("mobile.device.enabled"));
 
