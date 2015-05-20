@@ -26,33 +26,33 @@ public class RubySassCompilerTest {
 
 	@Test
 	public void testCompileFile() throws Exception {
-		try (RubySassCompiler rubySassCompiler = new RubySassCompiler()) {
-			Assert.assertNotNull(rubySassCompiler);
+		RubySassCompiler rubySassCompiler = new RubySassCompiler();
 
-			String expectedOutput = "foo {\n  margin: 42px; }\n";
+		Assert.assertNotNull(rubySassCompiler);
 
-			Class<?> clazz = getClass();
+		String expectedOutput = "foo {\n  margin: 42px; }\n";
 
-			URL url = clazz.getResource("dependencies/input.scss");
+		Class<?> clazz = getClass();
 
-			String actualOutput = rubySassCompiler.compileFile(
-				url.getFile(), "", "");
+		URL url = clazz.getResource("dependencies/input.scss");
 
-			Assert.assertEquals(expectedOutput, actualOutput);
-		}
+		String actualOutput = rubySassCompiler.compileFile(
+			url.getFile(), "", "");
+
+		Assert.assertEquals(expectedOutput, actualOutput);
 	}
 
 	@Test
 	public void testCompileString() throws Exception {
-		try (RubySassCompiler rubySassCompiler = new RubySassCompiler()) {
-			Assert.assertNotNull(rubySassCompiler);
+		RubySassCompiler rubySassCompiler = new RubySassCompiler();
 
-			String expectedOutput = "foo {\n  margin: 42px; }\n";
-			String actualOutput = rubySassCompiler.compileString(
-				"foo { margin: 21px * 2; }", "", "");
+		Assert.assertNotNull(rubySassCompiler);
 
-			Assert.assertEquals(expectedOutput, actualOutput);
-		}
+		String expectedOutput = "foo {\n  margin: 42px; }\n";
+		String actualOutput = rubySassCompiler.compileString(
+			"foo { margin: 21px * 2; }", "", "");
+
+		Assert.assertEquals(expectedOutput, actualOutput);
 	}
 
 }
