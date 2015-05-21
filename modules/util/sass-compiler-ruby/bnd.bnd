@@ -7,7 +7,6 @@ Include-Resource:\
 	@lib/asm-commons.jar,\
 	@lib/asm.jar,\
 	@lib/bytelist.jar,\
-	@lib/com.liferay.ruby.gems.jar,\
 	@lib/jcodings.jar,\
 	@lib/jnr-constants.jar,\
 	@lib/jnr-enxio.jar,\
