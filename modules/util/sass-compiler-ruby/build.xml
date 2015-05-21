@@ -5,4 +5,16 @@
 	<property name="import.shared" value="sass-compiler-api" />
 
 	<import file="../../../tools/sdk/build-common-osgi-plugin.xml" />
+
+	<target name="compile">
+		<copy
+			file="lib/com.liferay.ruby.gems.jar"
+			todir="src/com/liferay/sass/compiler/ruby/internal/dependencies/"
+			preservelastmodified="true"
+			/>
+
+		<compile
+			module.dir="${basedir}"
+			/>
+	</target>
 </project>
