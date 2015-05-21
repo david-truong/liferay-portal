@@ -16,7 +16,11 @@ package com.liferay.sass.compiler.ruby.internal;
 
 import com.liferay.sass.compiler.SassCompiler;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+
+import java.net.URL;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,6 +29,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import jodd.io.ZipUtil;
+
+import org.apache.commons.io.FileUtils;
 
 import org.jruby.RubyInstanceConfig;
 import org.jruby.embed.LocalContextScope;
@@ -66,20 +74,26 @@ public class RubySassCompiler implements SassCompiler {
 				RubyInstanceConfig.CompileMode.JIT);
 		}
 
+		_initRubyGems();
+
+		String loadPathsDir = _tmpDir + "/liferay/ruby/";
+
 		List<String> loadPaths = new ArrayList<>();
 
-		loadPaths.add("META-INF/jruby.home/lib/ruby/site_ruby/1.8");
-		loadPaths.add("META-INF/jruby.home/lib/ruby/site_ruby/shared");
-		loadPaths.add("META-INF/jruby.home/lib/ruby/1.8");
-		loadPaths.add("gems/chunky_png-1.3.4/lib");
-		loadPaths.add("gems/compass-1.0.1/lib");
-		loadPaths.add("gems/compass-core-1.0.3/lib");
-		loadPaths.add("gems/compass-import-once-1.0.5/lib");
-		loadPaths.add("gems/ffi-1.9.6-java/lib");
-		loadPaths.add("gems/multi_json-1.10.1/lib");
-		loadPaths.add("gems/rb-fsevent-0.9.4/lib");
-		loadPaths.add("gems/rb-inotify-0.9.5/lib");
-		loadPaths.add("gems/sass-3.4.13/lib");
+		loadPaths.add(
+			loadPathsDir + "META-INF/jruby.home/lib/ruby/site_ruby/1.8");
+		loadPaths.add(
+			loadPathsDir + "META-INF/jruby.home/lib/ruby/site_ruby/shared");
+		loadPaths.add(loadPathsDir + "META-INF/jruby.home/lib/ruby/1.8");
+		loadPaths.add(loadPathsDir + "gems/chunky_png-1.3.4/lib");
+		loadPaths.add(loadPathsDir + "gems/compass-1.0.1/lib");
+		loadPaths.add(loadPathsDir + "gems/compass-core-1.0.3/lib");
+		loadPaths.add(loadPathsDir + "gems/compass-import-once-1.0.5/lib");
+		loadPaths.add(loadPathsDir + "gems/ffi-1.9.6-java/lib");
+		loadPaths.add(loadPathsDir + "gems/multi_json-1.10.1/lib");
+		loadPaths.add(loadPathsDir + "gems/rb-fsevent-0.9.4/lib");
+		loadPaths.add(loadPathsDir + "gems/rb-inotify-0.9.5/lib");
+		loadPaths.add(loadPathsDir + "gems/sass-3.4.13/lib");
 
 		rubyInstanceConfig.setLoadPaths(loadPaths);
 
@@ -133,6 +147,40 @@ public class RubySassCompiler implements SassCompiler {
 		}
 		catch (Exception e) {
 			throw new RubySassCompilerException(e);
+		}
+	}
+
+	private void _initRubyGems() throws Exception {
+		Class<?> clazz = getClass();
+
+		URL url = clazz.getResource("dependencies/com.liferay.ruby.gems.jar");
+
+		File rubyGemsJarFile = new File(url.getFile());
+
+		if (!rubyGemsJarFile.exists()) {
+			throw new RubySassCompilerException(
+				rubyGemsJarFile + " does not exist");
+		}
+
+		File rubyDir = new File(_tmpDir + "/liferay/ruby");
+
+		if (!rubyDir.exists() ||
+			(rubyDir.lastModified() < rubyGemsJarFile.lastModified())) {
+
+			FileUtils.deleteDirectory(rubyDir);
+
+			try {
+				FileUtils.forceMkdir(rubyDir);
+
+				ZipUtil.unzip(rubyGemsJarFile, rubyDir);
+
+				rubyDir.setLastModified(rubyGemsJarFile.lastModified());
+			}
+			catch (IOException ioe) {
+				throw new RubySassCompilerException(
+					"Unable to unzip " + rubyGemsJarFile + " to " + rubyDir,
+					ioe);
+			}
 		}
 	}
 
