@@ -30,6 +30,7 @@ import org.jruby.RubyInstanceConfig;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.internal.LocalContextProvider;
+import org.jruby.util.JRubyClassLoader;
 
 /**
  * @author David Truong
@@ -49,7 +50,10 @@ public class RubySassCompiler implements SassCompiler {
 		_tmpDir = tmpDir;
 
 		_scriptingContainer = new ScriptingContainer(
-			LocalContextScope.SINGLETHREAD);
+			LocalContextScope.THREADSAFE);
+
+		_scriptingContainer.setClassLoader(
+			new JRubyClassLoader(getClass().getClassLoader()));
 
 		LocalContextProvider localContextProvider =
 			_scriptingContainer.getProvider();
