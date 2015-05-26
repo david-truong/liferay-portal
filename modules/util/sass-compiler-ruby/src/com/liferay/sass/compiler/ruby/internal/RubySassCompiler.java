@@ -34,7 +34,7 @@ import org.jruby.embed.internal.LocalContextProvider;
 /**
  * @author David Truong
  */
-public class RubySassCompiler implements AutoCloseable, SassCompiler {
+public class RubySassCompiler implements SassCompiler {
 
 	public RubySassCompiler() throws Exception {
 		this(
@@ -49,7 +49,7 @@ public class RubySassCompiler implements AutoCloseable, SassCompiler {
 		_tmpDir = tmpDir;
 
 		_scriptingContainer = new ScriptingContainer(
-			LocalContextScope.THREADSAFE);
+			LocalContextScope.SINGLETHREAD);
 
 		LocalContextProvider localContextProvider =
 			_scriptingContainer.getProvider();
@@ -100,11 +100,6 @@ public class RubySassCompiler implements AutoCloseable, SassCompiler {
 		}
 
 		_scriptObject = _scriptingContainer.runScriptlet(rubyScript);
-	}
-
-	@Override
-	public void close() throws Exception {
-		_scriptingContainer.terminate();
 	}
 
 	@Override
