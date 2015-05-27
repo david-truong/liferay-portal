@@ -51,6 +51,10 @@ public class RubySassCompiler implements SassCompiler {
 		_scriptingContainer = new ScriptingContainer(
 			LocalContextScope.SINGLETHREAD);
 
+		Class<?> clazz = getClass();
+
+		_scriptingContainer.setClassLoader(clazz.getClassLoader());
+
 		LocalContextProvider localContextProvider =
 			_scriptingContainer.getProvider();
 
@@ -86,8 +90,6 @@ public class RubySassCompiler implements SassCompiler {
 		rubyInstanceConfig.setJitThreshold(compilerThreshold);
 
 		String rubyScript = null;
-
-		Class<?> clazz = getClass();
 
 		try (InputStream inputStream =
 				clazz.getResourceAsStream("dependencies/main.rb")) {
