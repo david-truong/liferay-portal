@@ -23,7 +23,7 @@
 
 				<java
 					fork="true"
-					jar="../../../lib/portal/jruby.jar"
+					jar="lib/jruby-complete.jar"
 				>
 					<arg line="-S gem install -i ./classes ${tstamp.value}/compass/compass-1.0.1.gem --no-rdoc --no-ri" />
 				</java>
@@ -48,6 +48,6 @@
 			module.dir="${basedir}"
 		/>
 
-		<copy file="${plugin.file}" tofile="../../../lib/development/${plugin.name}.jar" />
+		<copy file="${plugin.file}" tofile="../../../lib/portal/${plugin.name}.jar" />
 	</target>
 </project>

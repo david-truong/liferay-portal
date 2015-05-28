@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -66,7 +65,7 @@ public class RubySassCompiler implements AutoCloseable, SassCompiler {
 				RubyInstanceConfig.CompileMode.JIT);
 		}
 
-		List<String> loadPaths = new ArrayList<>();
+		List<String> loadPaths = _scriptingContainer.getLoadPaths();
 
 		loadPaths.add("META-INF/jruby.home/lib/ruby/site_ruby/1.8");
 		loadPaths.add("META-INF/jruby.home/lib/ruby/site_ruby/shared");
@@ -80,8 +79,6 @@ public class RubySassCompiler implements AutoCloseable, SassCompiler {
 		loadPaths.add("gems/rb-fsevent-0.9.4/lib");
 		loadPaths.add("gems/rb-inotify-0.9.5/lib");
 		loadPaths.add("gems/sass-3.4.13/lib");
-
-		rubyInstanceConfig.setLoadPaths(loadPaths);
 
 		rubyInstanceConfig.setJitThreshold(compilerThreshold);
 
