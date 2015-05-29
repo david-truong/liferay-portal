@@ -67,7 +67,8 @@ public class RubyExecutor extends BaseScriptingExecutor {
 
 	public static void initRubyGems(ServletContext servletContext) {
 		File rubyGemsJarFile = new File(
-			servletContext.getRealPath("/WEB-INF/lib/ruby-gems.jar"));
+			servletContext.getRealPath(
+				"/WEB-INF/lib/com.liferay.ruby.gems.jar"));
 
 		if (!rubyGemsJarFile.exists()) {
 			if (_log.isWarnEnabled()) {
