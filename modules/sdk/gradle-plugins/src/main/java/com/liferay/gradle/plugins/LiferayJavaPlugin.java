@@ -1095,6 +1095,7 @@ public class LiferayJavaPlugin implements Plugin<Project> {
 			project, CSSBuilderPlugin.BUILD_CSS_TASK_NAME);
 
 		configureTaskBuildCSSDocrootDirName(buildCSSTask);
+		configureTaskBuildCSSGenerateSourceMap(buildCSSTask);
 		configureTaskBuildCSSSassCompilerClassName(buildCSSTask);
 	}
 
@@ -1114,6 +1115,19 @@ public class LiferayJavaPlugin implements Plugin<Project> {
 		File resourcesDir = getResourcesDir(project);
 
 		buildCSSTask.setDocrootDirName(project.relativePath(resourcesDir));
+	}
+
+	protected void configureTaskBuildCSSGenerateSourceMap(
+		BuildCSSTask buildCSSTask) {
+
+		String generateSourceMap = GradleUtil.getProperty(
+			buildCSSTask.getProject(), "sass.generate.source.map",
+			(String)null);
+
+		if (Validator.isNotNull(generateSourceMap)) {
+			buildCSSTask.setGenerateSourceMap(
+				Boolean.parseBoolean(generateSourceMap));
+		}
 	}
 
 	protected void configureTaskBuildCSSSassCompilerClassName(
