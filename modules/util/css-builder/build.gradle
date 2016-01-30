@@ -32,3 +32,7 @@ formatSource {
 liferay {
 	deployDir = "../../../tools/sdk/tmp/portal-tools/css-builder"
 }
+
+test {
+	dependsOn ":frontend:frontend-common-css:buildCssCommon"
+}
