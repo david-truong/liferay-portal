@@ -40,14 +40,14 @@ make -j5""")
 
 buildLibSass_Linux_x86 {
 	inputFileName = "libsass.so"
-	makeExecutable = "make CXX=g++-4.6 CC=gcc-4.4 shared"
+	makeExecutable = "make CXX=g++-4.6 CC=gcc-4.6 shared"
 	outputFileName = "libliferaysass.so"
 	resourcesDirName = "linux-x86"
 }
 
 buildLibSass_Linux_x86_64 {
 	inputFileName = "libsass.so"
-	makeExecutable = "make CXX=g++-4.6 CC=gcc-4.4 shared"
+	makeExecutable = "make CXX=g++-4.6 CC=gcc-4.6 shared"
 	outputFileName = "libliferaysass.so"
 	resourcesDirName = "linux-x86-64"
 }
