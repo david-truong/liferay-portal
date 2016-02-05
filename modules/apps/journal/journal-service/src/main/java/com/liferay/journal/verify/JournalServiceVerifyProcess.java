@@ -105,7 +105,6 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 		verifyArticleAssets();
 		verifyArticleContents();
 		verifyArticleExpirationDate();
-		verifyArticleImages();
 		verifyArticleLayouts();
 		verifyArticleStructures();
 		verifyContentSearch();
@@ -114,6 +113,8 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 		verifyPermissions();
 		verifyTree();
 		verifyURLTitle();
+
+		verifyArticleImages();
 	}
 
 	@Reference(unbind = "-")
@@ -329,7 +330,7 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 			article.getDDMStructureKey(), true);
 
 		Fields ddmFields = _journalConverter.getDDMFields(
-			ddmStructure, article.getDocument());
+			ddmStructure, article.getContent());
 
 		String content = _journalConverter.getContent(ddmStructure, ddmFields);
 
