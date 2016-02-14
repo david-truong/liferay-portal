@@ -14,7 +14,6 @@
 
 package com.liferay.css.builder;
 
-import com.liferay.portal.kernel.model.ModelHintsConstants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 
@@ -56,23 +55,6 @@ public class CSSBuilderUtil {
 		int pos = fileName.lastIndexOf(StringPool.PERIOD);
 
 		return fileName.substring(0, pos) + "_rtl" + fileName.substring(pos);
-	}
-
-	public static String parseStaticTokens(String content) {
-		return StringUtil.replace(
-			content,
-			new String[] {
-				"@model_hints_constants_text_display_height@",
-				"@model_hints_constants_text_display_width@",
-				"@model_hints_constants_textarea_display_height@",
-				"@model_hints_constants_textarea_display_width@"
-			},
-			new String[] {
-				ModelHintsConstants.TEXT_DISPLAY_HEIGHT,
-				ModelHintsConstants.TEXT_DISPLAY_WIDTH,
-				ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT,
-				ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH
-			});
 	}
 
 }
