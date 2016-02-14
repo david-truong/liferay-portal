@@ -287,7 +287,7 @@ public class CSSBuilder {
 			new String[] {StringPool.BACK_SLASH, StringPool.DOUBLE_SLASH},
 			new String[] {StringPool.SLASH, StringPool.SLASH});
 
-		return _fixRelativePath(fileName);
+		return fileName;
 	}
 
 	private String _parseSass(String fileName) throws SassCompilerException {
@@ -312,7 +312,7 @@ public class CSSBuilder {
 			filePath, _portalCommonDirName + File.pathSeparator + cssBasePath,
 			_generateSourceMap, filePath + ".map");
 
-		return CSSBuilderUtil.parseStaticTokens(css);
+		return css;
 	}
 
 	private void _parseSassFile(String fileName) throws Exception {
