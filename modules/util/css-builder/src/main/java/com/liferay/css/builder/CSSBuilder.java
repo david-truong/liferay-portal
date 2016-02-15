@@ -322,7 +322,7 @@ public class CSSBuilder {
 			filePath, _portalCommonDirName + File.pathSeparator + cssBasePath,
 			_generateSourceMap, filePath + ".map");
 
-		return CSSBuilderUtil.parseStaticTokens(css);
+		return css;
 	}
 
 	private void _parseSassFile(SassFile sassFile) throws Exception {
