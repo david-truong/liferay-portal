@@ -201,7 +201,7 @@ public class CSSBuilder {
 				"**\\_styled\\**", "**\\_unstyled\\**", "**\\css\\aui\\**",
 				"**\\tmp\\**"
 			});
-		directoryScanner.setIncludes(new String[] {"**\\*.scss"});
+		directoryScanner.setIncludes(new String[] {"**\\*.css", "**\\*.scss"});
 
 		directoryScanner.scan();
 
