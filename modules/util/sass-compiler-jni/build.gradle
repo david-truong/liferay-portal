@@ -11,7 +11,7 @@ task generateJNALibrary
 
 ext {
 	libSassVersion = "3.3.3"
-	sassSpecVersion = "f34eb8b4e6c9ba192fc37231a252af1ab79972fd"
+	sassSpecVersion = "daff4d6ac54d90151d13e65e0d2f1a0c73a8f267"
 	libSassUrl = "https://github.com/sass/libsass/archive/${libSassVersion}.zip"
 	sassSpecUrl = "https://github.com/sass/sass-spec/archive/${sassSpecVersion}.zip"
 }
