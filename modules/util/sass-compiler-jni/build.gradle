@@ -31,7 +31,7 @@ autoreconf --force --install
 make -j5""")
 	}
 
-	inputDirName = ".libs"
+	inputDirName = "src/.libs"
 	inputFileName = "libsass.dylib"
 	makeExecutable = "./build.sh"
 	outputFileName = "libliferaysass.dylib"
