@@ -142,7 +142,7 @@ public class UpgradeTool {
 	public UpgradeTool(String jvmOpts, File logFile) throws Exception {
 		_consoleReader = new ConsoleReader();
 
-		_portalPropertiesFile = new File("portal-ext.properties");
+		_portalPropertiesFile = new File("portal-upgrade.properties");
 
 		_portalProperties = new Properties();
 
@@ -154,7 +154,7 @@ public class UpgradeTool {
 				_portalProperties.load(inputStream);
 			}
 			catch (IOException ioe) {
-				System.err.println("Could not load portal-ext.properties");
+				System.err.println("Could not load portal-upgrade.properties");
 			}
 		}
 
