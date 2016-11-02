@@ -664,6 +664,64 @@ public class ProjectTemplatesTest {
 	}
 
 	@Test
+	public void testBuildTemplateSoyPortlet() throws Exception {
+		File gradleProjectDir = _buildTemplateWithGradle(
+			"soy-portlet", "foo", "--package-name", "com.liferay.test");
+
+		_testExists(gradleProjectDir, "bnd.bnd");
+		_testExists(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/Footer.soy");
+		_testExists(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/Footer.es.js");
+		_testExists(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/Header.soy");
+		_testExists(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/Header.es.js");
+		_testExists(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/Navigation.soy");
+		_testExists(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/Navigation.es.js");
+		_testExists(
+			gradleProjectDir, "src/main/resources/META-INF/resources/View.soy");
+		_testExists(
+			gradleProjectDir,
+			"src/main/resources/META-INF/resources/View.es.js");
+
+		_testContains(
+			gradleProjectDir, "build.gradle",
+			"apply plugin: \"com.liferay.plugin\"");
+		_testContains(
+			gradleProjectDir,
+			"src/main/java/com/liferay/test/portlet/FooPortlet.java",
+			"public class FooPortlet extends SoyPortlet {");
+
+		_executeGradle(gradleProjectDir, _GRADLE_TASK_PATH_BUILD);
+
+		_testExists(gradleProjectDir, "build/libs/com.liferay.test-1.0.0.jar");
+	}
+
+	@Test
+	public void testBuildTemplateSoyPortletCustomClass() throws Exception {
+		File gradleProjectDir = _buildTemplateWithGradle(
+			"soy-portlet", "foo", "--class-name", "MySoyPortlet");
+
+		_testContains(
+			gradleProjectDir,
+			"src/main/java/foo/portlet/MySoyPortletPortlet.java",
+			"public class MySoyPortletPortlet extends SoyPortlet {");
+
+		_executeGradle(gradleProjectDir, _GRADLE_TASK_PATH_BUILD);
+
+		_testExists(gradleProjectDir, "build/libs/foo-1.0.0.jar");
+	}
+
+	@Test
 	public void testBuildTemplateTemplateContextContributor() throws Exception {
 		File gradleProjectDir = _buildTemplateWithGradle(
 			"template-context-contributor", "blade-test");
