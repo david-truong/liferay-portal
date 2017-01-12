@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,7 +40,7 @@ public class SimulationDeviceDynamicInclude extends BaseDynamicInclude {
 
 		PrintWriter printWriter = response.getWriter();
 
-		printWriter.print(_simulationDeviceDynamicIncludeTemplate);
+		printWriter.print(_TMPL_CONTENT);
 	}
 
 	@Override
@@ -49,20 +48,8 @@ public class SimulationDeviceDynamicInclude extends BaseDynamicInclude {
 		dynamicIncludeRegistry.register("/html/common/themes/bottom.jsp#post");
 	}
 
-	private static final String _simulationDeviceDynamicIncludeTemplate;
-
-	static {
-		try (InputStream inputStream =
-				SimulationDeviceDynamicInclude.class.getResourceAsStream(
-					"/META-INF/resources/simulation_device_dynamic_include." +
-						"tmpl")) {
-
-			_simulationDeviceDynamicIncludeTemplate = StringUtil.read(
-				inputStream);
-		}
-		catch (IOException ioe) {
-			throw new ExceptionInInitializerError(ioe);
-		}
-	}
+	private static final String _TMPL_CONTENT = StringUtil.read(
+		SimulationDeviceDynamicInclude.class,
+		"/META-INF/resources/simulation_device_dynamic_include.tmpl");
 
 }
