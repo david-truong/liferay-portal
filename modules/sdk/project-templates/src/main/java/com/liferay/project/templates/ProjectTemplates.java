@@ -16,21 +16,20 @@ package com.liferay.project.templates;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-
 import com.liferay.project.templates.internal.Archetyper;
 import com.liferay.project.templates.internal.util.FileUtil;
 import com.liferay.project.templates.internal.util.StringUtil;
 import com.liferay.project.templates.internal.util.Validator;
 import com.liferay.project.templates.internal.util.WorkspaceUtil;
+import org.apache.maven.archetype.ArchetypeGenerationResult;
 
 import java.io.File;
-
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -39,8 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import org.apache.maven.archetype.ArchetypeGenerationResult;
+import java.util.jar.Manifest;
 
 /**
  * @author Andrea Di Giorgi
@@ -94,6 +92,20 @@ public class ProjectTemplates {
 					String template = jarEntry.getName();
 
 					if (template.startsWith(TEMPLATE_BUNDLE_PREFIX)) {
+						Class<?> clazz = ProjectTemplates.class;
+
+						URL url = clazz.getResource("/" + template);
+
+						try (JarFile projectTemplateJar =
+								 new JarFile(url.getPath())) {
+
+							Manifest manifest =
+								projectTemplateJar.getManifest();
+
+							System.out.println(
+								manifest.getAttributes("Bundle-Description"));
+						}
+
 						template = template.substring(
 							TEMPLATE_BUNDLE_PREFIX.length(),
 							template.indexOf("-"));
@@ -103,6 +115,7 @@ public class ProjectTemplates {
 						if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
 							templates.add(template);
 						}
+
 					}
 				}
 			}
