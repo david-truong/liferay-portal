@@ -24,6 +24,7 @@ import com.liferay.project.templates.internal.util.Validator;
 import com.liferay.project.templates.internal.util.WorkspaceUtil;
 
 import java.io.File;
+import java.io.InputStream;
 
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -37,8 +38,11 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 
 import org.apache.maven.archetype.ArchetypeGenerationResult;
 
@@ -94,6 +98,22 @@ public class ProjectTemplates {
 					String template = jarEntry.getName();
 
 					if (template.startsWith(TEMPLATE_BUNDLE_PREFIX)) {
+						try (InputStream inputStream = jarFile.getInputStream(
+								jarEntry);
+							JarInputStream jarInputStream = new JarInputStream(
+								inputStream)) {
+
+							Manifest manifest = jarInputStream.getManifest();
+
+							Attributes attributes =
+								manifest.getMainAttributes();
+
+							String bundleDescription = attributes.getValue(
+								"Bundle-Description");
+
+							System.out.println(bundleDescription);
+						}
+
 						template = template.substring(
 							TEMPLATE_BUNDLE_PREFIX.length(),
 							template.indexOf("-"));
