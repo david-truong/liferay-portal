@@ -16,29 +16,35 @@ package com.liferay.project.templates;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
 import com.liferay.project.templates.internal.Archetyper;
 import com.liferay.project.templates.internal.util.FileUtil;
 import com.liferay.project.templates.internal.util.StringUtil;
 import com.liferay.project.templates.internal.util.Validator;
 import com.liferay.project.templates.internal.util.WorkspaceUtil;
-import org.apache.maven.archetype.ArchetypeGenerationResult;
 
 import java.io.File;
-import java.net.URL;
+import java.io.InputStream;
+
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+
+import org.apache.maven.archetype.ArchetypeGenerationResult;
 
 /**
  * @author Andrea Di Giorgi
@@ -92,18 +98,20 @@ public class ProjectTemplates {
 					String template = jarEntry.getName();
 
 					if (template.startsWith(TEMPLATE_BUNDLE_PREFIX)) {
-						Class<?> clazz = ProjectTemplates.class;
+						try (InputStream inputStream = jarFile.getInputStream(
+								jarEntry);
+							JarInputStream jarInputStream = new JarInputStream(
+								inputStream)) {
 
-						URL url = clazz.getResource("/" + template);
+							Manifest manifest = jarInputStream.getManifest();
 
-						try (JarFile projectTemplateJar =
-								 new JarFile(url.getPath())) {
+							Attributes attributes =
+								manifest.getMainAttributes();
 
-							Manifest manifest =
-								projectTemplateJar.getManifest();
+							String bundleDescription = attributes.getValue(
+								"Bundle-Description");
 
-							System.out.println(
-								manifest.getAttributes("Bundle-Description"));
+							System.out.println(bundleDescription);
 						}
 
 						template = template.substring(
@@ -115,7 +123,6 @@ public class ProjectTemplates {
 						if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
 							templates.add(template);
 						}
-
 					}
 				}
 			}
