@@ -433,6 +433,8 @@ public class CSSBuilder implements AutoCloseable {
 	private void _writeOutputFile(String fileName, String content, boolean rtl)
 		throws Exception {
 
+		content = CSSBuilderUtil.parseCSSImports(content);
+
 		String outputFileName;
 
 		if (rtl) {
