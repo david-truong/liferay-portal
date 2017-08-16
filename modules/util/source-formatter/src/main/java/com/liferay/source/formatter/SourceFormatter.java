@@ -70,11 +70,10 @@ public class SourceFormatter {
 			new ExcludeSyntaxPattern(ExcludeSyntax.GLOB, "**/tmp/**"),
 			new ExcludeSyntaxPattern(
 				ExcludeSyntax.REGEX,
-				"^((?!" + Pattern.quote(File.separator) +
-					"frontend-js-node-shims" + Pattern.quote(File.separator) +
-						"src" + Pattern.quote(File.separator) + ").)*" +
-							Pattern.quote(File.separator) + "node_modules" +
-								Pattern.quote(File.separator) + ".*")
+				"^((?!" + _FILE_SEPARATOR_PATTERN + "frontend-js-node-shims" +
+					_FILE_SEPARATOR_PATTERN + "src" + _FILE_SEPARATOR_PATTERN +
+						").)*" + _FILE_SEPARATOR_PATTERN + "node_modules" +
+							_FILE_SEPARATOR_PATTERN + ".*")
 	};
 
 	public static void main(String[] args) throws Exception {
@@ -465,6 +464,9 @@ public class SourceFormatter {
 				sourceProcessor.getFirstSourceMismatchException();
 		}
 	}
+
+	private static final String _FILE_SEPARATOR_PATTERN = Pattern.quote(
+		File.separator);
 
 	private static final String _PROPERTIES_FILE_NAME =
 		"source-formatter.properties";
