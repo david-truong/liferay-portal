@@ -1,0 +1,3 @@
+Bundle-Name: Liferay Health Check Service
+Bundle-SymbolicName: com.liferay.health.check.service
+Bundle-Version: 1.0.0
