@@ -4859,7 +4859,7 @@ public class ProjectTemplatesTest {
 		_testContains(
 			gradleProjectDir, "build.gradle",
 			_DEPENDENCY_MODULES_EXTENDER_API + ", version: \"2.0.2",
-			_DEPENDENCY_PORTAL_KERNEL + ", version: \"2.0.0");
+			_DEPENDENCY_PORTAL_KERNEL + ", version: \"3.0.0");
 
 		_testContains(
 			gradleProjectDir, "package.json",
@@ -4947,7 +4947,7 @@ public class ProjectTemplatesTest {
 		_testContains(
 			gradleProjectDir, "build.gradle",
 			_DEPENDENCY_MODULES_EXTENDER_API + ", version: \"2.0.2",
-			_DEPENDENCY_PORTAL_KERNEL + ", version: \"2.0.0");
+			_DEPENDENCY_PORTAL_KERNEL + ", version: \"3.0.0");
 
 		_testContains(
 			gradleProjectDir, "package.json", "@angular/animations",
