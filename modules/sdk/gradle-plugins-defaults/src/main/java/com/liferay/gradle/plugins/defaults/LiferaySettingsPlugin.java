@@ -77,6 +77,16 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 		}
 	}
 
+	private boolean _equals(Path path, Iterable<Path> parentPaths) {
+		for (Path parentPath : parentPaths) {
+			if (path.equals(parentPath)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private Set<Path> _getDirPaths(String key, Path rootDirPath) {
 		String dirNamesString = System.getProperty(key);
 
@@ -172,6 +182,8 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 			"build.exclude.dirs", rootDirPath);
 		final Set<Path> includedDirPaths = _getDirPaths(
 			"build.include.dirs", rootDirPath);
+		final Set<Path> excludedProjects = _getDirPaths(
+			"build.exclude.projects", rootDirPath);
 		final Set<ProjectDirType> excludedProjectDirTypes = _getFlags(
 			"build.exclude.", ProjectDirType.class);
 
@@ -213,6 +225,12 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 						!_startsWith(dirPath, includedDirPaths)) {
 
 						return FileVisitResult.SKIP_SUBTREE;
+					}
+
+					if (!excludedProjects.isEmpty() &&
+						_equals(dirPath, excludedProjects)) {
+
+						return FileVisitResult.CONTINUE;
 					}
 
 					if (buildProfileFileNames != null) {
