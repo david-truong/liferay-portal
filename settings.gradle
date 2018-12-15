@@ -1,5 +1,5 @@
 buildscript {
-	apply from: "build-buildscript.gradle", to: buildscript
+	apply from: "./modules/build-buildscript.gradle", to: buildscript
 }
 
 apply plugin: "com.liferay.settings.plugin"
