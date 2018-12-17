@@ -69,21 +69,18 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 		}
 
 		try {
-			_includeProjects(settings, rootDirPath, projectPathPrefix);
+			Path projectPathRootDirPath = rootDirPath;
+
+			if (_isPortalRootDirPath(rootDirPath)) {
+				projectPathRootDirPath = rootDirPath.resolve("modules");
+			}
+
+			_includeProjects(
+				settings, projectPathRootDirPath, projectPathPrefix);
 		}
 		catch (IOException ioe) {
 			throw new UncheckedIOException(ioe);
 		}
-	}
-
-	private boolean _equals(Path path, Iterable<Path> parentPaths) {
-		for (Path parentPath : parentPaths) {
-			if (path.equals(parentPath)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	private Set<Path> _getDirPaths(String key, Path rootDirPath) {
@@ -181,8 +178,6 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 			"build.exclude.dirs", projectPathRootDirPath);
 		final Set<Path> includedDirPaths = _getDirPaths(
 			"build.include.dirs", projectPathRootDirPath);
-		final Set<Path> excludedProjects = _getDirPaths(
-			"build.exclude.projects", projectPathRootDirPath);
 		final Set<ProjectDirType> excludedProjectDirTypes = _getFlags(
 			"build.exclude.", ProjectDirType.class);
 
@@ -226,12 +221,6 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 						return FileVisitResult.SKIP_SUBTREE;
 					}
 
-					if (!excludedProjects.isEmpty() &&
-						_equals(dirPath, excludedProjects)) {
-
-						return FileVisitResult.CONTINUE;
-					}
-
 					if (buildProfileFileNames != null) {
 						boolean found = false;
 
@@ -256,6 +245,18 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 				}
 
 			});
+	}
+
+	private boolean _isPortalRootDirPath(Path dirPath) {
+		if (!Files.exists(dirPath.resolve("build-working-dir.xml"))) {
+			return false;
+		}
+
+		if (!Files.exists(dirPath.resolve("portal-impl"))) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private boolean _startsWith(Path path, Iterable<Path> parentPaths) {
