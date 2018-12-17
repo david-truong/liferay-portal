@@ -1,5 +1,5 @@
 buildscript {
-	apply from: "./modules/build-buildscript.gradle", to: buildscript
+	apply from: new File(rootDir, "modules/build-buildscript.gradle"), to: buildscript
 }
 
 apply plugin: "com.liferay.settings.plugin"
@@ -9,7 +9,7 @@ String testClassGroupIndex = System.getProperty("test.class.group.index")
 if (testClassGroupIndex) {
 	Properties properties = new Properties()
 
-	File file = new File(rootDir, "../test.class.file.names.properties")
+	File file = new File(rootDir, "test.class.file.names.properties")
 
 	properties.load(new StringReader(file.text.replace("\\", "/")))
 
