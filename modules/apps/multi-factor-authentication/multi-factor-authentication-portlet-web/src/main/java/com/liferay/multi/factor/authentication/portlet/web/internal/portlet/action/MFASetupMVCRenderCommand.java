@@ -15,10 +15,9 @@
 package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.action;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.api.verifier.CompositeMFAVerifier;
+import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
 import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -30,8 +29,6 @@ import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -75,12 +72,12 @@ public class MFASetupMVCRenderCommand implements MVCRenderCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (!(mfaVerifier instanceof CompositeMFAVerifier)) {
+		if (!(mfaVerifier instanceof CompositeMFAChecker)) {
 			return Collections.singletonList(mfaVerifier);
 		}
 
-		CompositeMFAVerifier compositeMFAVerifier =
-			(CompositeMFAVerifier)mfaVerifier;
+		CompositeMFAChecker compositeMFAVerifier =
+			(CompositeMFAChecker)mfaVerifier;
 
 		return compositeMFAVerifier.getMFAVerifiersAvailableForSetup(
 			themeDisplay.getUserId());

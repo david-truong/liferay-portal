@@ -12,9 +12,9 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.integration.internal;
+package com.liferay.multi.factor.authentication.integration.internal.verifier;
 
-import com.liferay.multi.factor.authentication.api.verifier.CompositeMFAVerifier;
+import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
 import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
 import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
@@ -29,9 +29,10 @@ import java.util.List;
 /**
  * @author Tomas Polesovsky
  */
-public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
+public class MandatoryCompositeMFAVerifier
+	extends CompositeMFAVerifierImpl {
 
-	public OptionalCompositeMFAVerifier(List<MFAVerifier> mfaVerifiers) {
+	public MandatoryCompositeMFAVerifier(List<MFAVerifier> mfaVerifiers) {
 		super(mfaVerifiers);
 	}
 
@@ -52,9 +53,9 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 				continue;
 			}
 
-			if (mfaVerifier instanceof CompositeMFAVerifier) {
-				CompositeMFAVerifier compositeMFAVerifier =
-					(CompositeMFAVerifier)mfaVerifier;
+			if (mfaVerifier instanceof CompositeMFAChecker) {
+				CompositeMFAChecker compositeMFAVerifier =
+					(CompositeMFAChecker)mfaVerifier;
 
 				availableMFAVerifiers.addAll(
 					compositeMFAVerifier.getMFAVerifiersAvailableForSetup(
@@ -63,10 +64,15 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 			else {
 				availableMFAVerifiers.add(browserMFAVerifier);
 			}
+
+			if (!availableMFAVerifiers.isEmpty()) {
+				break;
+			}
 		}
 
 		return availableMFAVerifiers;
 	}
+
 
 	@Override
 	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForVerify(
@@ -95,9 +101,9 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 				continue;
 			}
 
-			if (mfaVerifier instanceof CompositeMFAVerifier) {
-				CompositeMFAVerifier compositeMFAVerifier =
-					(CompositeMFAVerifier)mfaVerifier;
+			if (mfaVerifier instanceof CompositeMFAChecker) {
+				CompositeMFAChecker compositeMFAVerifier =
+					(CompositeMFAChecker)mfaVerifier;
 
 				availableMFAVerifiers.addAll(
 					compositeMFAVerifier.getMFAVerifiersAvailableForVerify(
@@ -106,6 +112,10 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 			else {
 				availableMFAVerifiers.add(browserMFAVerifier);
 			}
+
+			if (!availableMFAVerifiers.isEmpty()) {
+				break;
+			}
 		}
 
 		return availableMFAVerifiers;
@@ -113,74 +123,94 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 
 	@Override
 	public boolean isBrowserVerified(HttpServletRequest request, long userId) {
+		if (mfaVerifiers.size() == 0) {
+			return false;
+		}
+
 		for (MFAVerifier mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
-				continue;
+				return false;
 			}
 
 			BrowserMFAVerifier browserMFAVerifier =
 				(BrowserMFAVerifier)mfaVerifier;
 
-			if(browserMFAVerifier.isBrowserVerified(request, userId)) {
-				return true;
+			if (!browserMFAVerifier.isBrowserVerified(request, userId)) {
+				return false;
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean isHeadlessVerified(HttpServletRequest request, long userId) {
+		if (mfaVerifiers.size() == 0) {
+			return false;
+		}
+
 		for (MFAVerifier mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsHeadless()) {
-				continue;
+				return false;
 			}
 
 			HeadlessMFAVerifier headlessMFAVerifier =
-				(HeadlessMFAVerifier)mfaVerifier;
+				(HeadlessMFAVerifier) mfaVerifier;
 
-			if(headlessMFAVerifier.isHeadlessVerified(request, userId)) {
-				return true;
+			if (!headlessMFAVerifier.isHeadlessVerified(request, userId)) {
+				return false;
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
-	public boolean isHeadlessSetupComplete(HttpServletRequest request, long userId) {
+	public boolean isHeadlessSetupComplete(
+		HttpServletRequest request, long userId) {
+
+		if (mfaVerifiers.size() == 0) {
+			return false;
+		}
+
 		for (MFAVerifier mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsHeadless()) {
-				continue;
+				return false;
 			}
 
 			HeadlessMFAVerifier headlessMFAVerifier =
-				(HeadlessMFAVerifier)mfaVerifier;
+				(HeadlessMFAVerifier) mfaVerifier;
 
-			if(headlessMFAVerifier.isHeadlessSetupComplete(request, userId)) {
-				return true;
+			if (!headlessMFAVerifier.isHeadlessSetupComplete(request, userId)) {
+				return false;
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
-	public boolean isBrowserSetupComplete(HttpServletRequest request, long userId) {
+	public boolean isBrowserSetupComplete(
+		HttpServletRequest request, long userId) {
+
+		if (mfaVerifiers.size() == 0) {
+			return false;
+		}
+
 		for (MFAVerifier mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
-				continue;
+				return false;
 			}
 
 			BrowserMFAVerifier browserMFAVerifier =
 				(BrowserMFAVerifier)mfaVerifier;
 
-			if(browserMFAVerifier.isBrowserSetupComplete(request, userId)) {
-				return true;
+			if (!browserMFAVerifier.isBrowserSetupComplete(request, userId)) {
+				return false;
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
@@ -188,67 +218,78 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 		ActionRequest actionRequest, ActionResponse actionResponse,
 		long userId) {
 
+		if (mfaVerifiers.size() == 0) {
+			return false;
+		}
+
+		boolean verified = true;
+
 		HttpServletRequest originalServletRequest =
 			PortalUtil.getOriginalServletRequest(
 				PortalUtil.getHttpServletRequest(actionRequest));
 
+
 		for (MFAVerifier mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
-				continue;
+				return false;
 			}
 
 			BrowserMFAVerifier browserMFAVerifier =
 				(BrowserMFAVerifier)mfaVerifier;
 
 			if(!browserMFAVerifier.isBrowserSetupComplete(
+				originalServletRequest, userId)) {
+
+				return false;
+			}
+
+			if (browserMFAVerifier.isBrowserVerified(
 					originalServletRequest, userId)) {
 
 				continue;
 			}
 
-			if (browserMFAVerifier.isBrowserVerified(
-				originalServletRequest, userId)) {
-
-				continue;
-			}
-
-			if(browserMFAVerifier.verifyBrowserRequest(
-				actionRequest, actionResponse, userId)) {
-
-				return true;
-			}
+			verified &= browserMFAVerifier.verifyBrowserRequest(
+				actionRequest, actionResponse, userId);
 		}
 
-		return false;
+		return verified;
 	}
 
 	@Override
 	public boolean verifyHeadlessRequest(
 		HttpServletRequest request, long userId) {
 
+		if (mfaVerifiers.size() == 0) {
+			return false;
+		}
+
+		boolean verified = true;
+
 		for (MFAVerifier mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsHeadless()) {
-				continue;
+				return false;
 			}
 
 			HeadlessMFAVerifier headlessMFAVerifier =
 				(HeadlessMFAVerifier)mfaVerifier;
 
+
 			if(!headlessMFAVerifier.isHeadlessSetupComplete(
 				request, userId)) {
 
-				continue;
+				return false;
 			}
 
 			if (headlessMFAVerifier.isHeadlessVerified(request, userId)) {
 				continue;
 			}
 
-			if (headlessMFAVerifier.verifyHeadlessRequest(request, userId)) {
-				return true;
-			}
+			verified &= headlessMFAVerifier.verifyHeadlessRequest(
+				request, userId);
 		}
 
-		return false;
+		return verified;
 	}
+
 }

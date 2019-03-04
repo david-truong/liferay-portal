@@ -15,6 +15,8 @@
 package com.liferay.multi.factor.authentication.integration.internal;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
+import com.liferay.multi.factor.authentication.integration.internal.verifier.MandatoryCompositeMFAVerifier;
+import com.liferay.multi.factor.authentication.integration.internal.verifier.OptionalCompositeMFAVerifier;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
 import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
@@ -68,19 +70,18 @@ public class MFARegistryImpl implements MFARegistry {
 			return null;
 		}
 
-		// TODO: performance hit?
-		if (!mfaIntegrationVerification.isValid(this)) {
+		List<List<MFAVerifier>> mfaVerifiersList =
+			mfaIntegrationVerification.getMFAVerifiersList(this);
+
+		if (mfaVerifiersList == null) {
 			_log.error(
 				StringBundler.concat(
-					"Unable to continue with MFA verification for ",
-					mfaIntegrationName, ", integration verification is ",
+					"Unable to continue with MFA verification for '",
+					mfaIntegrationName, "', integration verification is ",
 					"misconfigured."));
 
 			return null;
 		}
-
-		List<List<MFAVerifier>> mfaVerifiersList =
-			mfaIntegrationVerification.getMFAVerifiersList();
 
 		List<MFAVerifier> mandatoryMFAVerifiers =
 			new ArrayList<>(mfaVerifiersList.size());

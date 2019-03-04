@@ -12,20 +12,21 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.api.verifier;
+package com.liferay.multi.factor.authentication.api.checker;
 
 import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 /**
  * @author Tomas Polesovsky
  */
-public interface CompositeMFAVerifier {
+public interface CompositeMFAChecker {
 
-	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForSetup(long userId);
+	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForSetup(
+		long userId);
 
 	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForVerify(
 		HttpServletRequest httpServletRequest, long userId);

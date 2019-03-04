@@ -15,13 +15,11 @@
 package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.action;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.api.verifier.CompositeMFAVerifier;
+import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
 import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -33,7 +31,6 @@ import org.osgi.service.component.annotations.Reference;
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletRequest;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -96,12 +93,12 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (!(mfaVerifier instanceof CompositeMFAVerifier)) {
+		if (!(mfaVerifier instanceof CompositeMFAChecker)) {
 			return Collections.singletonList(mfaVerifier);
 		}
 
-		CompositeMFAVerifier compositeMFAVerifier =
-			(CompositeMFAVerifier)mfaVerifier;
+		CompositeMFAChecker compositeMFAVerifier =
+			(CompositeMFAChecker)mfaVerifier;
 
 		return compositeMFAVerifier.getMFAVerifiersAvailableForSetup(
 			themeDisplay.getUserId());

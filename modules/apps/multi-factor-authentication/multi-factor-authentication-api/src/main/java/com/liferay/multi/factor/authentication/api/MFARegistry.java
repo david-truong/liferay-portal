@@ -25,15 +25,16 @@ import java.util.Set;
  */
 public interface MFARegistry {
 
+	public MFAVerifier getIntegrationVerifier(String mfaIntegrationName);
+
 	public MFAIntegration getMFAIntegration(String name);
 
 	public List<MFAIntegration> getMFAIntegrations();
 
-	public List<MFAVerifier> getMFAVerifiers();
-
 	public MFAVerifier getMFAVerifier(String name);
 
-	public MFAVerifier getIntegrationVerifier(String mfaIntegrationName);
+	public List<MFAVerifier> getMFAVerifiers();
 
 	public Set<String> getVerifierIntegrationNames(String mfaVerifierName);
+
 }

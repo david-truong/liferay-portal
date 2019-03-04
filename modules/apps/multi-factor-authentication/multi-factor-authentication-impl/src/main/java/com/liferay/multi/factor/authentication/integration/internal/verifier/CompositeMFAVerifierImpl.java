@@ -12,9 +12,9 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.integration.internal;
+package com.liferay.multi.factor.authentication.integration.internal.verifier;
 
-import com.liferay.multi.factor.authentication.api.verifier.CompositeMFAVerifier;
+import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
 import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
 import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
@@ -25,14 +25,13 @@ import javax.portlet.ActionRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Tomas Polesovsky
  */
 public abstract class CompositeMFAVerifierImpl
-	implements BrowserMFAVerifier, CompositeMFAVerifier, HeadlessMFAVerifier,
+	implements BrowserMFAVerifier, CompositeMFAChecker, HeadlessMFAVerifier,
 		MFAVerifier {
 
 	@Override

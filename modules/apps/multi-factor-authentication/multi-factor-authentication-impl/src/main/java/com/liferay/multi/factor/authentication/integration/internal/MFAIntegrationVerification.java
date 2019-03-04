@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,38 +46,55 @@ public class MFAIntegrationVerification {
 	private MFAIntegrationVerificationConfiguration
 		_mfaIntegrationVerificationConfiguration;
 
+	private String _mfaIntegrationName;
+
 	@Activate
 	protected void activate(Map<String, Object> properties) {
 		_mfaIntegrationVerificationConfiguration =
 			ConfigurableUtil.createConfigurable(
 				MFAIntegrationVerificationConfiguration.class, properties);
-	}
 
-	public boolean isValid(MFARegistry mfaRegistry) {
-		String integrationName =
+		_mfaIntegrationName =
 			StringUtil.trim(
 				_mfaIntegrationVerificationConfiguration.integrationName());
 
+		String[] verifierNamesArray =
+			_mfaIntegrationVerificationConfiguration.verifierNames();
+
+		for (String verifierNames : verifierNamesArray) {
+			String[] verifierNamesList = StringUtil.split(verifierNames);
+
+			for (String verifierName : verifierNamesList) {
+				_mfaVerifiersNames.add(StringUtil.trim(verifierName));
+			}
+		}
+	}
+
+	public List<List<MFAVerifier>> getMFAVerifiersList(
+		MFARegistry mfaRegistry) {
+
 		MFAIntegration mfaIntegration = mfaRegistry.getMFAIntegration(
-			integrationName);
+			_mfaIntegrationName);
 
 		if (mfaIntegration == null) {
 			_log.error(
 				StringBundler.concat(
-					"MFA Integration ", integrationName, " is unknown!"));
+					"MFA Integration '", _mfaIntegrationName,
+					"' is not registered!"));
 
-			return false;
+			return null;
 		}
 
 		String[] verifierNamesArray =
 			_mfaIntegrationVerificationConfiguration.verifierNames();
 
-		_mfaVerifiersList = new ArrayList(verifierNamesArray.length);
+		List<List<MFAVerifier>> mfaVerifiersList = new ArrayList(
+			verifierNamesArray.length);
 
 		for (String verifierNames : verifierNamesArray) {
 			String[] verifierNamesList = StringUtil.split(verifierNames);
 
-			List<MFAVerifier> mfaVerifierList = new ArrayList<>(
+			List<MFAVerifier> mfaVerifiers = new ArrayList<>(
 				verifierNamesList.length);
 
 			for (String verifierName : verifierNamesList) {
@@ -90,10 +106,12 @@ public class MFAIntegrationVerification {
 				if (mfaVerifier == null) {
 					_log.error(
 						StringBundler.concat(
-							"MFA Verifier ", verifierName, " in ",
-							integrationName, " is unknown!"));
+							"MFA integration verification '",
+							_mfaIntegrationName,
+							"' contains unknown MFA Verifier '",
+							_mfaIntegrationName, "'"));
 
-					return false;
+					return null;
 				}
 
 				if ((mfaIntegration.supportsHeadless() &&
@@ -101,7 +119,7 @@ public class MFAIntegrationVerification {
 					(mfaIntegration.supportsBrowser() &&
 					 mfaVerifier.supportsBrowser())) {
 
-					mfaVerifierList.add(mfaVerifier);
+					mfaVerifiers.add(mfaVerifier);
 
 					_mfaVerifiersNames.add(mfaVerifier.getName());
 				}
@@ -125,31 +143,27 @@ public class MFAIntegrationVerification {
 							mfaIntegrationSupports, " but verifier supports ",
 							mfaVerifierSupports));
 
-					return false;
+					return null;
 				}
 			}
 
-			if (!mfaVerifierList.isEmpty()) {
-				_mfaVerifiersList.add(mfaVerifierList);
+			if (!mfaVerifiers.isEmpty()) {
+				mfaVerifiersList.add(mfaVerifiers);
 			}
 		}
 
-		return true;
+		return mfaVerifiersList;
 	}
 
 	public String getIntegrationName() {
-		return _mfaIntegrationVerificationConfiguration.integrationName();
-	}
-
-	public List<List<MFAVerifier>> getMFAVerifiersList() {
-		return _mfaVerifiersList;
+		return _mfaIntegrationName;
 	}
 
 	public boolean hasMFAVerifier(String mfaVerifierName) {
 		return _mfaVerifiersNames.contains(mfaVerifierName);
 	}
 
-	private List<List<MFAVerifier>> _mfaVerifiersList;
+	private List<List<String>> mfaVerifiersList;
 	private Set<String> _mfaVerifiersNames = new HashSet<>();
 
 	private static final Log _log = LogFactoryUtil.getLog(
