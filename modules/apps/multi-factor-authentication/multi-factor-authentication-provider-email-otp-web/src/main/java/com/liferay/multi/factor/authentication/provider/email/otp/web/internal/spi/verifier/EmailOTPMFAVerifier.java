@@ -17,9 +17,9 @@ package com.liferay.multi.factor.authentication.provider.email.otp.web.internal.
 import com.liferay.multi.factor.authentication.provider.email.otp.model.EmailOTP;
 import com.liferay.multi.factor.authentication.provider.email.otp.service.EmailOTPLocalService;
 import com.liferay.multi.factor.authentication.provider.email.otp.web.internal.configuration.EmailOTPConfiguration;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.UserAccountSetupMFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -60,10 +60,10 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	configurationPid = "com.liferay.multi.factor.authentication.provider.email.otp.web.internal.configuration.EmailOTPConfiguration",
 	configurationPolicy = ConfigurationPolicy.REQUIRE,
-	service = MFAVerifier.class
+	service = MFAChecker.class
 )
 public class EmailOTPMFAVerifier
-	implements BrowserMFAVerifier, MFAVerifier, UserAccountSetupMFAVerifier {
+	implements BrowserMFAChecker, MFAChecker, UserAccountSetupMFARenderer {
 
 	private boolean _enabled;
 	private String _name;

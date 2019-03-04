@@ -16,9 +16,10 @@
 
 <%@ include file="/init.jsp" %>
 <%
-BrowserMFAVerifier browserMFAVerifier = (BrowserMFAVerifier)request.getAttribute(BrowserMFAVerifier.class.getName());
+BrowserMFAChecker
+	browserMFAVerifier = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
 
-List<BrowserMFAVerifier> verifyMFAVerifiers = (List<BrowserMFAVerifier>)request.getAttribute("verifyMFAVerifiers");
+List<BrowserMFAChecker> verifyMFAVerifiers = (List<BrowserMFAChecker>)request.getAttribute("verifyMFAVerifiers");
 
 long mfaUserId = (Long)request.getAttribute("mfaUserId");
 

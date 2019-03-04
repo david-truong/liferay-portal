@@ -30,8 +30,8 @@ taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 <%@ page import="com.liferay.portal.kernel.util.GetterUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.ParamUtil" %>
 
-<%@ page import="com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier" %>
-<%@ page import="com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier" %>
+<%@ page import="com.liferay.multi.factor.authentication.spi.checker.MFAChecker" %>
+<%@ page import="com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.liferay.portal.kernel.theme.ThemeDisplay" %>
 <%@ page import="com.liferay.portal.kernel.util.WebKeys" %>

@@ -14,8 +14,8 @@
 
 package com.liferay.multi.factor.authentication.api;
 
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
 
 import java.util.List;
 import java.util.Set;
@@ -25,16 +25,16 @@ import java.util.Set;
  */
 public interface MFARegistry {
 
-	public MFAVerifier getIntegrationVerifier(String mfaIntegrationName);
+	public MFAChecker getMFAChecker(String name);
+
+	public Set<String> getMFACheckerIntegrationNames(String mfaCheckerName);
+
+	public List<MFAChecker> getMFACheckers();
 
 	public MFAIntegration getMFAIntegration(String name);
 
+	public MFAChecker getMFAIntegrationChecker(String mfaIntegrationName);
+
 	public List<MFAIntegration> getMFAIntegrations();
-
-	public MFAVerifier getMFAVerifier(String name);
-
-	public List<MFAVerifier> getMFAVerifiers();
-
-	public Set<String> getVerifierIntegrationNames(String mfaVerifierName);
 
 }

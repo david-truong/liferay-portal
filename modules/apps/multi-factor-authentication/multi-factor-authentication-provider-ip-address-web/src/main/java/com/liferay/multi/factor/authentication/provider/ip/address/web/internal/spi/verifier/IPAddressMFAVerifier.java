@@ -15,29 +15,24 @@
 package com.liferay.multi.factor.authentication.provider.ip.address.web.internal.spi.verifier;
 
 import com.liferay.multi.factor.authentication.provider.ip.address.web.internal.configuration.IPAddressConfiguration;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.security.access.control.AccessControlUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.util.PropsValues;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -46,9 +41,9 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	configurationPid = "com.liferay.multi.factor.authentication.provider.ip.address.web.internal.configuration.IPAddressConfiguration",
 	configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true,
-	service = MFAVerifier.class
+	service = MFAChecker.class
 )
-public class IPAddressMFAVerifier implements HeadlessMFAVerifier, MFAVerifier {
+public class IPAddressMFAVerifier implements HeadlessMFAChecker, MFAChecker {
 
 	private IPAddressConfiguration _ipAddressConfiguration;
 

@@ -15,9 +15,9 @@
 package com.liferay.multi.factor.authentication.integration.auth.verifier.internal.servlet.filter;
 
 import com.liferay.multi.factor.authentication.integration.auth.verifier.internal.spi.integration.AuthVerifierMFAIntegration;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -101,7 +101,7 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 			return;
 		}
 
-		MFAVerifier mfaVerifier = _mfaRegistry.getIntegrationVerifier(
+		MFAChecker mfaVerifier = _mfaRegistry.getMFAIntegrationChecker(
 				_authVerifierMFAIntegration.getName());
 
 		if ((mfaVerifier == null) || !mfaVerifier.supportsHeadless() ||
@@ -112,8 +112,8 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 			return;
 		}
 
-		HeadlessMFAVerifier headlessMFAVerifier =
-			(HeadlessMFAVerifier)mfaVerifier;
+		HeadlessMFAChecker headlessMFAVerifier =
+			(HeadlessMFAChecker)mfaVerifier;
 
 		long userId = authVerifierResult.getUserId();
 

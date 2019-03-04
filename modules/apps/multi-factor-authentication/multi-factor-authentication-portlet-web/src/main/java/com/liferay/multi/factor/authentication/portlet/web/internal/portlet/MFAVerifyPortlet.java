@@ -17,8 +17,8 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.portlet;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
@@ -83,7 +83,7 @@ public class MFAVerifyPortlet extends MVCPortlet {
 			return;
 		}
 
-		MFAVerifier mfaVerifier = _mfaRegistry.getIntegrationVerifier(integrationName);
+		MFAChecker mfaVerifier = _mfaRegistry.getMFAIntegrationChecker(integrationName);
 
 		if (mfaVerifier == null) {
 			SessionErrors.add(
@@ -96,7 +96,7 @@ public class MFAVerifyPortlet extends MVCPortlet {
 		}
 
 		if (!mfaVerifier.supportsBrowser() ||
-			!(mfaVerifier instanceof BrowserMFAVerifier)) {
+			!(mfaVerifier instanceof BrowserMFAChecker)) {
 
 			_log.error(
 				StringBundler.concat(
@@ -140,7 +140,7 @@ public class MFAVerifyPortlet extends MVCPortlet {
 			return;
 		}
 
-		MFAVerifier mfaVerifier = _mfaRegistry.getIntegrationVerifier(integrationName);
+		MFAChecker mfaVerifier = _mfaRegistry.getMFAIntegrationChecker(integrationName);
 
 		if (mfaVerifier == null) {
 			SessionErrors.add(
@@ -157,7 +157,7 @@ public class MFAVerifyPortlet extends MVCPortlet {
 		}
 
 		if (!mfaVerifier.supportsBrowser() ||
-			!(mfaVerifier instanceof BrowserMFAVerifier)) {
+			!(mfaVerifier instanceof BrowserMFAChecker)) {
 
 			_log.error(
 				StringBundler.concat(

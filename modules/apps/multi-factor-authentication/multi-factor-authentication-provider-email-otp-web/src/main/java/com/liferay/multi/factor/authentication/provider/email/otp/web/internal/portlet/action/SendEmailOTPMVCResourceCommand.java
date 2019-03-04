@@ -26,27 +26,22 @@ import com.liferay.multi.factor.authentication.provider.email.otp.model.EmailOTP
 import com.liferay.multi.factor.authentication.provider.email.otp.service.EmailOTPLocalService;
 import com.liferay.multi.factor.authentication.provider.email.otp.web.internal.configuration.EmailOTPConfiguration;
 import com.liferay.multi.factor.authentication.provider.email.otp.web.internal.spi.verifier.EmailOTPMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.resource.manager.ClassLoaderResourceManager;
 import com.liferay.portal.kernel.security.auth.AuthToken;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.settings.CompanyServiceSettingsLocator;
-import com.liferay.portal.kernel.settings.LocalizedValuesMap;
 import com.liferay.portal.kernel.settings.LocationVariableResolver;
 import com.liferay.portal.kernel.settings.SettingsLocatorHelper;
-import com.liferay.portal.kernel.settings.SystemSettingsLocator;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -68,7 +63,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import java.io.IOException;
-import java.util.Locale;
 
 /**
  * @author arthurchan35
@@ -252,7 +246,7 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 		String mfaVerifierName =
 			ParamUtil.getString(request, "mfaVerifierName");
 
-		MFAVerifier mfaVerifier = _mfaRegistry.getMFAVerifier(mfaVerifierName);
+		MFAChecker mfaVerifier = _mfaRegistry.getMFAChecker(mfaVerifierName);
 
 		if (mfaVerifier == null) {
 			_log.error("Unable to find MFAVerifier " + mfaVerifierName);

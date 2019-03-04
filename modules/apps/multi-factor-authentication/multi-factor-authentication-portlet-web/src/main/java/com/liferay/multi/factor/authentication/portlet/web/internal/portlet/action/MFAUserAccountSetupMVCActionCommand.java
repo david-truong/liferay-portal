@@ -15,11 +15,8 @@
 package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.action;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.UserAccountSetupMFAVerifier;
-import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -29,8 +26,6 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.users.admin.constants.UsersAdminPortletKeys;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -57,8 +52,8 @@ public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 		String userAccountSetupMFAVerifierName = ParamUtil.getString(
 			actionRequest, "userAccountSetupMFAVerifierName");
 
-		MFAVerifier mfaVerifier =
-			_mfaRegistry.getMFAVerifier(userAccountSetupMFAVerifierName);
+		MFAChecker mfaVerifier =
+			_mfaRegistry.getMFAChecker(userAccountSetupMFAVerifierName);
 
 		if ((mfaVerifier == null) || !mfaVerifier.supportsUserAccountSetup()) {
 			SessionErrors.add(actionRequest, "userAccountSetupFailed");
@@ -66,8 +61,8 @@ public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 			return;
 		}
 
-		UserAccountSetupMFAVerifier userAccountSetupMFAVerifier =
-			(UserAccountSetupMFAVerifier)mfaVerifier;
+		UserAccountSetupMFARenderer userAccountSetupMFAVerifier =
+			(UserAccountSetupMFARenderer)mfaVerifier;
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);

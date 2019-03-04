@@ -15,9 +15,9 @@
 package com.liferay.multi.factor.authentication.integration.internal.verifier;
 
 import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 
@@ -31,8 +31,8 @@ import java.util.List;
  * @author Tomas Polesovsky
  */
 public abstract class CompositeMFAVerifierImpl
-	implements BrowserMFAVerifier, CompositeMFAChecker, HeadlessMFAVerifier,
-		MFAVerifier {
+	implements BrowserMFAChecker, CompositeMFAChecker, HeadlessMFAChecker,
+	MFAChecker {
 
 	@Override
 	public boolean supportsUserAccountSetup() {
@@ -41,7 +41,7 @@ public abstract class CompositeMFAVerifierImpl
 
 	@Override
 	public boolean isEnabled() {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (mfaVerifier.isEnabled()) {
 				return true;
 			}
@@ -57,7 +57,7 @@ public abstract class CompositeMFAVerifierImpl
 		}
 
 		StringBundler sb = new StringBundler(mfaVerifiers.size() * 2 - 1);
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (sb.length() > 0) {
 				sb.append(StringPool.COMMA);
 			}
@@ -74,7 +74,7 @@ public abstract class CompositeMFAVerifierImpl
 		}
 
 		StringBundler sb = new StringBundler(mfaVerifiers.size() * 2 - 1);
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (sb.length() > 0) {
 				sb.append(StringPool.COMMA);
 			}
@@ -84,13 +84,13 @@ public abstract class CompositeMFAVerifierImpl
 		return sb.toString();
 	}
 
-	public CompositeMFAVerifierImpl(List<MFAVerifier> mfaVerifiers) {
+	public CompositeMFAVerifierImpl(List<MFAChecker> mfaVerifiers) {
 		this.mfaVerifiers = mfaVerifiers;
 	}
 
 	@Override
 	public boolean supportsHeadless() {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (mfaVerifier.supportsHeadless()) {
 				return true;
 			}
@@ -101,7 +101,7 @@ public abstract class CompositeMFAVerifierImpl
 
 	@Override
 	public boolean supportsBrowser() {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (mfaVerifier.supportsBrowser()) {
 				return true;
 			}
@@ -115,13 +115,13 @@ public abstract class CompositeMFAVerifierImpl
 		long userId, HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if (!browserMFAVerifier.forceUserSetup(userId)) {
 				continue;
@@ -138,13 +138,13 @@ public abstract class CompositeMFAVerifierImpl
 		long userId, HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if (!browserMFAVerifier.isBrowserSetupComplete(
 				request, userId)) {
@@ -166,13 +166,13 @@ public abstract class CompositeMFAVerifierImpl
 
 	@Override
 	public boolean forceUserSetup(long userId) {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if (browserMFAVerifier.forceUserSetup(userId)) {
 				return true;
@@ -186,13 +186,13 @@ public abstract class CompositeMFAVerifierImpl
 	public boolean setup(ActionRequest actionRequest, long userId) {
 		boolean setup = false;
 
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if(!browserMFAVerifier.forceUserSetup(userId)) {
 				continue;
@@ -204,6 +204,6 @@ public abstract class CompositeMFAVerifierImpl
 		return setup;
 	}
 
-	protected List<MFAVerifier> mfaVerifiers;
+	protected List<MFAChecker> mfaVerifiers;
 
 }

@@ -14,7 +14,7 @@
 
 package com.liferay.multi.factor.authentication.api.checker;
 
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 
 import java.util.List;
 
@@ -25,10 +25,10 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface CompositeMFAChecker {
 
-	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForSetup(
+	public List<BrowserMFAChecker> getMFAVerifiersAvailableForSetup(
 		long userId);
 
-	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForVerify(
+	public List<BrowserMFAChecker> getMFAVerifiersAvailableForVerify(
 		HttpServletRequest httpServletRequest, long userId);
 
 }

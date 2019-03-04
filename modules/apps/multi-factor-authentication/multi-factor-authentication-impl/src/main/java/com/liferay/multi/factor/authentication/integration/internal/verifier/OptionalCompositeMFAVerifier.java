@@ -15,9 +15,9 @@
 package com.liferay.multi.factor.authentication.integration.internal.verifier;
 
 import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 import javax.portlet.ActionRequest;
@@ -31,22 +31,22 @@ import java.util.List;
  */
 public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 
-	public OptionalCompositeMFAVerifier(List<MFAVerifier> mfaVerifiers) {
+	public OptionalCompositeMFAVerifier(List<MFAChecker> mfaVerifiers) {
 		super(mfaVerifiers);
 	}
 
 	@Override
-	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForSetup(long userId) {
-		List<BrowserMFAVerifier> availableMFAVerifiers = new ArrayList<>(
+	public List<BrowserMFAChecker> getMFAVerifiersAvailableForSetup(long userId) {
+		List<BrowserMFAChecker> availableMFAVerifiers = new ArrayList<>(
 			mfaVerifiers.size());
 
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if (!browserMFAVerifier.forceUserSetup(userId)) {
 				continue;
@@ -69,19 +69,19 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 	}
 
 	@Override
-	public List<BrowserMFAVerifier> getMFAVerifiersAvailableForVerify(
+	public List<BrowserMFAChecker> getMFAVerifiersAvailableForVerify(
 		HttpServletRequest httpServletRequest, long userId) {
 
-		List<BrowserMFAVerifier> availableMFAVerifiers = new ArrayList<>(
+		List<BrowserMFAChecker> availableMFAVerifiers = new ArrayList<>(
 			mfaVerifiers.size());
 
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if (!browserMFAVerifier.isBrowserSetupComplete(
 				httpServletRequest, userId)) {
@@ -113,13 +113,13 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 
 	@Override
 	public boolean isBrowserVerified(HttpServletRequest request, long userId) {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if(browserMFAVerifier.isBrowserVerified(request, userId)) {
 				return true;
@@ -131,13 +131,13 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 
 	@Override
 	public boolean isHeadlessVerified(HttpServletRequest request, long userId) {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsHeadless()) {
 				continue;
 			}
 
-			HeadlessMFAVerifier headlessMFAVerifier =
-				(HeadlessMFAVerifier)mfaVerifier;
+			HeadlessMFAChecker headlessMFAVerifier =
+				(HeadlessMFAChecker)mfaVerifier;
 
 			if(headlessMFAVerifier.isHeadlessVerified(request, userId)) {
 				return true;
@@ -149,13 +149,13 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 
 	@Override
 	public boolean isHeadlessSetupComplete(HttpServletRequest request, long userId) {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsHeadless()) {
 				continue;
 			}
 
-			HeadlessMFAVerifier headlessMFAVerifier =
-				(HeadlessMFAVerifier)mfaVerifier;
+			HeadlessMFAChecker headlessMFAVerifier =
+				(HeadlessMFAChecker)mfaVerifier;
 
 			if(headlessMFAVerifier.isHeadlessSetupComplete(request, userId)) {
 				return true;
@@ -167,13 +167,13 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 
 	@Override
 	public boolean isBrowserSetupComplete(HttpServletRequest request, long userId) {
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if(browserMFAVerifier.isBrowserSetupComplete(request, userId)) {
 				return true;
@@ -192,13 +192,13 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 			PortalUtil.getOriginalServletRequest(
 				PortalUtil.getHttpServletRequest(actionRequest));
 
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if(!browserMFAVerifier.isBrowserSetupComplete(
 					originalServletRequest, userId)) {
@@ -226,13 +226,13 @@ public class OptionalCompositeMFAVerifier extends CompositeMFAVerifierImpl {
 	public boolean verifyHeadlessRequest(
 		HttpServletRequest request, long userId) {
 
-		for (MFAVerifier mfaVerifier : mfaVerifiers) {
+		for (MFAChecker mfaVerifier : mfaVerifiers) {
 			if (!mfaVerifier.supportsHeadless()) {
 				continue;
 			}
 
-			HeadlessMFAVerifier headlessMFAVerifier =
-				(HeadlessMFAVerifier)mfaVerifier;
+			HeadlessMFAChecker headlessMFAVerifier =
+				(HeadlessMFAChecker)mfaVerifier;
 
 			if(!headlessMFAVerifier.isHeadlessSetupComplete(
 				request, userId)) {

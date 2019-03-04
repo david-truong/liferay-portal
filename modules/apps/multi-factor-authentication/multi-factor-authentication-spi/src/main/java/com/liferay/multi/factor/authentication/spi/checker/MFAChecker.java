@@ -12,24 +12,31 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.spi.verifier;
+package com.liferay.multi.factor.authentication.spi.checker;
 
-import javax.portlet.ActionRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
 
 /**
  * @author Tomas Polesovsky
  */
-public interface UserAccountSetupMFAVerifier {
+public interface MFAChecker {
 
-	public void includeUserAccountSetup(
-		long userId, HttpServletRequest request,
-		HttpServletResponse response)
-		throws IOException;
+	public String getName();
 
+	public String getProviderName();
 
-	public boolean setupUserAccount(ActionRequest actionRequest, long userId);
+	public boolean isEnabled();
+
+	public default boolean supportsBrowser() {
+		return BrowserMFAChecker.class.isAssignableFrom(getClass());
+	}
+
+	public default boolean supportsHeadless() {
+		return HeadlessMFAChecker.class.isAssignableFrom(getClass());
+	}
+
+	public default boolean supportsUserAccountSetup() {
+		return UserAccountSetupMFARenderer.class.isAssignableFrom(getClass());
+	}
 
 }

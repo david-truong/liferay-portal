@@ -1,9 +1,9 @@
 <%@ page import="com.liferay.portal.kernel.model.User" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %>
 <%@ page
-	import="com.liferay.multi.factor.authentication.spi.verifier.UserAccountSetupMFAVerifier" %>
+	import="com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer" %>
 <%@ page
-	import="com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier" %>
+	import="com.liferay.multi.factor.authentication.spi.checker.MFAChecker" %>
 
 <%--
 /**
@@ -29,8 +29,9 @@ page import="com.liferay.portal.kernel.util.PortalUtil" %>
 	String screenNavigationCategoryKey = ParamUtil.getString(request, "screenNavigationCategoryKey");
 	String screenNavigationEntryKey = ParamUtil.getString(request, "screenNavigationEntryKey");
 
-	UserAccountSetupMFAVerifier userAccountSetupMFAVerifier = (UserAccountSetupMFAVerifier)request.getAttribute(UserAccountSetupMFAVerifier.class.getName());
-	MFAVerifier mfaVerifier = (MFAVerifier)userAccountSetupMFAVerifier;
+	UserAccountSetupMFARenderer
+		userAccountSetupMFAVerifier = (UserAccountSetupMFARenderer)request.getAttribute(UserAccountSetupMFARenderer.class.getName());
+	MFAChecker mfaVerifier = (MFAChecker)userAccountSetupMFAVerifier;
 %>
 
 <portlet:actionURL name="/my_account/setup_mfa" var="actionURL">

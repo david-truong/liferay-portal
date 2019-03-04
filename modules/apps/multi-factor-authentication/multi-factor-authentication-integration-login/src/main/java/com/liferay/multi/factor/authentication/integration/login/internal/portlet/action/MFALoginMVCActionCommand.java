@@ -18,9 +18,9 @@ import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.login.internal.constants.LoginPortletKeys;
 import com.liferay.multi.factor.authentication.integration.login.internal.spi.integration.LoginMFAIntegration;
 import com.liferay.multi.factor.authentication.portlet.api.MFAPortletURLFactory;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.encryptor.Encryptor;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -78,8 +78,8 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		MFAVerifier mfaVerifier =
-			_mfaVerifierRegistry.getIntegrationVerifier(
+		MFAChecker mfaVerifier =
+			_mfaVerifierRegistry.getMFAIntegrationChecker(
 				_loginMFAIntegration.getName());
 
 		if (mfaVerifier == null) {
@@ -122,8 +122,8 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 
 			if (userId > 0) {
 				if (mfaVerifier.supportsBrowser()) {
-					BrowserMFAVerifier browserMFAVerifier =
-						(BrowserMFAVerifier)mfaVerifier;
+					BrowserMFAChecker browserMFAVerifier =
+						(BrowserMFAChecker)mfaVerifier;
 
 					if (browserMFAVerifier.forceUserSetup(userId)) {
 						redirectToSetup(actionRequest, actionResponse);
@@ -133,8 +133,8 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 				}
 
 				if (mfaVerifier.supportsHeadless()) {
-					HeadlessMFAVerifier headlessMFAVerifier =
-						(HeadlessMFAVerifier) mfaVerifier;
+					HeadlessMFAChecker headlessMFAVerifier =
+						(HeadlessMFAChecker) mfaVerifier;
 
 					if (headlessMFAVerifier.isHeadlessSetupComplete(
 						request, userId)) {
@@ -160,8 +160,8 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 				}
 
 				if (mfaVerifier.supportsBrowser()) {
-					BrowserMFAVerifier browserMFAVerifier =
-						(BrowserMFAVerifier) mfaVerifier;
+					BrowserMFAChecker browserMFAVerifier =
+						(BrowserMFAChecker) mfaVerifier;
 
 					if (browserMFAVerifier.isBrowserSetupComplete(
 						request, userId)) {

@@ -12,17 +12,25 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.spi.verifier;
+package com.liferay.multi.factor.authentication.spi.renderer;
+
+import java.io.IOException;
+
+import javax.portlet.ActionRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Tomas Polesovsky
  */
-public interface HeadlessMFAVerifier {
-	public boolean isHeadlessSetupComplete(HttpServletRequest request, long userId);
+public interface UserAccountSetupMFARenderer {
 
-	public boolean verifyHeadlessRequest(HttpServletRequest request, long userId);
+	public void includeUserAccountSetup(
+			long userId, HttpServletRequest request,
+			HttpServletResponse response)
+		throws IOException;
 
-	public boolean isHeadlessVerified(HttpServletRequest request, long userId);
+	public boolean setupUserAccount(ActionRequest actionRequest, long userId);
+
 }

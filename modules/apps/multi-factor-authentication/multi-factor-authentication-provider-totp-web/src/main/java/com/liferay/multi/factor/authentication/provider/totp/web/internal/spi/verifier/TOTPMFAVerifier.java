@@ -15,13 +15,13 @@
 package com.liferay.multi.factor.authentication.provider.totp.web.internal.spi.verifier;
 
 import com.liferay.multi.factor.authentication.provider.totp.web.internal.configuration.TOTPConfiguration;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.multi.factor.authentication.provider.totp.model.TOTP;
 import com.liferay.multi.factor.authentication.provider.totp.service.TOTPLocalService;
 import com.liferay.multi.factor.authentication.provider.totp.web.internal.util.TOTPUtil;
-import com.liferay.multi.factor.authentication.spi.verifier.UserAccountSetupMFAVerifier;
+import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -68,11 +68,11 @@ import java.util.Map;
 	configurationPid = "com.liferay.multi.factor.authentication.provider.totp.web.internal.configuration.TOTPConfiguration",
 	configurationPolicy = ConfigurationPolicy.REQUIRE,
 	immediate = true,
-	service = MFAVerifier.class
+	service = MFAChecker.class
 )
 public class TOTPMFAVerifier
-	implements BrowserMFAVerifier, HeadlessMFAVerifier, MFAVerifier,
-		UserAccountSetupMFAVerifier {
+	implements BrowserMFAChecker, HeadlessMFAChecker, MFAChecker,
+	UserAccountSetupMFARenderer {
 
 	private static final String _VALIDATED =
 		TOTPMFAVerifier.class.getName() + "#VALIDATED";

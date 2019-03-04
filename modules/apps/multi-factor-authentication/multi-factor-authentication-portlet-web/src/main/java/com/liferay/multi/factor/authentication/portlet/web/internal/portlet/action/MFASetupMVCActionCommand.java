@@ -17,7 +17,7 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.act
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -54,14 +54,14 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		String integrationName = ParamUtil.getString(
 			actionRequest, "integrationName");
 
-		BrowserMFAVerifier browserMFAVerifier =
-			(BrowserMFAVerifier)_mfaRegistry.getIntegrationVerifier(integrationName);
+		BrowserMFAChecker browserMFAVerifier =
+			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(integrationName);
 
 		int setupMFAVerifierIndex =
 			ParamUtil.getInteger(actionRequest, "setupMFAVerifierIndex", -1);
 
 		if (setupMFAVerifierIndex > 1) {
-			List<BrowserMFAVerifier> setupMFAVerifiers =
+			List<BrowserMFAChecker> setupMFAVerifiers =
 				_getSetupMFAVerifiers(browserMFAVerifier, actionRequest);
 
 			if (setupMFAVerifierIndex < setupMFAVerifiers.size()) {
@@ -87,8 +87,8 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private List<BrowserMFAVerifier> _getSetupMFAVerifiers(
-		BrowserMFAVerifier mfaVerifier, PortletRequest portletRequest) {
+	private List<BrowserMFAChecker> _getSetupMFAVerifiers(
+		BrowserMFAChecker mfaVerifier, PortletRequest portletRequest) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);

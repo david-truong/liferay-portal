@@ -18,7 +18,7 @@ import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.internal.verifier.MandatoryCompositeMFAVerifier;
 import com.liferay.multi.factor.authentication.integration.internal.verifier.OptionalCompositeMFAVerifier;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
@@ -44,24 +44,24 @@ public class MFARegistryImpl implements MFARegistry {
 	private ServiceTrackerMap<String, MFAIntegration>
 		_mfaIntegrationServiceTrackerMap;
 
-	private ServiceTrackerMap<String, MFAVerifier>
+	private ServiceTrackerMap<String, MFAChecker>
 		_mfaVerifiersServiceTrackerMap;
 
 	private ServiceTrackerMap<String, MFAIntegrationVerification>
 		_mfaIntegrationVerificationServiceTrackerMap;
 
 	@Override
-	public List<MFAVerifier> getMFAVerifiers() {
+	public List<MFAChecker> getMFACheckers() {
 		return new ArrayList(_mfaVerifiersServiceTrackerMap.values());
 	}
 
 	@Override
-	public MFAVerifier getMFAVerifier(String name) {
+	public MFAChecker getMFAChecker(String name) {
 		return _mfaVerifiersServiceTrackerMap.getService(name);
 	}
 
 	@Override
-	public MFAVerifier getIntegrationVerifier(String mfaIntegrationName) {
+	public MFAChecker getMFAIntegrationChecker(String mfaIntegrationName) {
 		MFAIntegrationVerification mfaIntegrationVerification =
 			_mfaIntegrationVerificationServiceTrackerMap.getService(
 				mfaIntegrationName);
@@ -70,7 +70,7 @@ public class MFARegistryImpl implements MFARegistry {
 			return null;
 		}
 
-		List<List<MFAVerifier>> mfaVerifiersList =
+		List<List<MFAChecker>> mfaVerifiersList =
 			mfaIntegrationVerification.getMFAVerifiersList(this);
 
 		if (mfaVerifiersList == null) {
@@ -83,10 +83,10 @@ public class MFARegistryImpl implements MFARegistry {
 			return null;
 		}
 
-		List<MFAVerifier> mandatoryMFAVerifiers =
+		List<MFAChecker> mandatoryMFAVerifiers =
 			new ArrayList<>(mfaVerifiersList.size());
 
-		for (List<MFAVerifier> mfaVerifiers : mfaVerifiersList) {
+		for (List<MFAChecker> mfaVerifiers : mfaVerifiersList) {
 			if (mfaVerifiers.isEmpty()) {
 				continue;
 			}
@@ -112,15 +112,15 @@ public class MFARegistryImpl implements MFARegistry {
 	}
 
 	@Override
-	public Set<String> getVerifierIntegrationNames(
-		String mfaVerifierName) {
+	public Set<String> getMFACheckerIntegrationNames(
+		String mfaCheckerName) {
 
 		Set<String> verifierIntegrationNames = new HashSet<>();
 
 		for (MFAIntegrationVerification mfaIntegrationVerification :
 			_mfaIntegrationVerificationServiceTrackerMap.values()) {
 
-			if (mfaIntegrationVerification.hasMFAVerifier(mfaVerifierName)) {
+			if (mfaIntegrationVerification.hasMFAVerifier(mfaCheckerName)) {
 				verifierIntegrationNames.add(
 					mfaIntegrationVerification.getIntegrationName());
 			}
@@ -148,7 +148,7 @@ public class MFARegistryImpl implements MFARegistry {
 
 		_mfaVerifiersServiceTrackerMap =
 			ServiceTrackerMapFactory.openSingleValueMap(
-				bundleContext, MFAVerifier.class, null,
+				bundleContext, MFAChecker.class, null,
 				ServiceReferenceMapperFactory.create(
 					bundleContext,
 					(service, emitter) -> emitter.emit(service.getName())));

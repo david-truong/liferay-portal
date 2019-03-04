@@ -17,9 +17,9 @@ package com.liferay.multi.factor.authentication.integration.login.internal.event
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.login.internal.spi.integration.LoginMFAIntegration;
 import com.liferay.multi.factor.authentication.portlet.api.MFAPortletURLFactory;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.portal.kernel.events.Action;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.events.LifecycleAction;
@@ -48,8 +48,8 @@ public class MFALoginServicePreAction extends Action {
 	public void run(HttpServletRequest request, HttpServletResponse response)
 		throws ActionException {
 
-		MFAVerifier mfaVerifier =
-			_mfaRegistry.getIntegrationVerifier(_loginMFAIntegration.getName());
+		MFAChecker mfaVerifier =
+			_mfaRegistry.getMFAIntegrationChecker(_loginMFAIntegration.getName());
 
 		if (mfaVerifier == null) {
 			return;
@@ -79,8 +79,8 @@ public class MFALoginServicePreAction extends Action {
 		long userId = themeDisplay.getUserId();
 
 		if (mfaVerifier.supportsBrowser()) {
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier)mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker)mfaVerifier;
 
 			if (browserMFAVerifier.forceUserSetup(userId)) {
 				redirectToSetup(request, response, themeDisplay, userId);
@@ -90,8 +90,8 @@ public class MFALoginServicePreAction extends Action {
 		}
 
 		if (mfaVerifier.supportsHeadless()) {
-			HeadlessMFAVerifier headlessMFAVerifier =
-				(HeadlessMFAVerifier)mfaVerifier;
+			HeadlessMFAChecker headlessMFAVerifier =
+				(HeadlessMFAChecker)mfaVerifier;
 
 			if (headlessMFAVerifier.isHeadlessSetupComplete(request, userId)) {
 				if (headlessMFAVerifier.isHeadlessVerified(request, userId)) {
@@ -107,8 +107,8 @@ public class MFALoginServicePreAction extends Action {
 		}
 
 		if (mfaVerifier.supportsBrowser()) {
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier) mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker) mfaVerifier;
 
 			if (browserMFAVerifier.isBrowserSetupComplete(request, userId)) {
 				if (browserMFAVerifier.isBrowserVerified(request, userId)) {

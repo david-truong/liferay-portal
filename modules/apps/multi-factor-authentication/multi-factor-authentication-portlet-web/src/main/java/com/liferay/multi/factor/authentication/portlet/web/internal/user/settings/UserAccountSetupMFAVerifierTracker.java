@@ -16,13 +16,11 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.user.settin
 
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.UserAccountSetupMFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.portal.kernel.util.HashMapDictionary;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
@@ -33,11 +31,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import javax.servlet.ServletContext;
-import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Tomas Polesovsky
@@ -45,7 +39,7 @@ import java.util.Set;
 @Component(immediate = true)
 public class UserAccountSetupMFAVerifierTracker {
 
-	private ServiceTracker<MFAVerifier, ServiceRegistration<ScreenNavigationEntry>> _serviceTracker;
+	private ServiceTracker<MFAChecker, ServiceRegistration<ScreenNavigationEntry>> _serviceTracker;
 	private BundleContext _bundleContext;
 
 	@Activate
@@ -53,7 +47,7 @@ public class UserAccountSetupMFAVerifierTracker {
 		_bundleContext = bundleContext;
 
 		_serviceTracker = ServiceTrackerFactory.open(
-			bundleContext, MFAVerifier.class,
+			bundleContext, MFAChecker.class,
 			new UserAccountSetupMFAVerifierServiceTrackerCustomizer());
 	}
 
@@ -63,13 +57,13 @@ public class UserAccountSetupMFAVerifierTracker {
 	}
 
 	class UserAccountSetupMFAVerifierServiceTrackerCustomizer
-		implements ServiceTrackerCustomizer<MFAVerifier, ServiceRegistration<ScreenNavigationEntry>> {
+		implements ServiceTrackerCustomizer<MFAChecker, ServiceRegistration<ScreenNavigationEntry>> {
 
 		@Override
 		public ServiceRegistration<ScreenNavigationEntry> addingService(
-			ServiceReference<MFAVerifier> reference) {
+			ServiceReference<MFAChecker> reference) {
 
-			MFAVerifier mfaVerifier =
+			MFAChecker mfaVerifier =
 				_bundleContext.getService(reference);
 
 			if (!mfaVerifier.supportsUserAccountSetup()) {
@@ -78,8 +72,8 @@ public class UserAccountSetupMFAVerifierTracker {
 				return null;
 			}
 
-			UserAccountSetupMFAVerifier userAccountSetupMFAVerifier =
-				(UserAccountSetupMFAVerifier)mfaVerifier;
+			UserAccountSetupMFARenderer userAccountSetupMFAVerifier =
+				(UserAccountSetupMFARenderer)mfaVerifier;
 
 			Dictionary<String, Object> dictionary = new HashMapDictionary<>();
 
@@ -107,7 +101,7 @@ public class UserAccountSetupMFAVerifierTracker {
 
 		@Override
 		public void modifiedService(
-			ServiceReference<MFAVerifier> reference,
+			ServiceReference<MFAChecker> reference,
 			ServiceRegistration<ScreenNavigationEntry> service) {
 
 			removedService(reference, service);
@@ -117,7 +111,7 @@ public class UserAccountSetupMFAVerifierTracker {
 
 		@Override
 		public void removedService(
-			ServiceReference<MFAVerifier> reference,
+			ServiceReference<MFAChecker> reference,
 			ServiceRegistration<ScreenNavigationEntry> service) {
 
 			service.unregister();

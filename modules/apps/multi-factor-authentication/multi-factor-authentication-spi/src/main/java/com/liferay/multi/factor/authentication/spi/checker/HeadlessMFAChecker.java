@@ -12,31 +12,21 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.spi.verifier;
+package com.liferay.multi.factor.authentication.spi.checker;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Tomas Polesovsky
  */
-public interface MFAVerifier {
+public interface HeadlessMFAChecker {
 
-	public String getName();
+	public boolean isHeadlessSetupComplete(
+		HttpServletRequest request, long userId);
 
-	public String getProviderName();
+	public boolean isHeadlessVerified(HttpServletRequest request, long userId);
 
-	public default boolean supportsHeadless() {
-		return HeadlessMFAVerifier.class.isAssignableFrom(getClass());
-	}
-
-	public default boolean supportsBrowser() {
-		return BrowserMFAVerifier.class.isAssignableFrom(getClass());
-	}
-
-	public default boolean supportsUserAccountSetup() {
-		return UserAccountSetupMFAVerifier.class.isAssignableFrom(getClass());
-	}
-
-	public boolean isEnabled();
+	public boolean verifyHeadlessRequest(
+		HttpServletRequest request, long userId);
 
 }

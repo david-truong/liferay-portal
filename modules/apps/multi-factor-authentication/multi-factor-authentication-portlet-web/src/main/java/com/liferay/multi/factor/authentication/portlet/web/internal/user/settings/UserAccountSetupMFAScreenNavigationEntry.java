@@ -17,15 +17,14 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.user.settin
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.UserAccountSetupMFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.users.admin.constants.UserFormConstants;
-import org.osgi.service.component.annotations.Reference;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -43,25 +42,25 @@ import java.util.Set;
 public class UserAccountSetupMFAScreenNavigationEntry
 	implements ScreenNavigationEntry<User> {
 
-	private final UserAccountSetupMFAVerifier _userAccountSetupMFAVerifier;
+	private final UserAccountSetupMFARenderer _userAccountSetupMFAVerifier;
 	private MFARegistry _mfaRegistry;
 
 	public UserAccountSetupMFAScreenNavigationEntry(
-		UserAccountSetupMFAVerifier userAccountSetupMFAVerifier) {
+		UserAccountSetupMFARenderer userAccountSetupMFAVerifier) {
 
 		_userAccountSetupMFAVerifier = userAccountSetupMFAVerifier;
 	}
 
 	@Override
 	public boolean isVisible(User user, User context) {
-		MFAVerifier mfaVerifier = (MFAVerifier)_userAccountSetupMFAVerifier;
+		MFAChecker mfaVerifier = (MFAChecker)_userAccountSetupMFAVerifier;
 
 		if (!mfaVerifier.isEnabled()) {
 			return false;
 		}
 
 		Set<String> verifierIntegrationNames =
-			_mfaRegistry.getVerifierIntegrationNames(mfaVerifier.getName());
+			_mfaRegistry.getMFACheckerIntegrationNames(mfaVerifier.getName());
 
 		if (verifierIntegrationNames.isEmpty()) {
 			return false;
@@ -77,7 +76,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 
 	@Override
 	public String getEntryKey() {
-		return ((MFAVerifier)_userAccountSetupMFAVerifier).getProviderName();
+		return ((MFAChecker)_userAccountSetupMFAVerifier).getProviderName();
 	}
 
 	@Override
@@ -98,7 +97,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 		throws IOException {
 
 		request.setAttribute(
-			UserAccountSetupMFAVerifier.class.getName(),
+			UserAccountSetupMFARenderer.class.getName(),
 			_userAccountSetupMFAVerifier);
 
 		request.setAttribute("label", getLabel(request.getLocale()));

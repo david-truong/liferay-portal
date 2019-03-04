@@ -12,34 +12,37 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.spi.verifier;
+package com.liferay.multi.factor.authentication.spi.checker;
+
+import java.io.IOException;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
 
 /**
  * @author Tomas Polesovsky
  */
-public interface BrowserMFAVerifier {
-
-	public boolean isBrowserSetupComplete(
-		HttpServletRequest request, long userId);
+public interface BrowserMFAChecker {
 
 	public boolean forceUserSetup(long userId);
+
+	public void includeBrowserVerification(
+			long userId, HttpServletRequest request,
+			HttpServletResponse response)
+		throws IOException;
 
 	public void includeSetup(
 			long userId, HttpServletRequest request,
 			HttpServletResponse response)
 		throws IOException;
 
-	public void includeBrowserVerification(
-			long userId, HttpServletRequest request,
-			HttpServletResponse response)
-		throws IOException;
+	public boolean isBrowserSetupComplete(
+		HttpServletRequest request, long userId);
+
+	public boolean isBrowserVerified(HttpServletRequest request, long userId);
 
 	public boolean setup(ActionRequest actionRequest, long userId);
 
@@ -47,6 +50,4 @@ public interface BrowserMFAVerifier {
 		ActionRequest actionRequest, ActionResponse actionResponse,
 		long userId);
 
-	public boolean isBrowserVerified(
-		HttpServletRequest request, long userId);
 }

@@ -17,7 +17,7 @@ package com.liferay.multi.factor.authentication.integration.internal;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.internal.configuration.MFAIntegrationVerificationConfiguration;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -70,7 +70,7 @@ public class MFAIntegrationVerification {
 		}
 	}
 
-	public List<List<MFAVerifier>> getMFAVerifiersList(
+	public List<List<MFAChecker>> getMFAVerifiersList(
 		MFARegistry mfaRegistry) {
 
 		MFAIntegration mfaIntegration = mfaRegistry.getMFAIntegration(
@@ -88,19 +88,19 @@ public class MFAIntegrationVerification {
 		String[] verifierNamesArray =
 			_mfaIntegrationVerificationConfiguration.verifierNames();
 
-		List<List<MFAVerifier>> mfaVerifiersList = new ArrayList(
+		List<List<MFAChecker>> mfaVerifiersList = new ArrayList(
 			verifierNamesArray.length);
 
 		for (String verifierNames : verifierNamesArray) {
 			String[] verifierNamesList = StringUtil.split(verifierNames);
 
-			List<MFAVerifier> mfaVerifiers = new ArrayList<>(
+			List<MFAChecker> mfaVerifiers = new ArrayList<>(
 				verifierNamesList.length);
 
 			for (String verifierName : verifierNamesList) {
 				verifierName = StringUtil.trim(verifierName);
 
-				MFAVerifier mfaVerifier = mfaRegistry.getMFAVerifier(
+				MFAChecker mfaVerifier = mfaRegistry.getMFAChecker(
 					verifierName);
 
 				if (mfaVerifier == null) {

@@ -16,8 +16,6 @@ package com.liferay.multi.factor.authentication.integration.auto.login.internal.
 
 import com.liferay.multi.factor.authentication.integration.auto.login.internal.configuration.AutoLoginMFAIntegrationConfiguration;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;

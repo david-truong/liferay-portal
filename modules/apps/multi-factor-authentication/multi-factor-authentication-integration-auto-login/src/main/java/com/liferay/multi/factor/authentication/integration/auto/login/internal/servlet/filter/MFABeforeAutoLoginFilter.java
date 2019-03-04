@@ -18,9 +18,9 @@ import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.auto.login.internal.servlet.http.IgnoreAutoLoginFilterHttpServletRequestWrapper;
 import com.liferay.multi.factor.authentication.integration.auto.login.internal.spi.integration.AutoLoginMFAIntegration;
 import com.liferay.multi.factor.authentication.portlet.api.MFAPortletURLFactory;
-import com.liferay.multi.factor.authentication.spi.verifier.BrowserMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.HeadlessMFAVerifier;
-import com.liferay.multi.factor.authentication.spi.verifier.MFAVerifier;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.encryptor.Encryptor;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -87,8 +87,8 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 
 	@Override
 	public boolean isFilterEnabled() {
-		MFAVerifier mfaVerifier =
-			_mfaRegistry.getIntegrationVerifier(
+		MFAChecker mfaVerifier =
+			_mfaRegistry.getMFAIntegrationChecker(
 				_autoLoginMFAIntegration.getName());
 
 		if (mfaVerifier == null) {
@@ -140,13 +140,13 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 			return null;
 		}
 
-		MFAVerifier mfaVerifier =
-			_mfaRegistry.getIntegrationVerifier(
+		MFAChecker mfaVerifier =
+			_mfaRegistry.getMFAIntegrationChecker(
 				_autoLoginMFAIntegration.getName());
 
 		if (mfaVerifier.supportsHeadless()) {
-			HeadlessMFAVerifier headlessMFAVerifier =
-				(HeadlessMFAVerifier)mfaVerifier;
+			HeadlessMFAChecker headlessMFAVerifier =
+				(HeadlessMFAChecker)mfaVerifier;
 
 			if (headlessMFAVerifier.isHeadlessSetupComplete(
 					request, userId)){
@@ -164,8 +164,8 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 		}
 
 		if (mfaVerifier.supportsBrowser()) {
-			BrowserMFAVerifier browserMFAVerifier =
-				(BrowserMFAVerifier) mfaVerifier;
+			BrowserMFAChecker browserMFAVerifier =
+				(BrowserMFAChecker) mfaVerifier;
 
 			if (browserMFAVerifier.isBrowserSetupComplete(request, userId)){
 				if (browserMFAVerifier.isBrowserVerified(request, userId)) {
