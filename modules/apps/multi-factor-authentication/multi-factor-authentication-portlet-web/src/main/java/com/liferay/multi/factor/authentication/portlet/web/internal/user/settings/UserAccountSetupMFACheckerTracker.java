@@ -17,7 +17,7 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.user.settin
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
+import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 
@@ -76,8 +76,8 @@ public class UserAccountSetupMFACheckerTracker {
 				return null;
 			}
 
-			UserAccountSetupMFARenderer userAccountSetupMFAChecker =
-				(UserAccountSetupMFARenderer)mfaChecker;
+			UserAccountSetupMFACheckerRenderer userAccountSetupMFAChecker =
+				(UserAccountSetupMFACheckerRenderer)mfaChecker;
 
 			Dictionary<String, Object> dictionary = new HashMapDictionary<>();
 

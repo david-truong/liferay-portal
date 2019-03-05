@@ -115,7 +115,7 @@ public class MFAVerifyMVCActionCommand extends BaseMVCActionCommand {
 		CompositeMFAChecker compositeMFAChecker =
 			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAChecker.getMFACheckersAvailableForVerify(
+		return compositeMFAChecker.getMFACheckersWaitingForVerify(
 			httpServletRequest, userId);
 	}
 

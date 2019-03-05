@@ -28,9 +28,10 @@ import javax.servlet.http.HttpServletRequest;
 @ProviderType
 public interface CompositeMFAChecker {
 
-	public List<BrowserMFAChecker> getMFACheckersAvailableForSetup(long userId);
+	public List<BrowserMFAChecker> getMFACheckersWaitingForSetup(
+		boolean onlyWithForcedSetup, long userId);
 
-	public List<BrowserMFAChecker> getMFACheckersAvailableForVerify(
-		HttpServletRequest httpServletRequest, long userId);
+	public List<BrowserMFAChecker> getMFACheckersWaitingForVerify(
+		HttpServletRequest request, long userId);
 
 }

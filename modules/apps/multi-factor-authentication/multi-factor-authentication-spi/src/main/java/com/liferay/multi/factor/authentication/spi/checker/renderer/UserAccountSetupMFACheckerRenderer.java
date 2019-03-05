@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.spi.renderer;
+package com.liferay.multi.factor.authentication.spi.checker.renderer;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Tomas Polesovsky
  */
-public interface UserAccountSetupMFARenderer {
+public interface UserAccountSetupMFACheckerRenderer {
 
 	public String getLabel();
 

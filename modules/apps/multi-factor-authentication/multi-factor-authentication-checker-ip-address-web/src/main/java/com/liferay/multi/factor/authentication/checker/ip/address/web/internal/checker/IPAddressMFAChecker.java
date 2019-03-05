@@ -57,7 +57,7 @@ public class IPAddressMFAChecker implements HeadlessMFAChecker, MFAChecker {
 
 	@Override
 	public boolean isHeadlessSetupComplete(
-		HttpServletRequest request, long userId) {
+		long userId) {
 
 		return true;
 	}

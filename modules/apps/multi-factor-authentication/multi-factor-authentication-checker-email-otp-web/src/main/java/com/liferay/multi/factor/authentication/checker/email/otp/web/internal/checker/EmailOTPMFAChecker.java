@@ -19,7 +19,7 @@ import com.liferay.multi.factor.authentication.checker.email.otp.service.MFAEmai
 import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
+import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -63,7 +63,8 @@ import org.osgi.service.component.annotations.Reference;
 	service = MFAChecker.class
 )
 public class EmailOTPMFAChecker
-	implements BrowserMFAChecker, MFAChecker, UserAccountSetupMFARenderer {
+	implements BrowserMFAChecker, MFAChecker,
+		UserAccountSetupMFACheckerRenderer {
 
 	@Override
 	public boolean forceUserSetup(long userId) {
@@ -175,14 +176,8 @@ public class EmailOTPMFAChecker
 	}
 
 	@Override
-	public boolean isBrowserSetupComplete(
-		HttpServletRequest request, long userId) {
-
-		if (!isUserSetUp(userId)) {
-			return false;
-		}
-
-		return true;
+	public boolean isBrowserSetupComplete(long userId) {
+		return isUserSetUp(userId);
 	}
 
 	@Override

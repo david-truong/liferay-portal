@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.integration.internal.configuration;
+package com.liferay.multi.factor.authentication.impl.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
@@ -23,26 +23,26 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
  */
 @ExtendedObjectClassDefinition(
 	category = "multi-factor-authentication",
-	factoryInstanceLabelAttribute = "integrationName"
+	factoryInstanceLabelAttribute = "mfaIntegrationName"
 )
 @Meta.OCD(
 	factory = true,
-	id = "com.liferay.multi.factor.authentication.integration.internal.configuration.MFAIntegrationVerificationConfiguration",
+	id = "com.liferay.multi.factor.authentication.impl.configuration.MFAVerificationConfiguration",
 	localization = "content/Language",
-	name = "mfa-integration-verification-configuration-name"
+	name = "mfa-verification-configuration-name"
 )
-public interface MFAIntegrationVerificationConfiguration {
+public interface MFAVerificationConfiguration {
 
 	@Meta.AD(
-		description = "integration-name-description", name = "integration-name",
-		required = false
+		description = "mfa-integration-name-description",
+		name = "mfa-integration-name", required = false
 	)
-	public String integrationName();
+	public String mfaIntegrationName();
 
 	@Meta.AD(
-		description = "verifier-names-description", name = "verifier-names",
-		required = false
+		description = "mfa-checker-names-description",
+		name = "mfa-checker-names", required = false
 	)
-	public String[] verifierNames();
+	public String[] mfaCheckerNames();
 
 }

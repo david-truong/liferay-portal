@@ -3,3 +3,4 @@ Bundle-SymbolicName: com.liferay.multi.factor.authentication.checker.totp.servic
 Bundle-Version: 1.0.0
 Liferay-Require-SchemaVersion: 2.0.0
 Liferay-Service: true
+-dsannotations-options: inherit

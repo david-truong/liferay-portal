@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.integration.internal.verifier;
+package com.liferay.multi.factor.authentication.impl.checker;
 
 import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
@@ -33,11 +33,11 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Tomas Polesovsky
  */
-public abstract class CompositeMFACheckerImpl
+public abstract class BaseCompositeMFACheckerImpl
 	implements BrowserMFAChecker, CompositeMFAChecker, HeadlessMFAChecker,
 			   MFAChecker {
 
-	public CompositeMFACheckerImpl(List<MFAChecker> mfaCheckers) {
+	public BaseCompositeMFACheckerImpl(List<MFAChecker> mfaCheckers) {
 		this.mfaCheckers = mfaCheckers;
 	}
 
@@ -90,7 +90,7 @@ public abstract class CompositeMFACheckerImpl
 
 			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if (!browserMFAChecker.isBrowserSetupComplete(request, userId)) {
+			if (!browserMFAChecker.isBrowserSetupComplete(userId)) {
 				continue;
 			}
 
@@ -150,7 +150,7 @@ public abstract class CompositeMFACheckerImpl
 
 			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if (!browserMFAChecker.forceUserSetup(userId)) {
+			if (browserMFAChecker.isBrowserSetupComplete(userId)) {
 				continue;
 			}
 
@@ -179,11 +179,6 @@ public abstract class CompositeMFACheckerImpl
 			}
 		}
 
-		return false;
-	}
-
-	@Override
-	public boolean supportsUserAccountSetup() {
 		return false;
 	}
 

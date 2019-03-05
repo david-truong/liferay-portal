@@ -16,7 +16,7 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.act
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
+import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -62,8 +62,8 @@ public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 			return;
 		}
 
-		UserAccountSetupMFARenderer userAccountSetupMFAChecker =
-			(UserAccountSetupMFARenderer)mfaChecker;
+		UserAccountSetupMFACheckerRenderer userAccountSetupMFAChecker =
+			(UserAccountSetupMFACheckerRenderer)mfaChecker;
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);

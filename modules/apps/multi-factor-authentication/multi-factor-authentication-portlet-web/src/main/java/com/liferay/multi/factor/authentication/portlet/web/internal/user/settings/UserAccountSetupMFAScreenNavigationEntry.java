@@ -18,7 +18,7 @@ import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
+import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -45,7 +45,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 	implements ScreenNavigationEntry<User> {
 
 	public UserAccountSetupMFAScreenNavigationEntry(
-		UserAccountSetupMFARenderer userAccountSetupMFAChecker) {
+		UserAccountSetupMFACheckerRenderer userAccountSetupMFAChecker) {
 
 		_userAccountSetupMFAChecker = userAccountSetupMFAChecker;
 	}
@@ -96,7 +96,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 		throws IOException {
 
 		request.setAttribute(
-			UserAccountSetupMFARenderer.class.getName(),
+			UserAccountSetupMFACheckerRenderer.class.getName(),
 			_userAccountSetupMFAChecker);
 
 		request.setAttribute("label", getLabel(request.getLocale()));
@@ -130,6 +130,6 @@ public class UserAccountSetupMFAScreenNavigationEntry
 
 	private MFARegistry _mfaRegistry;
 	private ServletContext _servletContext;
-	private final UserAccountSetupMFARenderer _userAccountSetupMFAChecker;
+	private final UserAccountSetupMFACheckerRenderer _userAccountSetupMFAChecker;
 
 }

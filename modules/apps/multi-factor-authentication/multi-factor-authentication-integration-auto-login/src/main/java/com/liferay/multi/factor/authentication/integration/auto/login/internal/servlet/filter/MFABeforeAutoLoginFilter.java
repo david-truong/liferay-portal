@@ -145,7 +145,7 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 			HeadlessMFAChecker headlessMFAChecker =
 				(HeadlessMFAChecker)mfaChecker;
 
-			if (headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
+			if (headlessMFAChecker.isHeadlessSetupComplete(userId)) {
 				if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
 					return super.getLoginRemoteUser(
 						request, response, session, credentials);
@@ -161,7 +161,7 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 		if (mfaChecker.supportsBrowser()) {
 			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if (browserMFAChecker.isBrowserSetupComplete(request, userId)) {
+			if (browserMFAChecker.isBrowserSetupComplete(userId)) {
 				if (browserMFAChecker.isBrowserVerified(request, userId)) {
 					return super.getLoginRemoteUser(
 						request, response, session, credentials);

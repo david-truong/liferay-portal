@@ -1,5 +1,5 @@
 <%@ page import="com.liferay.multi.factor.authentication.spi.checker.MFAChecker" %><%@
-page import="com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer" %>
+page import="com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer" %>
 
 <%--
 /**
@@ -25,8 +25,8 @@ page import="com.liferay.multi.factor.authentication.spi.renderer.UserAccountSet
 	String screenNavigationCategoryKey = ParamUtil.getString(request, "screenNavigationCategoryKey");
 	String screenNavigationEntryKey = ParamUtil.getString(request, "screenNavigationEntryKey");
 
-	UserAccountSetupMFARenderer
-		userAccountSetupMFAChecker = (UserAccountSetupMFARenderer)request.getAttribute(UserAccountSetupMFARenderer.class.getName());
+	UserAccountSetupMFACheckerRenderer
+		userAccountSetupMFAChecker = (UserAccountSetupMFACheckerRenderer)request.getAttribute(UserAccountSetupMFACheckerRenderer.class.getName());
 	MFAChecker mfaChecker = (MFAChecker)userAccountSetupMFAChecker;
 %>
 

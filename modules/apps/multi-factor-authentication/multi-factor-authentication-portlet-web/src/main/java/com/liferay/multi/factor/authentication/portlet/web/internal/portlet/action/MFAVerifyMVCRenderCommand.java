@@ -102,7 +102,7 @@ public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
 		CompositeMFAChecker compositeMFAChecker =
 			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAChecker.getMFACheckersAvailableForVerify(
+		return compositeMFAChecker.getMFACheckersWaitingForVerify(
 			httpServletRequest, userId);
 	}
 

@@ -140,9 +140,7 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 					HeadlessMFAChecker headlessMFAChecker =
 						(HeadlessMFAChecker)mfaChecker;
 
-					if (headlessMFAChecker.isHeadlessSetupComplete(
-							request, userId)) {
-
+					if (headlessMFAChecker.isHeadlessSetupComplete(userId)) {
 						if (headlessMFAChecker.isHeadlessVerified(
 								request, userId)) {
 
@@ -167,9 +165,7 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 					BrowserMFAChecker browserMFAChecker =
 						(BrowserMFAChecker)mfaChecker;
 
-					if (browserMFAChecker.isBrowserSetupComplete(
-							request, userId)) {
-
+					if (browserMFAChecker.isBrowserSetupComplete(userId)) {
 						if (browserMFAChecker.isBrowserVerified(
 								request, userId)) {
 

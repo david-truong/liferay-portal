@@ -14,7 +14,7 @@
 
 package com.liferay.multi.factor.authentication.spi.checker;
 
-import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
+import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
 
 /**
  * @author Tomas Polesovsky
@@ -34,7 +34,8 @@ public interface MFAChecker {
 	}
 
 	public default boolean supportsUserAccountSetup() {
-		return UserAccountSetupMFARenderer.class.isAssignableFrom(getClass());
+		return UserAccountSetupMFACheckerRenderer.class.isAssignableFrom(
+			getClass());
 	}
 
 }

@@ -82,8 +82,8 @@ public class MFASetupMVCRenderCommand implements MVCRenderCommand {
 		CompositeMFAChecker compositeMFAChecker =
 			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAChecker.getMFACheckersAvailableForSetup(
-			themeDisplay.getUserId());
+		return compositeMFAChecker.getMFACheckersWaitingForSetup(
+			true, themeDisplay.getUserId());
 	}
 
 	@Reference

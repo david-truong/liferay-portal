@@ -102,8 +102,8 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		CompositeMFAChecker compositeMFAChecker =
 			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAChecker.getMFACheckersAvailableForSetup(
-			themeDisplay.getUserId());
+		return compositeMFAChecker.getMFACheckersWaitingForSetup(
+			true, themeDisplay.getUserId());
 	}
 
 	@Reference

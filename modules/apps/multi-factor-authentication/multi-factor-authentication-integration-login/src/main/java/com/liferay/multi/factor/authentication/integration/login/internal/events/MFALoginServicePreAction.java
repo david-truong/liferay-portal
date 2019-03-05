@@ -94,7 +94,7 @@ public class MFALoginServicePreAction extends Action {
 			HeadlessMFAChecker headlessMFAChecker =
 				(HeadlessMFAChecker)mfaChecker;
 
-			if (headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
+			if (headlessMFAChecker.isHeadlessSetupComplete(userId)) {
 				if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
 					return;
 				}
@@ -108,7 +108,7 @@ public class MFALoginServicePreAction extends Action {
 		if (mfaChecker.supportsBrowser()) {
 			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if (browserMFAChecker.isBrowserSetupComplete(request, userId)) {
+			if (browserMFAChecker.isBrowserSetupComplete(userId)) {
 				if (browserMFAChecker.isBrowserVerified(request, userId)) {
 					return;
 				}

@@ -12,10 +12,10 @@
  * details.
  */
 
-package com.liferay.multi.factor.authentication.integration.internal;
+package com.liferay.multi.factor.authentication.impl;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.integration.internal.configuration.MFAIntegrationVerificationConfiguration;
+import com.liferay.multi.factor.authentication.impl.configuration.MFAVerificationConfiguration;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.petra.string.StringBundler;
@@ -23,6 +23,7 @@ import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,11 +39,11 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
  * @author Tomas Polesovsky
  */
 @Component(
-	configurationPid = "com.liferay.multi.factor.authentication.integration.internal.configuration.MFAIntegrationVerificationConfiguration",
+	configurationPid = "com.liferay.multi.factor.authentication.impl.configuration.MFAVerificationConfiguration",
 	configurationPolicy = ConfigurationPolicy.REQUIRE,
-	service = MFAIntegrationVerification.class
+	service = MFAVerification.class
 )
-public class MFAIntegrationVerification {
+public class MFAVerification {
 
 	public String getIntegrationName() {
 		return _mfaIntegrationName;
@@ -55,36 +56,41 @@ public class MFAIntegrationVerification {
 		if (mfaIntegration == null) {
 			_log.error(
 				StringBundler.concat(
-					"MFA Integration '", _mfaIntegrationName,
+					"MFA integration '", _mfaIntegrationName,
 					"' is not registered!"));
 
 			return null;
 		}
 
-		String[] verifierNamesArray =
-			_mfaIntegrationVerificationConfiguration.verifierNames();
+		String[] mfaCheckerNamesArray =
+			_mfaIntegrationVerificationConfiguration.mfaCheckerNames();
 
 		List<List<MFAChecker>> mfaCheckersList = new ArrayList(
-			verifierNamesArray.length);
+			mfaCheckerNamesArray.length);
 
-		for (String verifierNames : verifierNamesArray) {
-			String[] verifierNamesList = StringUtil.split(verifierNames);
+		for (String mfaCheckerNames : mfaCheckerNamesArray) {
+			String[] mfaCheckerNamesParts = StringUtil.split(mfaCheckerNames);
 
-			List<MFAChecker> mfaCheckers = new ArrayList<>(
-				verifierNamesList.length);
+			List<MFAChecker> mfaCheckers = new ArrayList(
+				mfaCheckerNamesParts.length);
 
-			for (String verifierName : verifierNamesList) {
-				verifierName = StringUtil.trim(verifierName);
+			for (String mfaCheckerName : mfaCheckerNamesParts) {
+				mfaCheckerName = StringUtil.trim(mfaCheckerName);
 
-				MFAChecker mfaChecker = mfaRegistry.getMFAChecker(verifierName);
+				if (Validator.isBlank(mfaCheckerName)) {
+					continue;
+				}
+
+				MFAChecker mfaChecker = mfaRegistry.getMFAChecker(
+					mfaCheckerName);
 
 				if (mfaChecker == null) {
 					_log.error(
 						StringBundler.concat(
 							"MFA integration verification '",
 							_mfaIntegrationName,
-							"' contains unknown MFA Verifier '",
-							_mfaIntegrationName, "'"));
+							"' contains unknown MFA checker '", mfaCheckerName,
+							"'"));
 
 					return null;
 				}
@@ -95,8 +101,6 @@ public class MFAIntegrationVerification {
 					 mfaChecker.supportsBrowser())) {
 
 					mfaCheckers.add(mfaChecker);
-
-					_mfaCheckersNames.add(mfaChecker.getName());
 				}
 				else {
 					String mfaIntegrationSupports = "headless";
@@ -113,10 +117,10 @@ public class MFAIntegrationVerification {
 
 					_log.error(
 						StringBundler.concat(
-							"MFA Verifier ", verifierName,
-							" is not compatible with integration ",
+							"MFA Checker '", mfaCheckerName,
+							"' is not compatible with MFA integration '",
 							mfaIntegration.getName(),
-							". The integration supports ",
+							"'. The integration supports ",
 							mfaIntegrationSupports, " but verifier supports ",
 							mfaCheckerSupports));
 
@@ -140,13 +144,13 @@ public class MFAIntegrationVerification {
 	protected void activate(Map<String, Object> properties) {
 		_mfaIntegrationVerificationConfiguration =
 			ConfigurableUtil.createConfigurable(
-				MFAIntegrationVerificationConfiguration.class, properties);
+				MFAVerificationConfiguration.class, properties);
 
 		_mfaIntegrationName = StringUtil.trim(
-			_mfaIntegrationVerificationConfiguration.integrationName());
+			_mfaIntegrationVerificationConfiguration.mfaIntegrationName());
 
 		String[] verifierNamesArray =
-			_mfaIntegrationVerificationConfiguration.verifierNames();
+			_mfaIntegrationVerificationConfiguration.mfaCheckerNames();
 
 		for (String verifierNames : verifierNamesArray) {
 			String[] verifierNamesList = StringUtil.split(verifierNames);
@@ -158,12 +162,11 @@ public class MFAIntegrationVerification {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		MFAIntegrationVerification.class);
+		MFAVerification.class);
 
 	private final Set<String> _mfaCheckersNames = new HashSet<>();
 	private String _mfaIntegrationName;
-	private MFAIntegrationVerificationConfiguration
+	private MFAVerificationConfiguration
 		_mfaIntegrationVerificationConfiguration;
-	private List<List<String>> mfaCheckersList;
 
 }

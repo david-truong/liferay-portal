@@ -116,7 +116,7 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 
 		long userId = authVerifierResult.getUserId();
 
-		if (!headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
+		if (!headlessMFAChecker.isHeadlessSetupComplete(userId)) {
 			super.processFilter(request, response, filterChain);
 
 			return;

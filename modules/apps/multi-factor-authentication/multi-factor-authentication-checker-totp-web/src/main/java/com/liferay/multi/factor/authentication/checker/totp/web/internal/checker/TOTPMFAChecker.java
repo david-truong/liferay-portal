@@ -21,7 +21,7 @@ import com.liferay.multi.factor.authentication.checker.totp.web.internal.util.TO
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
+import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -72,7 +72,7 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class TOTPMFAChecker
 	implements BrowserMFAChecker, HeadlessMFAChecker, MFAChecker,
-			   UserAccountSetupMFARenderer {
+	UserAccountSetupMFACheckerRenderer {
 
 	@Override
 	public boolean forceUserSetup(long userId) {
@@ -165,10 +165,8 @@ public class TOTPMFAChecker
 	}
 
 	@Override
-	public boolean isBrowserSetupComplete(
-		HttpServletRequest request, long userId) {
-
-		return canVerify(request, userId);
+	public boolean isBrowserSetupComplete(long userId) {
+		return isUserSetUp(userId);
 	}
 
 	@Override
@@ -191,10 +189,8 @@ public class TOTPMFAChecker
 	}
 
 	@Override
-	public boolean isHeadlessSetupComplete(
-		HttpServletRequest request, long userId) {
-
-		return canVerify(request, userId);
+	public boolean isHeadlessSetupComplete(long userId) {
+		return isUserSetUp(userId);
 	}
 
 	@Override
@@ -325,14 +321,6 @@ public class TOTPMFAChecker
 				sessionPhishingProtectedAttributesList.toArray(
 					new String[sessionPhishingProtectedAttributesList.size()]);
 		}
-	}
-
-	protected boolean canVerify(HttpServletRequest request, long userId) {
-		if (!isUserSetUp(userId)) {
-			return false;
-		}
-
-		return true;
 	}
 
 	@Deactivate

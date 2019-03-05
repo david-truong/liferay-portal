@@ -39,8 +39,7 @@ public interface BrowserMFAChecker {
 			HttpServletResponse response)
 		throws IOException;
 
-	public boolean isBrowserSetupComplete(
-		HttpServletRequest request, long userId);
+	public boolean isBrowserSetupComplete(long userId);
 
 	public boolean isBrowserVerified(HttpServletRequest request, long userId);
 
