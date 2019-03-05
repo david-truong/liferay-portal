@@ -15,6 +15,7 @@
 --%>
 
 <%@ include file="/init.jsp" %>
+
 <%
 BrowserMFAChecker
 	browserMFAChecker = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
@@ -28,8 +29,8 @@ int mfaCheckerIndex = ParamUtil.getInteger(request, "mfaCheckerIndex", 0);
 if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < verifyMFACheckers.size())) {
 	browserMFAChecker = verifyMFACheckers.get(mfaCheckerIndex);
 }
-
 %>
+
 <portlet:actionURL name="/mfa/verify" var="verifyActionURL">
 	<portlet:param name="mvcRenderCommandName" value="/mfa/verify" />
 </portlet:actionURL>
@@ -42,13 +43,13 @@ if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < verifyMFACheckers.size())) {
 	<liferay-ui:error key="mfaFailed" message="multi-factor-authentication-failed" />
 
 	<%
-		browserMFAChecker.includeBrowserVerification(mfaUserId, request, response);
+	browserMFAChecker.includeBrowserVerification(mfaUserId, request, response);
 	%>
 
 	<c:if test="<%= verifyMFACheckers.size() > 1 %>">
-		<portlet:renderURL var="useAnotherMFAChecker" copyCurrentRenderParameters="<%= true %>">
+		<portlet:renderURL copyCurrentRenderParameters="<%= true %>" var="useAnotherMFAChecker">
 			<portlet:param name="integrationName" value='<%= ParamUtil.getString(request, "integrationName") %>' />
-			<portlet:param name="mfaCheckerIndex" value="<%= mfaCheckerIndex + 1 < verifyMFACheckers.size() ?  String.valueOf(mfaCheckerIndex + 1) : "0" %>"/>
+			<portlet:param name="mfaCheckerIndex" value='<%= mfaCheckerIndex + 1 < verifyMFACheckers.size() ? String.valueOf(mfaCheckerIndex + 1) : "0" %>' />
 			<portlet:param name="mvcRenderCommandName" value="/mfa/verify" />
 			<portlet:param name="redirect" value='<%= ParamUtil.getString(request, "redirect") %>' />
 			<portlet:param name="saveLastPath" value="<%= Boolean.FALSE.toString() %>" />

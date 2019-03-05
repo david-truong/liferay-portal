@@ -23,14 +23,16 @@ import com.liferay.portal.kernel.portlet.PortletURLFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.WindowState;
 import javax.portlet.WindowStateException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -39,9 +41,33 @@ import javax.servlet.http.HttpSession;
 public class MFAPortletURLFactoryImpl implements MFAPortletURLFactory {
 
 	@Override
-	public LiferayPortletURL createVerifyURL(
+	public LiferayPortletURL createSetupURL(
 		HttpServletRequest request, String integrationName,
-		String redirectURL, long userId) {
+		String redirectURL) {
+
+		LiferayPortletURL liferayPortletURL = _portletURLFactory.create(
+			request, MFAPortletKeys.MFA_PORTLET, PortletRequest.RENDER_PHASE);
+
+		liferayPortletURL.setParameter("integrationName", integrationName);
+		liferayPortletURL.setParameter("mvcRenderCommandName", "/mfa/setup");
+		liferayPortletURL.setParameter("redirect", redirectURL);
+
+		try {
+			liferayPortletURL.setWindowState(WindowState.MAXIMIZED);
+		}
+		catch (WindowStateException wse) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(wse, wse);
+			}
+		}
+
+		return liferayPortletURL;
+	}
+
+	@Override
+	public LiferayPortletURL createVerifyURL(
+		HttpServletRequest request, String integrationName, String redirectURL,
+		long userId) {
 
 		request = _portal.getOriginalServletRequest(request);
 
@@ -51,58 +77,29 @@ public class MFAPortletURLFactoryImpl implements MFAPortletURLFactory {
 
 		long plid = 0;
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay) request.getAttribute(WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		if (themeDisplay != null) {
 			plid = themeDisplay.getPlid();
 		}
 
-		LiferayPortletURL liferayPortletURL =
-			_portletURLFactory.create(
-				request, MFAPortletKeys.MFA_PORTLET, plid,
-				PortletRequest.RENDER_PHASE);
+		LiferayPortletURL liferayPortletURL = _portletURLFactory.create(
+			request, MFAPortletKeys.MFA_PORTLET, plid,
+			PortletRequest.RENDER_PHASE);
 
 		liferayPortletURL.setParameter("integrationName", integrationName);
 		liferayPortletURL.setParameter(
 			"saveLastPath", Boolean.FALSE.toString());
-		liferayPortletURL.setParameter(
-			"mvcRenderCommandName", "/mfa/verify");
+		liferayPortletURL.setParameter("mvcRenderCommandName", "/mfa/verify");
 		liferayPortletURL.setParameter("redirect", redirectURL);
 
 		try {
 			liferayPortletURL.setWindowState(WindowState.MAXIMIZED);
 		}
-		catch (WindowStateException e) {
+		catch (WindowStateException wse) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
-			}
-		}
-
-		return liferayPortletURL;
-	}
-
-	@Override
-	public LiferayPortletURL createSetupURL(
-		HttpServletRequest request, String integrationName,
-		String redirectURL) {
-
-		LiferayPortletURL liferayPortletURL =
-			_portletURLFactory.create(
-				request, MFAPortletKeys.MFA_PORTLET,
-				PortletRequest.RENDER_PHASE);
-
-		liferayPortletURL.setParameter("integrationName", integrationName);
-		liferayPortletURL.setParameter(
-			"mvcRenderCommandName", "/mfa/setup");
-		liferayPortletURL.setParameter("redirect", redirectURL);
-
-		try {
-			liferayPortletURL.setWindowState(WindowState.MAXIMIZED);
-		}
-		catch (WindowStateException e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(wse, wse);
 			}
 		}
 
@@ -113,9 +110,9 @@ public class MFAPortletURLFactoryImpl implements MFAPortletURLFactory {
 		MFAPortletURLFactoryImpl.class);
 
 	@Reference
-	private PortletURLFactory _portletURLFactory;
+	private Portal _portal;
 
 	@Reference
-	private Portal _portal;
+	private PortletURLFactory _portletURLFactory;
 
 }

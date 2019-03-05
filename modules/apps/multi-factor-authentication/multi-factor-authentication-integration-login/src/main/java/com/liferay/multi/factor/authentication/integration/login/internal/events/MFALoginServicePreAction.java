@@ -29,12 +29,14 @@ import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Objects;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -48,8 +50,8 @@ public class MFALoginServicePreAction extends Action {
 	public void run(HttpServletRequest request, HttpServletResponse response)
 		throws ActionException {
 
-		MFAChecker mfaChecker =
-			_mfaRegistry.getMFAIntegrationChecker(_loginMFAIntegration.getName());
+		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
+			_loginMFAIntegration.getName());
 
 		if (mfaChecker == null) {
 			return;
@@ -79,8 +81,7 @@ public class MFALoginServicePreAction extends Action {
 		long userId = themeDisplay.getUserId();
 
 		if (mfaChecker.supportsBrowser()) {
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker)mfaChecker;
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
 			if (browserMFAChecker.forceUserSetup(userId)) {
 				redirectToSetup(request, response, themeDisplay, userId);
@@ -98,22 +99,18 @@ public class MFALoginServicePreAction extends Action {
 					return;
 				}
 
-				if (headlessMFAChecker.verifyHeadlessRequest(
-					request, userId)) {
-
+				if (headlessMFAChecker.verifyHeadlessRequest(request, userId)) {
 					return;
 				}
 			}
 		}
 
 		if (mfaChecker.supportsBrowser()) {
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker) mfaChecker;
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
 			if (browserMFAChecker.isBrowserSetupComplete(request, userId)) {
 				if (browserMFAChecker.isBrowserVerified(request, userId)) {
 					return;
-
 				}
 
 				redirectToVerifyBrowserRequest(
@@ -129,6 +126,32 @@ public class MFALoginServicePreAction extends Action {
 		}
 	}
 
+	protected void redirectToSetup(
+			HttpServletRequest request, HttpServletResponse response,
+			ThemeDisplay themeDisplay, long userId)
+		throws ActionException {
+
+		LiferayPortletURL liferayPortletURL =
+			_mfaPortletURLFactory.createSetupURL(
+				request, _loginMFAIntegration.getName(),
+				themeDisplay.getURLCurrent());
+
+		if (themeDisplay.isStateMaximized() &&
+			Objects.equals(
+				liferayPortletURL.getPortletId(), themeDisplay.getPpid())) {
+
+			return;
+		}
+
+		try {
+			response.sendRedirect(liferayPortletURL.toString());
+		}
+		catch (Exception e) {
+			throw new ActionException(
+				"Unable to send login redirect: " + e.getMessage(), e);
+		}
+	}
+
 	protected void redirectToVerifyBrowserRequest(
 			HttpServletRequest request, HttpServletResponse response,
 			ThemeDisplay themeDisplay, long userId)
@@ -140,15 +163,14 @@ public class MFALoginServicePreAction extends Action {
 				themeDisplay.getURLCurrent(), userId);
 
 		if (Objects.equals(
-			liferayPortletURL.getPortletId(), themeDisplay.getPpid()) &&
+				liferayPortletURL.getPortletId(), themeDisplay.getPpid()) &&
 			LiferayWindowState.isExclusive(request)) {
 
 			return;
 		}
 
 		try {
-			liferayPortletURL.setWindowState(
-				LiferayWindowState.EXCLUSIVE);
+			liferayPortletURL.setWindowState(LiferayWindowState.EXCLUSIVE);
 
 			response.sendRedirect(liferayPortletURL.toString());
 		}
@@ -156,41 +178,15 @@ public class MFALoginServicePreAction extends Action {
 			throw new ActionException(
 				"Unable to send login redirect: " + e.getMessage(), e);
 		}
-	}
-
-	protected void redirectToSetup(
-			HttpServletRequest request, HttpServletResponse response,
-			ThemeDisplay themeDisplay, long userId)
-		throws ActionException {
-
-		LiferayPortletURL liferayPortletURL =
-			_mfaPortletURLFactory.createSetupURL(
-				request, _loginMFAIntegration.getName(),
-				themeDisplay.getURLCurrent());
-
-		if (themeDisplay.isStateMaximized() && Objects.equals(
-			liferayPortletURL.getPortletId(), themeDisplay.getPpid())) {
-
-			return;
-		}
-
-		try {
-			response.sendRedirect(liferayPortletURL.toString());
-		}
-		catch (Exception e) {
-			throw new ActionException(
-				"Unable to send login redirect: " + e.getMessage(), e);
-		}
-
 	}
 
 	@Reference
-	private MFARegistry _mfaRegistry;
+	private LoginMFAIntegration _loginMFAIntegration;
 
 	@Reference
 	private MFAPortletURLFactory _mfaPortletURLFactory;
 
 	@Reference
-	private LoginMFAIntegration _loginMFAIntegration;
+	private MFARegistry _mfaRegistry;
 
 }

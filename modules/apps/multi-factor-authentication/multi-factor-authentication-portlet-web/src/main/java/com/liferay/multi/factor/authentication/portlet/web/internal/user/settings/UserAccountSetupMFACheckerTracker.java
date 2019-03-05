@@ -20,6 +20,11 @@ import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+
+import java.util.Dictionary;
+
+import javax.servlet.ServletContext;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -30,16 +35,15 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import javax.servlet.ServletContext;
-import java.util.Dictionary;
-
 /**
  * @author Tomas Polesovsky
  */
 @Component(immediate = true)
 public class UserAccountSetupMFACheckerTracker {
 
-	private ServiceTracker<MFAChecker, ServiceRegistration<ScreenNavigationEntry>> _serviceTracker;
+	private ServiceTracker
+		<MFAChecker, ServiceRegistration<ScreenNavigationEntry>>
+			_serviceTracker;
 	private BundleContext _bundleContext;
 
 	@Activate
@@ -57,14 +61,14 @@ public class UserAccountSetupMFACheckerTracker {
 	}
 
 	class UserAccountSetupMFACheckerServiceTrackerCustomizer
-		implements ServiceTrackerCustomizer<MFAChecker, ServiceRegistration<ScreenNavigationEntry>> {
+		implements ServiceTrackerCustomizer
+			<MFAChecker, ServiceRegistration<ScreenNavigationEntry>> {
 
 		@Override
 		public ServiceRegistration<ScreenNavigationEntry> addingService(
 			ServiceReference<MFAChecker> reference) {
 
-			MFAChecker mfaChecker =
-				_bundleContext.getService(reference);
+			MFAChecker mfaChecker = _bundleContext.getService(reference);
 
 			if (!mfaChecker.supportsUserAccountSetup()) {
 				_bundleContext.ungetService(reference);
@@ -79,24 +83,22 @@ public class UserAccountSetupMFACheckerTracker {
 
 			String name = mfaChecker.getName();
 
-			dictionary.put(
-				"screen.navigation.entry.order", name.hashCode());
+			dictionary.put("screen.navigation.entry.order", name.hashCode());
 
 			UserAccountSetupMFAScreenNavigationEntry
 				userAccountSetupMFAScreenNavigationEntry =
-				new UserAccountSetupMFAScreenNavigationEntry(
-					userAccountSetupMFAChecker);
+					new UserAccountSetupMFAScreenNavigationEntry(
+						userAccountSetupMFAChecker);
 
 			userAccountSetupMFAScreenNavigationEntry.setServletContext(
 				_servletContext);
 
-			userAccountSetupMFAScreenNavigationEntry.setMFARegistry(_mfaRegistry);
+			userAccountSetupMFAScreenNavigationEntry.setMFARegistry(
+				_mfaRegistry);
 
 			return _bundleContext.registerService(
 				ScreenNavigationEntry.class,
-				userAccountSetupMFAScreenNavigationEntry,
-				dictionary);
-
+				userAccountSetupMFAScreenNavigationEntry, dictionary);
 		}
 
 		@Override
@@ -118,6 +120,7 @@ public class UserAccountSetupMFACheckerTracker {
 
 			_bundleContext.ungetService(reference);
 		}
+
 	}
 
 	@Reference(

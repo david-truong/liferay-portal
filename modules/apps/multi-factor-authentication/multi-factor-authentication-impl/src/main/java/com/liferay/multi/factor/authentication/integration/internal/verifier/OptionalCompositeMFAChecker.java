@@ -20,11 +20,13 @@ import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.portal.kernel.util.PortalUtil;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Tomas Polesovsky
@@ -36,7 +38,9 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 	}
 
 	@Override
-	public List<BrowserMFAChecker> getMFACheckersAvailableForSetup(long userId) {
+	public List<BrowserMFAChecker> getMFACheckersAvailableForSetup(
+		long userId) {
+
 		List<BrowserMFAChecker> availableMFACheckers = new ArrayList<>(
 			mfaCheckers.size());
 
@@ -45,8 +49,7 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker)mfaChecker;
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
 			if (!browserMFAChecker.forceUserSetup(userId)) {
 				continue;
@@ -80,17 +83,16 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker)mfaChecker;
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
 			if (!browserMFAChecker.isBrowserSetupComplete(
-				httpServletRequest, userId)) {
+					httpServletRequest, userId)) {
 
 				continue;
 			}
 
 			if (browserMFAChecker.isBrowserVerified(
-				httpServletRequest, userId)){
+					httpServletRequest, userId)) {
 
 				continue;
 			}
@@ -112,16 +114,54 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 	}
 
 	@Override
+	public boolean isBrowserSetupComplete(
+		HttpServletRequest request, long userId) {
+
+		for (MFAChecker mfaChecker : mfaCheckers) {
+			if (!mfaChecker.supportsBrowser()) {
+				continue;
+			}
+
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
+
+			if (browserMFAChecker.isBrowserSetupComplete(request, userId)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
 	public boolean isBrowserVerified(HttpServletRequest request, long userId) {
 		for (MFAChecker mfaChecker : mfaCheckers) {
 			if (!mfaChecker.supportsBrowser()) {
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker)mfaChecker;
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if(browserMFAChecker.isBrowserVerified(request, userId)) {
+			if (browserMFAChecker.isBrowserVerified(request, userId)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isHeadlessSetupComplete(
+		HttpServletRequest request, long userId) {
+
+		for (MFAChecker mfaChecker : mfaCheckers) {
+			if (!mfaChecker.supportsHeadless()) {
+				continue;
+			}
+
+			HeadlessMFAChecker headlessMFAChecker =
+				(HeadlessMFAChecker)mfaChecker;
+
+			if (headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
 				return true;
 			}
 		}
@@ -139,43 +179,7 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 			HeadlessMFAChecker headlessMFAChecker =
 				(HeadlessMFAChecker)mfaChecker;
 
-			if(headlessMFAChecker.isHeadlessVerified(request, userId)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean isHeadlessSetupComplete(HttpServletRequest request, long userId) {
-		for (MFAChecker mfaChecker : mfaCheckers) {
-			if (!mfaChecker.supportsHeadless()) {
-				continue;
-			}
-
-			HeadlessMFAChecker headlessMFAChecker =
-				(HeadlessMFAChecker)mfaChecker;
-
-			if(headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean isBrowserSetupComplete(HttpServletRequest request, long userId) {
-		for (MFAChecker mfaChecker : mfaCheckers) {
-			if (!mfaChecker.supportsBrowser()) {
-				continue;
-			}
-
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker)mfaChecker;
-
-			if(browserMFAChecker.isBrowserSetupComplete(request, userId)) {
+			if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
 				return true;
 			}
 		}
@@ -197,23 +201,22 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker)mfaChecker;
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if(!browserMFAChecker.isBrowserSetupComplete(
+			if (!browserMFAChecker.isBrowserSetupComplete(
 					originalServletRequest, userId)) {
 
 				continue;
 			}
 
 			if (browserMFAChecker.isBrowserVerified(
-				originalServletRequest, userId)) {
+					originalServletRequest, userId)) {
 
 				continue;
 			}
 
-			if(browserMFAChecker.verifyBrowserRequest(
-				actionRequest, actionResponse, userId)) {
+			if (browserMFAChecker.verifyBrowserRequest(
+					actionRequest, actionResponse, userId)) {
 
 				return true;
 			}
@@ -234,9 +237,7 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 			HeadlessMFAChecker headlessMFAChecker =
 				(HeadlessMFAChecker)mfaChecker;
 
-			if(!headlessMFAChecker.isHeadlessSetupComplete(
-				request, userId)) {
-
+			if (!headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
 				continue;
 			}
 
@@ -251,4 +252,5 @@ public class OptionalCompositeMFAChecker extends CompositeMFACheckerImpl {
 
 		return false;
 	}
+
 }

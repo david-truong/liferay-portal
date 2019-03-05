@@ -17,20 +17,20 @@ package com.liferay.multi.factor.authentication.integration.internal;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.internal.verifier.MandatoryCompositeMFAChecker;
 import com.liferay.multi.factor.authentication.integration.internal.verifier.OptionalCompositeMFAChecker;
-import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -41,14 +41,26 @@ import org.osgi.service.component.annotations.Component;
 @Component(immediate = true, service = MFARegistry.class)
 public class MFARegistryImpl implements MFARegistry {
 
-	private ServiceTrackerMap<String, MFAIntegration>
-		_mfaIntegrationServiceTrackerMap;
+	@Override
+	public MFAChecker getMFAChecker(String name) {
+		return _mfaCheckersServiceTrackerMap.getService(name);
+	}
 
-	private ServiceTrackerMap<String, MFAChecker>
-		_mfaCheckersServiceTrackerMap;
+	@Override
+	public Set<String> getMFACheckerIntegrationNames(String mfaCheckerName) {
+		Set<String> verifierIntegrationNames = new HashSet<>();
 
-	private ServiceTrackerMap<String, MFAIntegrationVerification>
-		_mfaIntegrationVerificationServiceTrackerMap;
+		for (MFAIntegrationVerification mfaIntegrationVerification :
+				_mfaIntegrationVerificationServiceTrackerMap.values()) {
+
+			if (mfaIntegrationVerification.hasMFAChecker(mfaCheckerName)) {
+				verifierIntegrationNames.add(
+					mfaIntegrationVerification.getIntegrationName());
+			}
+		}
+
+		return verifierIntegrationNames;
+	}
 
 	@Override
 	public List<MFAChecker> getMFACheckers() {
@@ -56,8 +68,8 @@ public class MFARegistryImpl implements MFARegistry {
 	}
 
 	@Override
-	public MFAChecker getMFAChecker(String name) {
-		return _mfaCheckersServiceTrackerMap.getService(name);
+	public MFAIntegration getMFAIntegration(String name) {
+		return _mfaIntegrationServiceTrackerMap.getService(name);
 	}
 
 	@Override
@@ -83,8 +95,8 @@ public class MFARegistryImpl implements MFARegistry {
 			return null;
 		}
 
-		List<MFAChecker> mandatoryMFACheckers =
-			new ArrayList<>(mfaCheckersList.size());
+		List<MFAChecker> mandatoryMFACheckers = new ArrayList<>(
+			mfaCheckersList.size());
 
 		for (List<MFAChecker> mfaCheckers : mfaCheckersList) {
 			if (mfaCheckers.isEmpty()) {
@@ -112,21 +124,8 @@ public class MFARegistryImpl implements MFARegistry {
 	}
 
 	@Override
-	public Set<String> getMFACheckerIntegrationNames(
-		String mfaCheckerName) {
-
-		Set<String> verifierIntegrationNames = new HashSet<>();
-
-		for (MFAIntegrationVerification mfaIntegrationVerification :
-			_mfaIntegrationVerificationServiceTrackerMap.values()) {
-
-			if (mfaIntegrationVerification.hasMFAChecker(mfaCheckerName)) {
-				verifierIntegrationNames.add(
-					mfaIntegrationVerification.getIntegrationName());
-			}
-		}
-
-		return verifierIntegrationNames;
+	public List<MFAIntegration> getMFAIntegrations() {
+		return new ArrayList(_mfaIntegrationServiceTrackerMap.values());
 	}
 
 	@Activate
@@ -143,8 +142,8 @@ public class MFARegistryImpl implements MFARegistry {
 				bundleContext, MFAIntegrationVerification.class, null,
 				ServiceReferenceMapperFactory.create(
 					bundleContext,
-					(service, emitter) ->
-						emitter.emit(service.getIntegrationName())));
+					(service, emitter) -> emitter.emit(
+						service.getIntegrationName())));
 
 		_mfaCheckersServiceTrackerMap =
 			ServiceTrackerMapFactory.openSingleValueMap(
@@ -154,18 +153,13 @@ public class MFARegistryImpl implements MFARegistry {
 					(service, emitter) -> emitter.emit(service.getName())));
 	}
 
-	@Override
-	public MFAIntegration getMFAIntegration(String name) {
-		return _mfaIntegrationServiceTrackerMap.getService(name);
-	}
-
-	@Override
-	public List<MFAIntegration> getMFAIntegrations() {
-		return new ArrayList(_mfaIntegrationServiceTrackerMap.values());
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		MFARegistryImpl.class);
 
+	private ServiceTrackerMap<String, MFAChecker> _mfaCheckersServiceTrackerMap;
+	private ServiceTrackerMap<String, MFAIntegration>
+		_mfaIntegrationServiceTrackerMap;
+	private ServiceTrackerMap<String, MFAIntegrationVerification>
+		_mfaIntegrationVerificationServiceTrackerMap;
 
 }

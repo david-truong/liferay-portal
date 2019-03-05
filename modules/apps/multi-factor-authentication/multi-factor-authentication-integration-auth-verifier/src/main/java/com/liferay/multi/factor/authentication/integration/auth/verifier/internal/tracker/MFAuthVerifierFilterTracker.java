@@ -14,8 +14,8 @@
 
 package com.liferay.multi.factor.authentication.integration.auth.verifier.internal.tracker;
 
-import com.liferay.multi.factor.authentication.integration.auth.verifier.internal.servlet.filter.MFAAuthVerifierFilter;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
+import com.liferay.multi.factor.authentication.integration.auth.verifier.internal.servlet.filter.MFAAuthVerifierFilter;
 import com.liferay.multi.factor.authentication.integration.auth.verifier.internal.spi.integration.AuthVerifierMFAIntegration;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.petra.string.StringBundler;
@@ -75,13 +75,13 @@ public class MFAuthVerifierFilterTracker {
 		_serviceTracker.close();
 	}
 
+	@Reference
+	private AuthVerifierMFAIntegration _authVerifierMFAIntegration;
+
 	private BundleContext _bundleContext;
 
 	@Reference
 	private MFARegistry _mfaCheckerRegistry;
-
-	@Reference
-	private AuthVerifierMFAIntegration _authVerifierMFAIntegration;
 
 	private ServiceTracker<ServletContextHelper, ServiceRegistration<?>>
 		_serviceTracker;

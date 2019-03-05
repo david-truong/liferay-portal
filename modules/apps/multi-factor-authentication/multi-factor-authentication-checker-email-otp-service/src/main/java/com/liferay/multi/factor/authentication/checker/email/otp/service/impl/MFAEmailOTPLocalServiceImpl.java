@@ -18,16 +18,15 @@ import com.liferay.multi.factor.authentication.checker.email.otp.exception.NoSuc
 import com.liferay.multi.factor.authentication.checker.email.otp.model.MFAEmailOTP;
 import com.liferay.multi.factor.authentication.checker.email.otp.service.base.MFAEmailOTPLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
-
-import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import org.osgi.service.component.annotations.Component;
 
 import java.util.Date;
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
 
 /**
  * The implementation of the mfa email otp local service.
@@ -49,7 +48,6 @@ import java.util.List;
 public class MFAEmailOTPLocalServiceImpl
 	extends MFAEmailOTPLocalServiceBaseImpl {
 
-
 	public MFAEmailOTP addMFAEmailTOTP(
 			String mfaCheckerName, String emailAddress, long userId)
 		throws PortalException {
@@ -70,23 +68,19 @@ public class MFAEmailOTPLocalServiceImpl
 		MFAEmailOTP mfaEmailOTP = mfaEmailOTPPersistence.create(mfaEmailOTPId);
 
 		mfaEmailOTP.setCompanyId(user.getCompanyId());
+		mfaEmailOTP.setUserId(userId);
+		mfaEmailOTP.setUserName(user.getFullName());
 		mfaEmailOTP.setCreateDate(new Date());
 		mfaEmailOTP.setEmailAddress(emailAddress);
 		mfaEmailOTP.setMfaCheckerName(mfaCheckerName);
-		mfaEmailOTP.setUserId(userId);
-		mfaEmailOTP.setUserName(user.getFullName());
 
 		mfaEmailOTPPersistence.update(mfaEmailOTP);
 
 		return mfaEmailOTP;
 	}
 
-	public List<MFAEmailOTP> getMFAEmailOTPsByUserId(
-		long userId, int start, int end,
-		OrderByComparator<MFAEmailOTP> orderByComparator) {
-
-		return mfaEmailOTPPersistence.findByUserId(
-			userId, start, end, orderByComparator);
+	public MFAEmailOTP fetchMFAEmailOTP(String mfaCheckerName, long userId) {
+		return mfaEmailOTPPersistence.fetchByM_U(mfaCheckerName, userId);
 	}
 
 	public List<MFAEmailOTP> getMFAEmailOTPsByMFACheckerName(
@@ -97,15 +91,19 @@ public class MFAEmailOTPLocalServiceImpl
 			mfaCheckerName, start, end, orderByComparator);
 	}
 
-	public MFAEmailOTP fetchMFAEmailOTP(String mfaCheckerName, long userId) {
-		return mfaEmailOTPPersistence.fetchByM_U(mfaCheckerName, userId);
+	public List<MFAEmailOTP> getMFAEmailOTPsByUserId(
+		long userId, int start, int end,
+		OrderByComparator<MFAEmailOTP> orderByComparator) {
+
+		return mfaEmailOTPPersistence.findByUserId(
+			userId, start, end, orderByComparator);
 	}
 
 	public boolean updateFailedAttempt(
 		String mfaCheckerName, long userId, String userIP) {
 
-		MFAEmailOTP mfaEmailOTP =
-			mfaEmailOTPLocalService.fetchMFAEmailOTP(mfaCheckerName, userId);
+		MFAEmailOTP mfaEmailOTP = mfaEmailOTPLocalService.fetchMFAEmailOTP(
+			mfaCheckerName, userId);
 
 		if (mfaEmailOTP == null) {
 			return false;
@@ -123,8 +121,8 @@ public class MFAEmailOTPLocalServiceImpl
 	public boolean updateSuccessAttempt(
 		String mfaCheckerName, long userId, String userIP) {
 
-		MFAEmailOTP mfaEmailOTP =
-			mfaEmailOTPLocalService.fetchMFAEmailOTP(mfaCheckerName, userId);
+		MFAEmailOTP mfaEmailOTP = mfaEmailOTPLocalService.fetchMFAEmailOTP(
+			mfaCheckerName, userId);
 
 		if (mfaEmailOTP == null) {
 			return false;
@@ -138,4 +136,5 @@ public class MFAEmailOTPLocalServiceImpl
 
 		return true;
 	}
+
 }

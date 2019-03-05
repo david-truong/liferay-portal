@@ -15,6 +15,7 @@
 package com.liferay.multi.factor.authentication.portlet.web.internal.category;
 
 import com.liferay.configuration.admin.category.ConfigurationCategory;
+
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -24,7 +25,8 @@ import org.osgi.service.component.annotations.Component;
 	property = "service.ranking:Integer=1",
 	service = ConfigurationCategory.class
 )
-public class MultiFactorAuthenticationConfigurationCategory implements ConfigurationCategory {
+public class MultiFactorAuthenticationConfigurationCategory
+	implements ConfigurationCategory {
 
 	@Override
 	public String getCategoryKey() {

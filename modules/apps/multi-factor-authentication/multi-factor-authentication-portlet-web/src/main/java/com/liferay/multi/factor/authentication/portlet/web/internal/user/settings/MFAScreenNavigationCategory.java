@@ -23,43 +23,33 @@ import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.users.admin.constants.UserFormConstants;
 
 import java.io.IOException;
+
 import java.util.Locale;
 import java.util.ResourceBundle;
-
-import org.osgi.service.component.annotations.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.service.component.annotations.Component;
+
 /**
  * @author Marta Medio
-*/
+ */
 @Component(
-	property = {"screen.navigation.category.order:Integer=40"},
+	property = "screen.navigation.category.order:Integer=40",
 	service = {ScreenNavigationCategory.class, ScreenNavigationEntry.class}
 )
-public class MFAScreenNavigationCategory implements ScreenNavigationCategory,
-	ScreenNavigationEntry<User> {
-
-	@Override
-	public String getEntryKey() {
-		return null;
-	}
-
-	@Override
-	public boolean isVisible(User user, User context) {
-		return false;
-	}
-
-	@Override
-	public void render(
-		HttpServletRequest request, HttpServletResponse response)
-		throws IOException {
-	}
+public class MFAScreenNavigationCategory
+	implements ScreenNavigationCategory, ScreenNavigationEntry<User> {
 
 	@Override
 	public String getCategoryKey() {
 		return MFAPortletKeys.CATEGORY_KEY_MFA;
+	}
+
+	@Override
+	public String getEntryKey() {
+		return null;
 	}
 
 	@Override
@@ -73,6 +63,16 @@ public class MFAScreenNavigationCategory implements ScreenNavigationCategory,
 	@Override
 	public String getScreenNavigationKey() {
 		return UserFormConstants.SCREEN_NAVIGATION_KEY_USERS;
+	}
+
+	@Override
+	public boolean isVisible(User user, User context) {
+		return false;
+	}
+
+	@Override
+	public void render(HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
 	}
 
 }

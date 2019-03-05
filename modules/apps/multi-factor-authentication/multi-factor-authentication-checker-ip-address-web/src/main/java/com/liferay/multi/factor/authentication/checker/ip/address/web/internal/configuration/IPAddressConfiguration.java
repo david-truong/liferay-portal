@@ -15,6 +15,7 @@
 package com.liferay.multi.factor.authentication.checker.ip.address.web.internal.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
+
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 
 /**

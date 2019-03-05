@@ -27,28 +27,28 @@ int mfaCheckerIndex = ParamUtil.getInteger(request, "mfaCheckerIndex", 0);
 if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < setupMFACheckers.size())) {
 	browserMFAChecker = setupMFACheckers.get(mfaCheckerIndex);
 }
-
 %>
+
 <portlet:actionURL name="/mfa/setup" var="setupMFAActionURL">
 	<portlet:param name="mvcRenderCommandName" value="/mfa/setup" />
 </portlet:actionURL>
 
 <aui:form action="<%= setupMFAActionURL %>" cssClass="container-fluid-1280 sign-in-form" method="post" name="fm">
 	<aui:input name="integrationName" type="hidden" value='<%= ParamUtil.getString(request, "integrationName") %>' />
-	<aui:input name="mfaCheckerIndex" type="hidden" value='<%= String.valueOf(mfaCheckerIndex) %>' />
+	<aui:input name="mfaCheckerIndex" type="hidden" value="<%= String.valueOf(mfaCheckerIndex) %>" />
 	<aui:input name="redirect" type="hidden" value='<%= ParamUtil.getString(request, "redirect") %>' />
 	<aui:input name="saveLastPath" type="hidden" value="<%= false %>" />
 
 	<liferay-ui:error key="mfaFailed" message="multi-factor-authentication-setup-failed" />
 
 	<%
-		browserMFAChecker.includeSetup(themeDisplay.getUserId(), request, response);
+	browserMFAChecker.includeSetup(themeDisplay.getUserId(), request, response);
 	%>
 
 	<c:if test="<%= setupMFACheckers.size() > 1 %>">
-		<portlet:renderURL var="setupAnotherMFAChecker" copyCurrentRenderParameters="<%= true %>">
+		<portlet:renderURL copyCurrentRenderParameters="<%= true %>" var="setupAnotherMFAChecker">
 			<portlet:param name="integrationName" value='<%= ParamUtil.getString(request, "integrationName") %>' />
-			<portlet:param name="mfaCheckerIndex" value="<%= mfaCheckerIndex + 1 < setupMFACheckers.size() ?  String.valueOf(mfaCheckerIndex + 1) : "0" %>"/>
+			<portlet:param name="mfaCheckerIndex" value='<%= mfaCheckerIndex + 1 < setupMFACheckers.size() ? String.valueOf(mfaCheckerIndex + 1) : "0" %>' />
 			<portlet:param name="mvcRenderCommandName" value="/mfa/setup" />
 			<portlet:param name="redirect" value='<%= ParamUtil.getString(request, "redirect") %>' />
 			<portlet:param name="saveLastPath" value="<%= Boolean.FALSE.toString() %>" />

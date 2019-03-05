@@ -22,15 +22,17 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.util.Collections;
+import java.util.List;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-import java.util.Collections;
-import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -43,6 +45,7 @@ import java.util.List;
 	service = MVCRenderCommand.class
 )
 public class MFASetupMVCRenderCommand implements MVCRenderCommand {
+
 	@Override
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse)
@@ -52,7 +55,7 @@ public class MFASetupMVCRenderCommand implements MVCRenderCommand {
 			renderRequest, "integrationName");
 
 		BrowserMFAChecker browserMFAChecker =
-			(BrowserMFAChecker) _mfaRegistry.getMFAIntegrationChecker(
+			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(
 				integrationName);
 
 		renderRequest.setAttribute(

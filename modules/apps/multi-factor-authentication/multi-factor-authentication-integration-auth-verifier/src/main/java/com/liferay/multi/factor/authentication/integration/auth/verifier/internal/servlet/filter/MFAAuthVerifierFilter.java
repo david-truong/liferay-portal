@@ -14,9 +14,9 @@
 
 package com.liferay.multi.factor.authentication.integration.auth.verifier.internal.servlet.filter;
 
+import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.auth.verifier.internal.spi.integration.AuthVerifierMFAIntegration;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
-import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
@@ -51,15 +51,15 @@ import org.osgi.service.component.annotations.Reference;
 public class MFAAuthVerifierFilter extends BaseFilter {
 
 	@Reference(unbind = "-")
-	public void setMfaRegistry(MFARegistry mfaRegistry) {
-		_mfaRegistry = mfaRegistry;
-	}
-
-	@Reference(unbind = "-")
 	public void setAuthVerifierMFAIntegration(
 		AuthVerifierMFAIntegration authVerifierMFAIntegration) {
 
 		_authVerifierMFAIntegration = authVerifierMFAIntegration;
+	}
+
+	@Reference(unbind = "-")
+	public void setMfaRegistry(MFARegistry mfaRegistry) {
+		_mfaRegistry = mfaRegistry;
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 		}
 
 		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
-				_authVerifierMFAIntegration.getName());
+			_authVerifierMFAIntegration.getName());
 
 		if ((mfaChecker == null) || !mfaChecker.supportsHeadless() ||
 			!mfaChecker.isEnabled()) {
@@ -112,8 +112,7 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 			return;
 		}
 
-		HeadlessMFAChecker headlessMFAChecker =
-			(HeadlessMFAChecker)mfaChecker;
+		HeadlessMFAChecker headlessMFAChecker = (HeadlessMFAChecker)mfaChecker;
 
 		long userId = authVerifierResult.getUserId();
 
@@ -139,7 +138,7 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 			_log.warn(
 				StringBundler.concat(
 					"Unable to verify Multi Factor " +
-					"Authentication token for ",
+						"Authentication token for ",
 					request.getPathInfo()));
 		}
 
@@ -150,8 +149,7 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 	private static final Log _log = LogFactoryUtil.getLog(
 		MFAAuthVerifierFilter.class);
 
-	private MFARegistry _mfaRegistry;
-
 	private AuthVerifierMFAIntegration _authVerifierMFAIntegration;
+	private MFARegistry _mfaRegistry;
 
 }

@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.users.admin.constants.UserFormConstants;
 
+import java.io.IOException;
+
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.Set;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.Set;
 
 /**
  * @author Marta Medio
@@ -42,31 +44,10 @@ import java.util.Set;
 public class UserAccountSetupMFAScreenNavigationEntry
 	implements ScreenNavigationEntry<User> {
 
-	private final UserAccountSetupMFARenderer _userAccountSetupMFAChecker;
-	private MFARegistry _mfaRegistry;
-
 	public UserAccountSetupMFAScreenNavigationEntry(
 		UserAccountSetupMFARenderer userAccountSetupMFAChecker) {
 
 		_userAccountSetupMFAChecker = userAccountSetupMFAChecker;
-	}
-
-	@Override
-	public boolean isVisible(User user, User context) {
-		MFAChecker mfaChecker = (MFAChecker)_userAccountSetupMFAChecker;
-
-		if (!mfaChecker.isEnabled()) {
-			return false;
-		}
-
-		Set<String> verifierIntegrationNames =
-			_mfaRegistry.getMFACheckerIntegrationNames(mfaChecker.getName());
-
-		if (verifierIntegrationNames.isEmpty()) {
-			return false;
-		}
-
-		return true;
 	}
 
 	@Override
@@ -93,6 +74,24 @@ public class UserAccountSetupMFAScreenNavigationEntry
 	}
 
 	@Override
+	public boolean isVisible(User user, User context) {
+		MFAChecker mfaChecker = (MFAChecker)_userAccountSetupMFAChecker;
+
+		if (!mfaChecker.isEnabled()) {
+			return false;
+		}
+
+		Set<String> verifierIntegrationNames =
+			_mfaRegistry.getMFACheckerIntegrationNames(mfaChecker.getName());
+
+		if (verifierIntegrationNames.isEmpty()) {
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
 	public void render(HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 
@@ -103,7 +102,6 @@ public class UserAccountSetupMFAScreenNavigationEntry
 		request.setAttribute("label", getLabel(request.getLocale()));
 		request.setAttribute("screenNavigationCategoryKey", getCategoryKey());
 		request.setAttribute("screenNavigationEntryKey", getEntryKey());
-
 
 		RequestDispatcher requestDispatcher =
 			_servletContext.getRequestDispatcher("/user_account_setup.jsp");
@@ -119,16 +117,19 @@ public class UserAccountSetupMFAScreenNavigationEntry
 		}
 	}
 
+	public void setMFARegistry(MFARegistry mfaRegistry) {
+		_mfaRegistry = mfaRegistry;
+	}
+
 	public void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
 	}
 
-	private ServletContext _servletContext;
-
 	private static Log _log = LogFactoryUtil.getLog(
 		UserAccountSetupMFAScreenNavigationEntry.class);
 
-	public void setMFARegistry(MFARegistry mfaRegistry) {
-		_mfaRegistry = mfaRegistry;
-	}
+	private MFARegistry _mfaRegistry;
+	private ServletContext _servletContext;
+	private final UserAccountSetupMFARenderer _userAccountSetupMFAChecker;
+
 }

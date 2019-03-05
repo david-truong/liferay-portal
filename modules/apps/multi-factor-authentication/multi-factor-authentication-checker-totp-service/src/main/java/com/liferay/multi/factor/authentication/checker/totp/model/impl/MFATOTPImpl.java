@@ -28,7 +28,7 @@ import aQute.bnd.annotation.ProviderType;
 @ProviderType
 public class MFATOTPImpl extends MFATOTPBaseImpl {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never reference this class directly. All methods that expect a mfatotp model instance should use the {@link com.liferay.multi.factor.authentication.checker.totp.model.MFATOTP} interface instead.

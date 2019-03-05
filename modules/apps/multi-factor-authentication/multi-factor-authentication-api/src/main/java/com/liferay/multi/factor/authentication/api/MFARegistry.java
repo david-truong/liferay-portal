@@ -15,6 +15,7 @@
 package com.liferay.multi.factor.authentication.api;
 
 import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 

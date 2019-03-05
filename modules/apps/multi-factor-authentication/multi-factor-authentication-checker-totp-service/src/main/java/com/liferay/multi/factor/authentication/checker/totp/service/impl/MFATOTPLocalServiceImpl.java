@@ -18,15 +18,15 @@ import com.liferay.multi.factor.authentication.checker.totp.exception.NoSuchMFAT
 import com.liferay.multi.factor.authentication.checker.totp.model.MFATOTP;
 import com.liferay.multi.factor.authentication.checker.totp.service.base.MFATOTPLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
-
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import org.osgi.service.component.annotations.Component;
 
 import java.util.Date;
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
 
 /**
  * The implementation of the mfatotp local service.
@@ -67,23 +67,19 @@ public class MFATOTPLocalServiceImpl extends MFATOTPLocalServiceBaseImpl {
 
 		mfaTOTP.setBackupCodes(""); // TODO
 		mfaTOTP.setCompanyId(user.getCompanyId());
+		mfaTOTP.setUserId(userId);
+		mfaTOTP.setUserName(user.getFullName());
 		mfaTOTP.setCreateDate(new Date());
 		mfaTOTP.setMfaCheckerName(mfaCheckerName);
 		mfaTOTP.setSharedSecret(sharedSecret);
-		mfaTOTP.setUserId(userId);
-		mfaTOTP.setUserName(user.getFullName());
 
 		mfatotpPersistence.update(mfaTOTP);
 
 		return mfaTOTP;
 	}
 
-	public List<MFATOTP> getMFATOTPsByUserId(
-		long userId, int start, int end,
-		OrderByComparator<MFATOTP> orderByComparator) {
-
-		return mfatotpPersistence.findByUserId(
-			userId, start, end, orderByComparator);
+	public MFATOTP fetchMFATOTP(String mfaCheckerName, long userId) {
+		return mfatotpPersistence.fetchByM_U(mfaCheckerName, userId);
 	}
 
 	public List<MFATOTP> getMFATOTPsByMFACheckerName(
@@ -94,8 +90,12 @@ public class MFATOTPLocalServiceImpl extends MFATOTPLocalServiceBaseImpl {
 			mfaCheckerName, start, end, orderByComparator);
 	}
 
-	public MFATOTP fetchMFATOTP(String mfaCheckerName, long userId) {
-		return mfatotpPersistence.fetchByM_U(mfaCheckerName, userId);
+	public List<MFATOTP> getMFATOTPsByUserId(
+		long userId, int start, int end,
+		OrderByComparator<MFATOTP> orderByComparator) {
+
+		return mfatotpPersistence.findByUserId(
+			userId, start, end, orderByComparator);
 	}
 
 }

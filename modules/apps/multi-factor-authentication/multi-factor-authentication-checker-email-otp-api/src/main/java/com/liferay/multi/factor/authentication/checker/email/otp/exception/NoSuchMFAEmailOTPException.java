@@ -11,6 +11,7 @@
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  */
+
 package com.liferay.multi.factor.authentication.checker.email.otp.exception;
 
 import aQute.bnd.annotation.ProviderType;

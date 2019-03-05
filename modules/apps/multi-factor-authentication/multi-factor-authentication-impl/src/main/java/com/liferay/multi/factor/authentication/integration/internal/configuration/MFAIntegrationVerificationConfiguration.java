@@ -15,6 +15,7 @@
 package com.liferay.multi.factor.authentication.integration.internal.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
+
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 
 /**
@@ -33,14 +34,15 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 public interface MFAIntegrationVerificationConfiguration {
 
 	@Meta.AD(
-		description = "integration-name-description",
-		name = "integration-name", required = false
+		description = "integration-name-description", name = "integration-name",
+		required = false
 	)
 	public String integrationName();
 
 	@Meta.AD(
-		description = "verifier-names-description",
-		name = "verifier-names", required = false
+		description = "verifier-names-description", name = "verifier-names",
+		required = false
 	)
 	public String[] verifierNames();
+
 }

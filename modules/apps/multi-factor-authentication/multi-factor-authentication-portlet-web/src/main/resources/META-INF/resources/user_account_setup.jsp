@@ -1,9 +1,5 @@
-<%@ page import="com.liferay.portal.kernel.model.User" %><%@
-page import="com.liferay.portal.kernel.util.PortalUtil" %>
-<%@ page
-	import="com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer" %>
-<%@ page
-	import="com.liferay.multi.factor.authentication.spi.checker.MFAChecker" %>
+<%@ page import="com.liferay.multi.factor.authentication.spi.checker.MFAChecker" %><%@
+page import="com.liferay.multi.factor.authentication.spi.renderer.UserAccountSetupMFARenderer" %>
 
 <%--
 /**
@@ -42,19 +38,21 @@ page import="com.liferay.portal.kernel.util.PortalUtil" %>
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="screenNavigationCategoryKey" type="hidden" value="<%= screenNavigationCategoryKey %>" />
 	<aui:input name="screenNavigationEntryKey" type="hidden" value="<%= screenNavigationEntryKey %>" />
-	<aui:input name="userAccountSetupMFACheckerName" type="hidden" value="<%= mfaChecker.getName()%>" />
+	<aui:input name="userAccountSetupMFACheckerName" type="hidden" value="<%= mfaChecker.getName() %>" />
 
 	<div class="sheet sheet-lg">
 			<div class="sheet-header">
-				<h2 class="sheet-title"><liferay-ui:message key="<%= mfaChecker.getName() %>" escapeAttribute="<%= true %>"/></h2>
+				<h2 class="sheet-title"><liferay-ui:message escapeAttribute="<%= true %>" key="<%= mfaChecker.getName() %>" /></h2>
 			</div>
 
 		<liferay-ui:error key="userAccountSetupFailed" message="user-account-setup-failed" />
 
 		<div class="sheet-section">
+
 			<%
 				userAccountSetupMFAChecker.includeUserAccountSetup(userId, request, response);
 			%>
+
 		</div>
 
 		<aui:button-row>

@@ -26,11 +26,12 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.users.admin.constants.UsersAdminPortletKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -44,7 +45,7 @@ import javax.portlet.ActionResponse;
 )
 public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 
-		@Override
+	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
@@ -52,8 +53,8 @@ public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 		String userAccountSetupMFACheckerName = ParamUtil.getString(
 			actionRequest, "userAccountSetupMFACheckerName");
 
-		MFAChecker mfaChecker =
-			_mfaRegistry.getMFAChecker(userAccountSetupMFACheckerName);
+		MFAChecker mfaChecker = _mfaRegistry.getMFAChecker(
+			userAccountSetupMFACheckerName);
 
 		if ((mfaChecker == null) || !mfaChecker.supportsUserAccountSetup()) {
 			SessionErrors.add(actionRequest, "userAccountSetupFailed");
@@ -90,4 +91,5 @@ public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private Portal _portal;
+
 }

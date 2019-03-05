@@ -25,14 +25,16 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.util.Collections;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletRequest;
-import java.util.Collections;
-import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -55,18 +57,18 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest, "integrationName");
 
 		BrowserMFAChecker browserMFAChecker =
-			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(integrationName);
+			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(
+				integrationName);
 
-		int setupMFACheckerIndex =
-			ParamUtil.getInteger(actionRequest, "setupMFACheckerIndex", -1);
+		int setupMFACheckerIndex = ParamUtil.getInteger(
+			actionRequest, "setupMFACheckerIndex", -1);
 
 		if (setupMFACheckerIndex > 1) {
-			List<BrowserMFAChecker> setupMFACheckers =
-				_getSetupMFACheckers(browserMFAChecker, actionRequest);
+			List<BrowserMFAChecker> setupMFACheckers = _getSetupMFACheckers(
+				browserMFAChecker, actionRequest);
 
 			if (setupMFACheckerIndex < setupMFACheckers.size()) {
-				browserMFAChecker = setupMFACheckers.get(
-					setupMFACheckerIndex);
+				browserMFAChecker = setupMFACheckers.get(setupMFACheckerIndex);
 			}
 		}
 
@@ -109,4 +111,5 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private Portal _portal;
+
 }

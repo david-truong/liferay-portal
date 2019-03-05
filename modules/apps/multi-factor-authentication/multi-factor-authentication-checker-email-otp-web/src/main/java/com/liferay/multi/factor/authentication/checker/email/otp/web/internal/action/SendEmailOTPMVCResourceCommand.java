@@ -23,8 +23,8 @@ import com.liferay.mail.kernel.template.MailTemplateFactoryUtil;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.checker.email.otp.model.MFAEmailOTP;
 import com.liferay.multi.factor.authentication.checker.email.otp.service.MFAEmailOTPLocalService;
-import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration;
 import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.checker.EmailOTPMFAChecker;
+import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.petra.string.StringBundler;
@@ -49,16 +49,20 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PwdGenerator;
 import com.liferay.portal.kernel.util.WebKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.io.IOException;
 
 import javax.mail.internet.InternetAddress;
+
 import javax.portlet.PortletException;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author arthurchan35
@@ -167,13 +171,11 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 			MailTemplateContext mailTemplateContext =
 				mailTemplateContextBuilder.build();
 
-			String emailTemplateSubject =
-				_locationVariableResolver.resolve(
-					emailOTPConfiguration.emailTemplateSubject());
+			String emailTemplateSubject = _locationVariableResolver.resolve(
+				emailOTPConfiguration.emailTemplateSubject());
 
-			String emailTemplateBody =
-				_locationVariableResolver.resolve(
-					emailOTPConfiguration.emailTemplateBody());
+			String emailTemplateBody = _locationVariableResolver.resolve(
+				emailOTPConfiguration.emailTemplateBody());
 
 			return _sendNotificationEmail(
 				emailOTPConfiguration.emailTemplateFrom(),
@@ -185,17 +187,44 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 		}
 	}
 
+	protected EmailOTPMFAChecker getEmailOTPMFAChecker(
+		ResourceRequest request) {
+
+		String mfaCheckerName = ParamUtil.getString(request, "mfaCheckerName");
+
+		MFAChecker mfaChecker = _mfaRegistry.getMFAChecker(mfaCheckerName);
+
+		if (mfaChecker == null) {
+			_log.error("Unable to find MFAChecker " + mfaCheckerName);
+
+			return null;
+		}
+
+		if (!(mfaChecker instanceof EmailOTPMFAChecker)) {
+			_log.error(
+				StringBundler.concat(
+					"MFAChecker", mfaCheckerName,
+					" is not EmailOTPMFAChecker!"));
+
+			return null;
+		}
+
+		EmailOTPMFAChecker emailOTPMFAChecker = (EmailOTPMFAChecker)mfaChecker;
+
+		return emailOTPMFAChecker;
+	}
+
 	private boolean _sendNotificationEmail(
 			String fromAddress, String fromName, String toAddress, User toUser,
 			String subject, String body,
 			MailTemplateContext mailTemplateContext)
-		throws PortalException, IOException {
+		throws IOException, PortalException {
 
 		MailTemplate subjectTemplate =
 			MailTemplateFactoryUtil.createMailTemplate(subject, false);
 
-		MailTemplate bodyTemplate =
-			MailTemplateFactoryUtil.createMailTemplate(body, true);
+		MailTemplate bodyTemplate = MailTemplateFactoryUtil.createMailTemplate(
+			body, true);
 
 		MailMessage mailMessage = new MailMessage(
 			new InternetAddress(fromAddress, fromName),
@@ -210,8 +239,7 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 			toUser.getCompanyId());
 
 		mailMessage.setMessageId(
-			PortalUtil.getMailId(
-				company.getMx(), "user", toUser.getUserId()));
+			PortalUtil.getMailId(company.getMx(), "user", toUser.getUserId()));
 
 		_mailService.sendEmail(mailMessage);
 
@@ -239,58 +267,14 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 		return false;
 	}
 
-	protected EmailOTPMFAChecker getEmailOTPMFAChecker(
-		ResourceRequest request) {
-
-		String mfaCheckerName =
-			ParamUtil.getString(request, "mfaCheckerName");
-
-		MFAChecker mfaChecker = _mfaRegistry.getMFAChecker(mfaCheckerName);
-
-		if (mfaChecker == null) {
-			_log.error("Unable to find MFAChecker " + mfaCheckerName);
-
-			return null;
-		}
-
-		if (!(mfaChecker instanceof EmailOTPMFAChecker)) {
-			_log.error(
-				StringBundler.concat(
-					"MFAChecker", mfaCheckerName,
-					" is not EmailOTPMFAChecker!"));
-
-			return null;
-		}
-
-		EmailOTPMFAChecker emailOTPMFAChecker =
-			(EmailOTPMFAChecker)mfaChecker;
-
-		return emailOTPMFAChecker;
-	}
-
 	//this should be configured by admin
 
 	private static final long _DURATION = 60 * 1000;
 
 	private static final int _LENGTH = 6;
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		SendEmailOTPMVCResourceCommand.class);
-
-	@Reference
-	private MFAEmailOTPLocalService _mfaEmailOTPLocalService;
-
-	@Reference
-	private MailService _mailService;
-
-	@Reference
-	private Portal _portal;
-
-	@Reference
-	private UserLocalService _userLocalService;
-
-	@Reference
-	private MFARegistry _mfaRegistry;
 
 	@Reference
 	private AuthToken _authToken;
@@ -301,9 +285,25 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 	@Reference
 	private ConfigurationProvider _configurationProvider;
 
-	private LocationVariableResolver _locationVariableResolver =
+	private final LocationVariableResolver _locationVariableResolver =
 		new LocationVariableResolver(
 			new ClassLoaderResourceManager(
 				SendEmailOTPMVCResourceCommand.class.getClassLoader()),
 			(SettingsLocatorHelper)null);
+
+	@Reference
+	private MailService _mailService;
+
+	@Reference
+	private MFAEmailOTPLocalService _mfaEmailOTPLocalService;
+
+	@Reference
+	private MFARegistry _mfaRegistry;
+
+	@Reference
+	private Portal _portal;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
 }

@@ -15,6 +15,7 @@
 package com.liferay.multi.factor.authentication.api.checker;
 
 import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 
 import java.util.List;
@@ -27,8 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 @ProviderType
 public interface CompositeMFAChecker {
 
-	public List<BrowserMFAChecker> getMFACheckersAvailableForSetup(
-		long userId);
+	public List<BrowserMFAChecker> getMFACheckersAvailableForSetup(long userId);
 
 	public List<BrowserMFAChecker> getMFACheckersAvailableForVerify(
 		HttpServletRequest httpServletRequest, long userId);

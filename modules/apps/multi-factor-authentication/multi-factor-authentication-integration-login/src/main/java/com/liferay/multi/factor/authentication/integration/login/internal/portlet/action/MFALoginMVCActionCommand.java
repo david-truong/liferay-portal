@@ -40,8 +40,16 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.io.IOException;
+
+import java.security.Key;
+
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -50,15 +58,12 @@ import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
 import javax.portlet.filter.ActionRequestWrapper;
 import javax.portlet.filter.ActionResponseWrapper;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.security.Key;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -78,9 +83,8 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		MFAChecker mfaChecker =
-			_mfaCheckerRegistry.getMFAIntegrationChecker(
-				_loginMFAIntegration.getName());
+		MFAChecker mfaChecker = _mfaCheckerRegistry.getMFAIntegrationChecker(
+			_loginMFAIntegration.getName());
 
 		if (mfaChecker == null) {
 			_loginMVCActionCommand.processAction(actionRequest, actionResponse);
@@ -134,13 +138,13 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 
 				if (mfaChecker.supportsHeadless()) {
 					HeadlessMFAChecker headlessMFAChecker =
-						(HeadlessMFAChecker) mfaChecker;
+						(HeadlessMFAChecker)mfaChecker;
 
 					if (headlessMFAChecker.isHeadlessSetupComplete(
-						request, userId)) {
+							request, userId)) {
 
 						if (headlessMFAChecker.isHeadlessVerified(
-							request, userId)) {
+								request, userId)) {
 
 							_loginMVCActionCommand.processAction(
 								actionRequest, actionResponse);
@@ -149,7 +153,7 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 						}
 
 						if (headlessMFAChecker.verifyHeadlessRequest(
-							request, userId)) {
+								request, userId)) {
 
 							_loginMVCActionCommand.processAction(
 								actionRequest, actionResponse);
@@ -161,13 +165,13 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 
 				if (mfaChecker.supportsBrowser()) {
 					BrowserMFAChecker browserMFAChecker =
-						(BrowserMFAChecker) mfaChecker;
+						(BrowserMFAChecker)mfaChecker;
 
 					if (browserMFAChecker.isBrowserSetupComplete(
-						request, userId)) {
+							request, userId)) {
 
 						if (browserMFAChecker.isBrowserVerified(
-							request, userId)){
+								request, userId)) {
 
 							_loginMVCActionCommand.processAction(
 								actionRequest, actionResponse);
@@ -191,6 +195,57 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 		_loginMVCActionCommand.processAction(actionRequest, actionResponse);
 	}
 
+	private Map<String, Object> _decrypt(
+			HttpSession session, String encryptedStateMapJSON)
+		throws Exception {
+
+		String digest = (String)session.getAttribute("digest");
+
+		if (!StringUtil.equals(
+				DigesterUtil.digest(encryptedStateMapJSON), digest)) {
+
+			throw new PrincipalException("User sent unverified data");
+		}
+
+		Key key = (Key)session.getAttribute("key");
+
+		String stateMapJSON = Encryptor.decrypt(key, encryptedStateMapJSON);
+
+		Map<String, Object> stateMap = _jsonFactory.looseDeserialize(
+			stateMapJSON, Map.class);
+
+		Map<String, Object> requestParameters =
+			(Map<String, Object>)stateMap.get("requestParameters");
+
+		for (Map.Entry<String, Object> entry : requestParameters.entrySet()) {
+			Object value = entry.getValue();
+
+			if (value instanceof List) {
+				entry.setValue(
+					ListUtil.toArray((List<Object>)value, _STRING_ACCESSOR));
+			}
+		}
+
+		return stateMap;
+	}
+
+	private String _encrypt(HttpSession session, Map<String, Object> stateMap)
+		throws Exception {
+
+		String stateMapJSON = _jsonFactory.looseSerializeDeep(stateMap);
+
+		Key key = Encryptor.generateKey();
+
+		String encryptedStateMapJSON = Encryptor.encrypt(key, stateMapJSON);
+
+		session.setAttribute(
+			"digest", DigesterUtil.digest(encryptedStateMapJSON));
+
+		session.setAttribute("key", key);
+
+		return encryptedStateMapJSON;
+	}
+
 	private ActionRequest _loadRequestFromState(
 			ActionRequest actionRequest, String encryptedStateMap)
 		throws Exception {
@@ -203,65 +258,36 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 			httpServletRequest.getSession(), encryptedStateMap);
 
 		Map<String, String[]> requestParameters =
-			(Map<String, String[]>) stateMap.get(
-				"requestParameters");
+			(Map<String, String[]>)stateMap.get("requestParameters");
 
-		ActionRequestWrapper actionRequestWrapper =
-			new ActionRequestWrapper(actionRequest) {
-				@Override
-				public String getParameter(String name) {
-					return MapUtil.getString(requestParameters, name, null);
-				}
+		ActionRequestWrapper actionRequestWrapper = new ActionRequestWrapper(
+			actionRequest) {
 
-				@Override
-				public Map<String, String[]> getParameterMap() {
-					return new HashMap<>(requestParameters);
-				}
+			@Override
+			public String getParameter(String name) {
+				return MapUtil.getString(requestParameters, name, null);
+			}
 
-				@Override
-				public Enumeration<String> getParameterNames() {
-					return new Vector(requestParameters.keySet()).elements();
-				}
+			@Override
+			public Map<String, String[]> getParameterMap() {
+				return new HashMap<>(requestParameters);
+			}
 
-				@Override
-				public String[] getParameterValues(String name) {
-					return requestParameters.get(name);
-				}
-			};
+			@Override
+			public Enumeration<String> getParameterNames() {
+				return new Vector(
+					requestParameters.keySet()
+				).elements();
+			}
+
+			@Override
+			public String[] getParameterValues(String name) {
+				return requestParameters.get(name);
+			}
+
+		};
 
 		return actionRequestWrapper;
-	}
-
-	private void redirectToSetup(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws PortletException {
-
-		final String[] responseRedirect = {null};
-
-		ActionResponseWrapper actionResponseWrapper =
-			new ActionResponseWrapper(actionResponse) {
-
-				@Override
-				public void sendRedirect(String location) throws IOException {
-					responseRedirect[0] = location;
-				}
-
-			};
-
-		_loginMVCActionCommand.processAction(
-			actionRequest, actionResponseWrapper);
-
-		String redirect = (String)actionRequest.getAttribute(WebKeys.REDIRECT);
-
-		if (Validator.isNotNull(redirect)) {
-			responseRedirect[0] = redirect;
-		}
-
-		PortletURL renderURL = _mfaPortletURLFactory.createSetupURL(
-			_portal.getHttpServletRequest(actionRequest),
-			_loginMFAIntegration.getName(), responseRedirect[0]);
-
-		actionRequest.setAttribute(WebKeys.REDIRECT, renderURL.toString());
 	}
 
 	private void _redirectToVerify(
@@ -283,72 +309,52 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 			_portal.getLiferayPortletResponse(actionResponse);
 
 		ActionURL actionURL = liferayPortletResponse.createActionURL();
+
 		actionURL.setParameter(ActionRequest.ACTION_NAME, "/login/login");
 		actionURL.setParameter("state", state);
 
-		LiferayPortletURL verifyURL =
-			_mfaPortletURLFactory.createVerifyURL(
-				httpServletRequest, _loginMFAIntegration.getName(),
-				actionURL.toString(), userId);
+		LiferayPortletURL verifyURL = _mfaPortletURLFactory.createVerifyURL(
+			httpServletRequest, _loginMFAIntegration.getName(),
+			actionURL.toString(), userId);
 
 		actionRequest.setAttribute(WebKeys.REDIRECT, verifyURL.toString());
 	}
 
-	private String _encrypt(
-		HttpSession session, Map<String, Object> stateMap)
-		throws Exception {
+	private void redirectToSetup(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws PortletException {
 
-		String stateMapJSON = _jsonFactory.looseSerializeDeep(stateMap);
+		final String[] responseRedirect = {null};
 
-		Key key = Encryptor.generateKey();
+		ActionResponseWrapper actionResponseWrapper = new ActionResponseWrapper(
+			actionResponse) {
 
-		String encryptedStateMapJSON = Encryptor.encrypt(
-			key, stateMapJSON);
-
-		session.setAttribute(
-			"digest", DigesterUtil.digest(encryptedStateMapJSON));
-
-		session.setAttribute("key", key);
-
-		return encryptedStateMapJSON;
-	}
-
-	private Map<String, Object> _decrypt(
-		HttpSession session, String encryptedStateMapJSON)
-		throws Exception {
-
-		String digest = (String)session.getAttribute("digest");
-
-		if (!StringUtil.equals(
-			DigesterUtil.digest(encryptedStateMapJSON), digest)) {
-
-			throw new PrincipalException("User sent unverified data");
-		}
-
-		Key key = (Key)session.getAttribute("key");
-
-		String stateMapJSON = Encryptor.decrypt(key, encryptedStateMapJSON);
-
-		Map<String, Object> stateMap = _jsonFactory.looseDeserialize(
-			stateMapJSON, Map.class);
-
-		Map<String, Object> requestParameters =
-			(Map<String, Object>) stateMap.get("requestParameters");
-
-		for (Map.Entry<String, Object> entry : requestParameters.entrySet()) {
-			Object value = entry.getValue();
-
-			if (value instanceof List) {
-				entry.setValue(
-					ListUtil.toArray((List<Object>)value, _STRING_ACCESSOR));
+			@Override
+			public void sendRedirect(String location) throws IOException {
+				responseRedirect[0] = location;
 			}
+
+		};
+
+		_loginMVCActionCommand.processAction(
+			actionRequest, actionResponseWrapper);
+
+		String redirect = (String)actionRequest.getAttribute(WebKeys.REDIRECT);
+
+		if (Validator.isNotNull(redirect)) {
+			responseRedirect[0] = redirect;
 		}
 
-		return stateMap;
+		PortletURL renderURL = _mfaPortletURLFactory.createSetupURL(
+			_portal.getHttpServletRequest(actionRequest),
+			_loginMFAIntegration.getName(), responseRedirect[0]);
+
+		actionRequest.setAttribute(WebKeys.REDIRECT, renderURL.toString());
 	}
 
 	private static final Accessor<Object, String> _STRING_ACCESSOR =
 		new Accessor<Object, String>() {
+
 			@Override
 			public String get(Object object) {
 				return String.valueOf(object);
@@ -363,10 +369,14 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 			public Class<Object> getTypeClass() {
 				return Object.class;
 			}
+
 		};
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private LoginMFAIntegration _loginMFAIntegration;
 
 	@Reference(
 		target = "(component.name=com.liferay.login.web.internal.portlet.action.LoginMVCActionCommand)"
@@ -382,6 +392,4 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 	@Reference
 	private Portal _portal;
 
-	@Reference
-	private LoginMFAIntegration _loginMFAIntegration;
 }

@@ -15,14 +15,13 @@
 package com.liferay.multi.factor.authentication.integration.login.internal.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
+
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 
 /**
  * @author Tomas Polesovsky
  */
-@ExtendedObjectClassDefinition(
-	category = "multi-factor-authentication"
-)
+@ExtendedObjectClassDefinition(category = "multi-factor-authentication")
 @Meta.OCD(
 	id = "com.liferay.multi.factor.authentication.integration.login.internal.configuration.LoginMFAIntegrationConfiguration",
 	localization = "content/Language",
@@ -30,16 +29,13 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 )
 public interface LoginMFAIntegrationConfiguration {
 
-	@Meta.AD(
-		deflt = "true", name = "enabled",
-		required = false
-	)
+	@Meta.AD(deflt = "true", name = "enabled", required = false)
 	public boolean enabled();
 
 	@Meta.AD(
-		deflt = "login",
-		description = "mfa-integration-name-description",
+		deflt = "login", description = "mfa-integration-name-description",
 		name = "mfa-integration-name", required = false
 	)
 	public String name();
+
 }

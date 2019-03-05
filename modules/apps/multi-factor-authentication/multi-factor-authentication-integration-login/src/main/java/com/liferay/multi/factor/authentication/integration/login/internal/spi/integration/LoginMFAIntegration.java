@@ -17,11 +17,12 @@ package com.liferay.multi.factor.authentication.integration.login.internal.spi.i
 import com.liferay.multi.factor.authentication.integration.login.internal.configuration.LoginMFAIntegrationConfiguration;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+
+import java.util.Map;
+
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-
-import java.util.Map;
 
 /**
  * @author Tomas Polesovsky
@@ -29,24 +30,9 @@ import java.util.Map;
 @Component(
 	configurationPid = "com.liferay.multi.factor.authentication.integration.login.internal.configuration.LoginMFAIntegrationConfiguration",
 	configurationPolicy = ConfigurationPolicy.OPTIONAL,
-	service = {MFAIntegration.class, LoginMFAIntegration.class}
+	service = {LoginMFAIntegration.class, MFAIntegration.class}
 )
 public class LoginMFAIntegration implements MFAIntegration {
-
-
-	private String _name;
-	private boolean _enabled;
-
-	@Activate
-	protected void activate(Map<String, Object> properties) {
-		LoginMFAIntegrationConfiguration
-			loginMFAIntegrationConfiguration =
-			ConfigurableUtil.createConfigurable(
-				LoginMFAIntegrationConfiguration.class, properties);
-
-		_enabled = loginMFAIntegrationConfiguration.enabled();
-		_name = loginMFAIntegrationConfiguration.name();
-	}
 
 	@Override
 	public String getName() {
@@ -59,13 +45,26 @@ public class LoginMFAIntegration implements MFAIntegration {
 	}
 
 	@Override
-	public boolean supportsHeadless() {
+	public boolean supportsBrowser() {
 		return true;
 	}
 
 	@Override
-	public boolean supportsBrowser() {
+	public boolean supportsHeadless() {
 		return true;
 	}
+
+	@Activate
+	protected void activate(Map<String, Object> properties) {
+		LoginMFAIntegrationConfiguration loginMFAIntegrationConfiguration =
+			ConfigurableUtil.createConfigurable(
+				LoginMFAIntegrationConfiguration.class, properties);
+
+		_enabled = loginMFAIntegrationConfiguration.enabled();
+		_name = loginMFAIntegrationConfiguration.name();
+	}
+
+	private boolean _enabled;
+	private String _name;
 
 }

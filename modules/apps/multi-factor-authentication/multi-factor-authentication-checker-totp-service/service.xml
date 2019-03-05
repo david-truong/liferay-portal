@@ -34,11 +34,9 @@
 			<finder-column name="mfaCheckerName" />
 			<finder-column name="userId" />
 		</finder>
-
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
 		</finder>
-
 		<finder name="MFACheckerName" return-type="Collection">
 			<finder-column name="mfaCheckerName" />
 		</finder>

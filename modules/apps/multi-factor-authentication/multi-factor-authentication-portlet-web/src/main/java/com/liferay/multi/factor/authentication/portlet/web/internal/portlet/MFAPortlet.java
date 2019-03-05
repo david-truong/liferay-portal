@@ -16,17 +16,17 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.portlet;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
-import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.io.IOException;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -36,7 +36,9 @@ import javax.portlet.PortletException;
 import javax.portlet.PortletRequestDispatcher;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-import java.io.IOException;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -53,7 +55,7 @@ import java.io.IOException;
 		"javax.portlet.display-name=Multi Factor Authentication Portlet",
 		"javax.portlet.init-param.mvc-command-names-default-views=/mfa/verify",
 		"javax.portlet.init-param.portlet-title-based-navigation=true",
-		"javax.portlet.init-param.template-path=/",
+		"javax.portlet.init-param.template-path=/META-INF/resources/",
 		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
 		"javax.portlet.resource-bundle=content.Language",
 		"portlet.add.default.resource.check.whitelist=" + MFAPortletKeys.MFA_PORTLET
@@ -64,14 +66,14 @@ public class MFAPortlet extends MVCPortlet {
 
 	@Override
 	public void processAction(
-		ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws IOException, PortletException {
 
 		String integrationName = ParamUtil.getString(
 			actionRequest, "integrationName");
 
-		MFAIntegration mfaIntegration =
-			_mfaRegistry.getMFAIntegration(integrationName);
+		MFAIntegration mfaIntegration = _mfaRegistry.getMFAIntegration(
+			integrationName);
 
 		if (mfaIntegration == null) {
 			SessionErrors.add(
@@ -83,7 +85,8 @@ public class MFAPortlet extends MVCPortlet {
 			return;
 		}
 
-		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(integrationName);
+		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
+			integrationName);
 
 		if (mfaChecker == null) {
 			SessionErrors.add(
@@ -100,9 +103,8 @@ public class MFAPortlet extends MVCPortlet {
 
 			_log.error(
 				StringBundler.concat(
-				"Unsupported MFAChecker: ",
-					mfaChecker.getClass().getName(), " for integration ",
-					integrationName));
+					"Unsupported MFAChecker: ", mfaChecker.getClass().getName(),
+					" for integration ", integrationName));
 
 			SessionErrors.add(actionRequest, "unsupportedIntegrationVerifier");
 
@@ -117,14 +119,14 @@ public class MFAPortlet extends MVCPortlet {
 
 	@Override
 	public void render(
-		RenderRequest renderRequest, RenderResponse renderResponse)
+			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
 		String integrationName = ParamUtil.getString(
 			renderRequest, "integrationName");
 
-		MFAIntegration mfaIntegration =
-			_mfaRegistry.getMFAIntegration(integrationName);
+		MFAIntegration mfaIntegration = _mfaRegistry.getMFAIntegration(
+			integrationName);
 
 		if (mfaIntegration == null) {
 			SessionErrors.add(
@@ -140,7 +142,8 @@ public class MFAPortlet extends MVCPortlet {
 			return;
 		}
 
-		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(integrationName);
+		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
+			integrationName);
 
 		if (mfaChecker == null) {
 			SessionErrors.add(
@@ -161,9 +164,8 @@ public class MFAPortlet extends MVCPortlet {
 
 			_log.error(
 				StringBundler.concat(
-					"Unsupported MFAChecker: ",
-					mfaChecker.getClass().getName(), " for integration ",
-					integrationName));
+					"Unsupported MFAChecker: ", mfaChecker.getClass().getName(),
+					" for integration ", integrationName));
 
 			SessionErrors.add(renderRequest, "unsupportedIntegrationVerifier");
 
@@ -180,9 +182,9 @@ public class MFAPortlet extends MVCPortlet {
 		super.render(renderRequest, renderResponse);
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		MFAPortlet.class);
+	private static final Log _log = LogFactoryUtil.getLog(MFAPortlet.class);
 
 	@Reference
 	private MFARegistry _mfaRegistry;
+
 }

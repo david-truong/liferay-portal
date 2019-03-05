@@ -45,8 +45,14 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.servlet.filters.autologin.AutoLoginFilter;
 import com.liferay.portal.util.PropsValues;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.security.Key;
+
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -54,12 +60,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.security.Key;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -70,16 +73,12 @@ import java.util.Vector;
 		"before-filter=Auto Login Filter", "dispatcher=FORWARD",
 		"dispatcher=REQUEST", "servlet-context-name=",
 		"servlet-filter-name=MFA Before Auto Login Filter",
-		"url-pattern=/c/portal/login",
-		"url-pattern=/c/portal/render_portlet",
+		"url-pattern=/c/portal/login", "url-pattern=/c/portal/render_portlet",
 		"url-pattern=/c/portal/saml/auth_redirect",
 		"url-pattern=/c/portal/update_password",
 		"url-pattern=/c/portal/update_reminder_query",
-		"url-pattern=/documents/*",
-		"url-pattern=/group/*",
-		"url-pattern=/user/*",
-		"url-pattern=/web/*",
-		"url-pattern=/widget/*"
+		"url-pattern=/documents/*", "url-pattern=/group/*",
+		"url-pattern=/user/*", "url-pattern=/web/*", "url-pattern=/widget/*"
 	},
 	service = Filter.class
 )
@@ -87,9 +86,8 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 
 	@Override
 	public boolean isFilterEnabled() {
-		MFAChecker mfaChecker =
-			_mfaRegistry.getMFAIntegrationChecker(
-				_autoLoginMFAIntegration.getName());
+		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
+			_autoLoginMFAIntegration.getName());
 
 		if (mfaChecker == null) {
 			return false;
@@ -99,7 +97,7 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 			return false;
 		}
 
-		if(!mfaChecker.supportsBrowser() && !mfaChecker.supportsHeadless()){
+		if (!mfaChecker.supportsBrowser() && !mfaChecker.supportsHeadless()) {
 			return false;
 		}
 
@@ -140,17 +138,14 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 			return null;
 		}
 
-		MFAChecker mfaChecker =
-			_mfaRegistry.getMFAIntegrationChecker(
-				_autoLoginMFAIntegration.getName());
+		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
+			_autoLoginMFAIntegration.getName());
 
 		if (mfaChecker.supportsHeadless()) {
 			HeadlessMFAChecker headlessMFAChecker =
 				(HeadlessMFAChecker)mfaChecker;
 
-			if (headlessMFAChecker.isHeadlessSetupComplete(
-					request, userId)){
-
+			if (headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
 				if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
 					return super.getLoginRemoteUser(
 						request, response, session, credentials);
@@ -164,10 +159,9 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 		}
 
 		if (mfaChecker.supportsBrowser()) {
-			BrowserMFAChecker browserMFAChecker =
-				(BrowserMFAChecker) mfaChecker;
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if (browserMFAChecker.isBrowserSetupComplete(request, userId)){
+			if (browserMFAChecker.isBrowserSetupComplete(request, userId)) {
 				if (browserMFAChecker.isBrowserVerified(request, userId)) {
 					return super.getLoginRemoteUser(
 						request, response, session, credentials);
@@ -182,11 +176,160 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 		if (_log.isDebugEnabled()) {
 			_log.debug(
 				StringBundler.concat(
-					"Unable to verify user ", userId,
-					" using MFA"));
+					"Unable to verify user ", userId, " using MFA"));
 		}
 
 		return null;
+	}
+
+	@Override
+	protected void processFilter(
+			HttpServletRequest request, HttpServletResponse response,
+			FilterChain filterChain)
+		throws Exception {
+
+		String state = ParamUtil.getString(request, "state");
+
+		if (!Validator.isBlank(state)) {
+			Map<String, Object> stateMap = _decrypt(
+				request.getSession(), state);
+
+			request = _loadRequestFromState(request, stateMap);
+
+			List<String> credentialsList = (List<String>)stateMap.get(
+				"credentials");
+
+			String[] credentials = credentialsList.toArray(new String[3]);
+
+			HttpSession session = request.getSession();
+
+			String loginRemoteUser = getLoginRemoteUser(
+				request, response, session, credentials);
+
+			if (loginRemoteUser != null) {
+				request = new ProtectedServletRequest(request, loginRemoteUser);
+
+				if (PropsValues.PORTAL_JAAS_ENABLE) {
+					return;
+				}
+
+				String redirect = null;
+
+				if (!PropsValues.AUTH_FORWARD_BY_LAST_PATH) {
+					redirect = Portal.PATH_MAIN;
+				}
+				else {
+					redirect = (String)request.getAttribute(
+						AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE);
+				}
+
+				if (Validator.isNotNull(redirect)) {
+					response.sendRedirect(redirect);
+
+					return;
+				}
+			}
+
+			request = new IgnoreAutoLoginFilterHttpServletRequestWrapper(
+				request);
+
+			super.processFilter(
+				MFABeforeAutoLoginFilter.class.getName(), request, response,
+				filterChain);
+		}
+		else {
+			super.processFilter(request, response, filterChain);
+		}
+	}
+
+	private Map<String, Object> _decrypt(
+			HttpSession session, String encryptedStateMapJSON)
+		throws Exception {
+
+		String digest = (String)session.getAttribute("digest");
+
+		if (!StringUtil.equals(
+				DigesterUtil.digest(encryptedStateMapJSON), digest)) {
+
+			throw new PrincipalException("User sent unverified data");
+		}
+
+		Key key = (Key)session.getAttribute("key");
+
+		String stateMapJSON = Encryptor.decrypt(key, encryptedStateMapJSON);
+
+		Map<String, Object> stateMap = _jsonFactory.looseDeserialize(
+			stateMapJSON, Map.class);
+
+		Map<String, Object> requestParameters =
+			(Map<String, Object>)stateMap.get("requestParameters");
+
+		for (Map.Entry<String, Object> entry : requestParameters.entrySet()) {
+			Object value = entry.getValue();
+
+			if (value instanceof List) {
+				entry.setValue(
+					ListUtil.toArray((List<Object>)value, _STRING_ACCESSOR));
+			}
+		}
+
+		return stateMap;
+	}
+
+	private String _encrypt(HttpSession session, Map<String, Object> stateMap)
+		throws Exception {
+
+		String stateMapJSON = _jsonFactory.looseSerializeDeep(stateMap);
+
+		Key key = Encryptor.generateKey();
+
+		String encryptedStateMapJSON = Encryptor.encrypt(key, stateMapJSON);
+
+		session.setAttribute(
+			"digest", DigesterUtil.digest(encryptedStateMapJSON));
+
+		session.setAttribute("key", key);
+
+		return encryptedStateMapJSON;
+	}
+
+	private HttpServletRequest _loadRequestFromState(
+		HttpServletRequest request, Map<String, Object> stateMap) {
+
+		Map<String, String[]> requestParameters =
+			(Map<String, String[]>)stateMap.get("requestParameters");
+
+		request = new HttpServletRequestWrapper(request) {
+
+			@Override
+			public String getParameter(String name) {
+				return MapUtil.getString(requestParameters, name, null);
+			}
+
+			@Override
+			public Map<String, String[]> getParameterMap() {
+				return new HashMap<>(requestParameters);
+			}
+
+			@Override
+			public Enumeration<String> getParameterNames() {
+				return new Vector(
+					requestParameters.keySet()
+				).elements();
+			}
+
+			@Override
+			public String[] getParameterValues(String name) {
+				return requestParameters.get(name);
+			}
+
+		};
+
+		request.setAttribute(
+			AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE,
+			stateMap.get(AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE));
+
+		return request;
 	}
 
 	private void _redirectToVerify(
@@ -227,158 +370,9 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 			verificationURL.toString());
 	}
 
-	@Override
-	protected void processFilter(
-			HttpServletRequest request, HttpServletResponse response,
-			FilterChain filterChain)
-		throws Exception {
-
-		String state = ParamUtil.getString(request, "state");
-
-		if (!Validator.isBlank(state)) {
-			Map<String, Object> stateMap = _decrypt(
-				request.getSession(), state);
-
-			request = _loadRequestFromState(request, stateMap);
-
-			List<String> credentialsList = (List<String>)stateMap.get(
-				"credentials");
-
-			String[] credentials = credentialsList.toArray(new String[3]);
-
-			HttpSession session = request.getSession();
-
-			String loginRemoteUser = getLoginRemoteUser(
-				request, response, session, credentials);
-
-			if (loginRemoteUser != null) {
-				request = new ProtectedServletRequest(
-					request, loginRemoteUser);
-
-				if (PropsValues.PORTAL_JAAS_ENABLE) {
-					return;
-				}
-
-				String redirect = null;
-
-				if (!PropsValues.AUTH_FORWARD_BY_LAST_PATH) {
-					redirect = Portal.PATH_MAIN;
-				}
-				else {
-					redirect = (String)request.getAttribute(
-						AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE);
-				}
-
-				if (Validator.isNotNull(redirect)) {
-					response.sendRedirect(redirect);
-
-					return;
-				}
-			}
-
-			request = new IgnoreAutoLoginFilterHttpServletRequestWrapper(
-				request);
-
-			super.processFilter(
-				MFABeforeAutoLoginFilter.class.getName(), request, response,
-				filterChain);
-		}
-		else {
-			super.processFilter(request, response, filterChain);
-		}
-	}
-
-	private HttpServletRequest _loadRequestFromState(
-		HttpServletRequest request, Map<String, Object> stateMap) {
-
-		Map<String, String[]> requestParameters =
-			(Map<String, String[]>) stateMap.get(
-				"requestParameters");
-
-		request = new HttpServletRequestWrapper(request) {
-			@Override
-			public String getParameter(String name) {
-				return MapUtil.getString(requestParameters, name, null);
-			}
-
-			@Override
-			public Map<String, String[]> getParameterMap() {
-				return new HashMap<>(requestParameters);
-			}
-
-			@Override
-			public Enumeration<String> getParameterNames() {
-				return new Vector(requestParameters.keySet()).elements();
-			}
-
-			@Override
-			public String[] getParameterValues(String name) {
-				return requestParameters.get(name);
-			}
-		};
-
-		request.setAttribute(
-			AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE, stateMap.get(
-				AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE));
-
-		return request;
-	}
-
-	private String _encrypt(
-		HttpSession session, Map<String, Object> stateMap)
-		throws Exception {
-
-		String stateMapJSON = _jsonFactory.looseSerializeDeep(stateMap);
-
-		Key key = Encryptor.generateKey();
-
-		String encryptedStateMapJSON = Encryptor.encrypt(
-			key, stateMapJSON);
-
-		session.setAttribute(
-			"digest", DigesterUtil.digest(encryptedStateMapJSON));
-
-		session.setAttribute("key", key);
-
-		return encryptedStateMapJSON;
-	}
-
-	private Map<String, Object> _decrypt(
-		HttpSession session, String encryptedStateMapJSON)
-		throws Exception {
-
-		String digest = (String)session.getAttribute("digest");
-
-		if (!StringUtil.equals(
-			DigesterUtil.digest(encryptedStateMapJSON), digest)) {
-
-			throw new PrincipalException("User sent unverified data");
-		}
-
-		Key key = (Key)session.getAttribute("key");
-
-		String stateMapJSON = Encryptor.decrypt(key, encryptedStateMapJSON);
-
-		Map<String, Object> stateMap = _jsonFactory.looseDeserialize(
-			stateMapJSON, Map.class);
-
-		Map<String, Object> requestParameters =
-			(Map<String, Object>) stateMap.get("requestParameters");
-
-		for (Map.Entry<String, Object> entry : requestParameters.entrySet()) {
-			Object value = entry.getValue();
-
-			if (value instanceof List) {
-				entry.setValue(
-					ListUtil.toArray((List<Object>)value, _STRING_ACCESSOR));
-			}
-		}
-
-		return stateMap;
-	}
-
 	private static final Accessor<Object, String> _STRING_ACCESSOR =
 		new Accessor<Object, String>() {
+
 			@Override
 			public String get(Object object) {
 				return String.valueOf(object);
@@ -393,26 +387,28 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 			public Class<Object> getTypeClass() {
 				return Object.class;
 			}
+
 		};
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		MFABeforeAutoLoginFilter.class);
 
 	@Reference
-	private MFARegistry _mfaRegistry;
-
-	@Reference
-	private MFAPortletURLFactory _mfaPortletURLFactory;
-
-	@Reference
-	private Portal _portal;
-
-	@Reference
-	private JSONFactory _jsonFactory;
+	private AutoLoginMFAIntegration _autoLoginMFAIntegration;
 
 	@Reference
 	private Http _http;
 
 	@Reference
-	private AutoLoginMFAIntegration _autoLoginMFAIntegration;
+	private JSONFactory _jsonFactory;
+
+	@Reference
+	private MFAPortletURLFactory _mfaPortletURLFactory;
+
+	@Reference
+	private MFARegistry _mfaRegistry;
+
+	@Reference
+	private Portal _portal;
+
 }

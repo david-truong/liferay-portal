@@ -26,10 +26,11 @@ public interface MFAPortletURLFactory {
 	public static final String MFA_USER_ID =
 		MFAPortletURLFactory.class.getName() + "#MFA_USER_ID";
 
-	public LiferayPortletURL createVerifyURL(
-		HttpServletRequest request, String integrationName, String redirectURL, long userId);
-
 	public LiferayPortletURL createSetupURL(
 		HttpServletRequest request, String integrationName, String redirectURL);
+
+	public LiferayPortletURL createVerifyURL(
+		HttpServletRequest request, String integrationName, String redirectURL,
+		long userId);
 
 }

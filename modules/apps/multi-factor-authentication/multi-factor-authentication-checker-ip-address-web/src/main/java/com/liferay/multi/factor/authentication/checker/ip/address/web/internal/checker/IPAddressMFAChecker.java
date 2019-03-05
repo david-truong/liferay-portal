@@ -21,17 +21,19 @@ import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.security.access.control.AccessControlUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Portal;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author arthurchan35
@@ -42,20 +44,6 @@ import java.util.Set;
 	service = MFAChecker.class
 )
 public class IPAddressMFAChecker implements HeadlessMFAChecker, MFAChecker {
-
-	private IPAddressConfiguration _ipAddressConfiguration;
-
-	@Activate
-	protected void activate(Map<String, Object> properties) {
-		_ipAddressConfiguration =
-			ConfigurableUtil.createConfigurable(
-				IPAddressConfiguration.class, properties);
-
-		_enabled = _ipAddressConfiguration.enabled();
-		_name = _ipAddressConfiguration.name();
-		_allowedIPsWithMasks = new HashSet<>(
-			Arrays.asList(_ipAddressConfiguration.allowedIPsWithMasks()));
-	}
 
 	@Override
 	public String getName() {
@@ -68,15 +56,15 @@ public class IPAddressMFAChecker implements HeadlessMFAChecker, MFAChecker {
 	}
 
 	@Override
-	public boolean isHeadlessVerified(HttpServletRequest request, long userId) {
-		return false;
-	}
-
-	@Override
 	public boolean isHeadlessSetupComplete(
 		HttpServletRequest request, long userId) {
 
 		return true;
+	}
+
+	@Override
+	public boolean isHeadlessVerified(HttpServletRequest request, long userId) {
+		return false;
 	}
 
 	@Override
@@ -86,8 +74,20 @@ public class IPAddressMFAChecker implements HeadlessMFAChecker, MFAChecker {
 		return AccessControlUtil.isAccessAllowed(request, _allowedIPsWithMasks);
 	}
 
+	@Activate
+	protected void activate(Map<String, Object> properties) {
+		_ipAddressConfiguration = ConfigurableUtil.createConfigurable(
+			IPAddressConfiguration.class, properties);
+
+		_enabled = _ipAddressConfiguration.enabled();
+		_name = _ipAddressConfiguration.name();
+		_allowedIPsWithMasks = new HashSet<>(
+			Arrays.asList(_ipAddressConfiguration.allowedIPsWithMasks()));
+	}
+
 	private Set<String> _allowedIPsWithMasks;
 	private boolean _enabled;
+	private IPAddressConfiguration _ipAddressConfiguration;
 	private String _name;
 
 	@Reference

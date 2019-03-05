@@ -19,13 +19,13 @@
 <liferay-ui:error-header />
 
 <c:if test='<%= SessionErrors.contains(request, "noVerifierConfigured") %>'>
-	<liferay-ui:error key="noVerifierConfigured" message="<%= LanguageUtil.format(request, "no-multi-factor-authentication-verifier-configured-for-x", HtmlUtil.escape(GetterUtil.getString(SessionErrors.get(request, "noVerifierConfigured")))) %>" />
+	<liferay-ui:error key="noVerifierConfigured" message='<%= LanguageUtil.format(request, "no-multi-factor-authentication-verifier-configured-for-x", HtmlUtil.escape(GetterUtil.getString(SessionErrors.get(request, "noVerifierConfigured")))) %>' />
 </c:if>
 
 <liferay-ui:error key="sessionExpired" message="your-session-expired" />
 
 <c:if test='<%= SessionErrors.contains(request, "unknownMFAIntegrationName") %>'>
-	<liferay-ui:error key="unknownMFAIntegrationName" message="<%= LanguageUtil.format(request, "unknown-multi-factor-authentication-integration-x", HtmlUtil.escape(GetterUtil.getString(SessionErrors.get(request, "unknownMFAIntegrationName")))) %>" />
+	<liferay-ui:error key="unknownMFAIntegrationName" message='<%= LanguageUtil.format(request, "unknown-multi-factor-authentication-integration-x", HtmlUtil.escape(GetterUtil.getString(SessionErrors.get(request, "unknownMFAIntegrationName")))) %>' />
 </c:if>
 
 <liferay-ui:error key="unsupportedIntegrationVerifier" message="internal-error-please-see-log-messages" />

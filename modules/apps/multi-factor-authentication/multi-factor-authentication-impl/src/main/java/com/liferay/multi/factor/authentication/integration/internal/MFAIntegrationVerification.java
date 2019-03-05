@@ -16,22 +16,23 @@ package com.liferay.multi.factor.authentication.integration.internal;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.internal.configuration.MFAIntegrationVerificationConfiguration;
-import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 /**
  * @author Tomas Polesovsky
@@ -43,36 +44,11 @@ import java.util.Set;
 )
 public class MFAIntegrationVerification {
 
-	private MFAIntegrationVerificationConfiguration
-		_mfaIntegrationVerificationConfiguration;
-
-	private String _mfaIntegrationName;
-
-	@Activate
-	protected void activate(Map<String, Object> properties) {
-		_mfaIntegrationVerificationConfiguration =
-			ConfigurableUtil.createConfigurable(
-				MFAIntegrationVerificationConfiguration.class, properties);
-
-		_mfaIntegrationName =
-			StringUtil.trim(
-				_mfaIntegrationVerificationConfiguration.integrationName());
-
-		String[] verifierNamesArray =
-			_mfaIntegrationVerificationConfiguration.verifierNames();
-
-		for (String verifierNames : verifierNamesArray) {
-			String[] verifierNamesList = StringUtil.split(verifierNames);
-
-			for (String verifierName : verifierNamesList) {
-				_mfaCheckersNames.add(StringUtil.trim(verifierName));
-			}
-		}
+	public String getIntegrationName() {
+		return _mfaIntegrationName;
 	}
 
-	public List<List<MFAChecker>> getMFACheckersList(
-		MFARegistry mfaRegistry) {
-
+	public List<List<MFAChecker>> getMFACheckersList(MFARegistry mfaRegistry) {
 		MFAIntegration mfaIntegration = mfaRegistry.getMFAIntegration(
 			_mfaIntegrationName);
 
@@ -100,8 +76,7 @@ public class MFAIntegrationVerification {
 			for (String verifierName : verifierNamesList) {
 				verifierName = StringUtil.trim(verifierName);
 
-				MFAChecker mfaChecker = mfaRegistry.getMFAChecker(
-					verifierName);
+				MFAChecker mfaChecker = mfaRegistry.getMFAChecker(verifierName);
 
 				if (mfaChecker == null) {
 					_log.error(
@@ -125,11 +100,13 @@ public class MFAIntegrationVerification {
 				}
 				else {
 					String mfaIntegrationSupports = "headless";
+
 					if (mfaIntegration.supportsBrowser()) {
 						mfaIntegrationSupports = "browser";
 					}
 
 					String mfaCheckerSupports = "headless";
+
 					if (mfaChecker.supportsBrowser()) {
 						mfaCheckerSupports = "browser";
 					}
@@ -155,17 +132,38 @@ public class MFAIntegrationVerification {
 		return mfaCheckersList;
 	}
 
-	public String getIntegrationName() {
-		return _mfaIntegrationName;
-	}
-
 	public boolean hasMFAChecker(String mfaCheckerName) {
 		return _mfaCheckersNames.contains(mfaCheckerName);
 	}
 
-	private List<List<String>> mfaCheckersList;
-	private Set<String> _mfaCheckersNames = new HashSet<>();
+	@Activate
+	protected void activate(Map<String, Object> properties) {
+		_mfaIntegrationVerificationConfiguration =
+			ConfigurableUtil.createConfigurable(
+				MFAIntegrationVerificationConfiguration.class, properties);
+
+		_mfaIntegrationName = StringUtil.trim(
+			_mfaIntegrationVerificationConfiguration.integrationName());
+
+		String[] verifierNamesArray =
+			_mfaIntegrationVerificationConfiguration.verifierNames();
+
+		for (String verifierNames : verifierNamesArray) {
+			String[] verifierNamesList = StringUtil.split(verifierNames);
+
+			for (String verifierName : verifierNamesList) {
+				_mfaCheckersNames.add(StringUtil.trim(verifierName));
+			}
+		}
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		MFAIntegrationVerification.class);
+
+	private final Set<String> _mfaCheckersNames = new HashSet<>();
+	private String _mfaIntegrationName;
+	private MFAIntegrationVerificationConfiguration
+		_mfaIntegrationVerificationConfiguration;
+	private List<List<String>> mfaCheckersList;
+
 }

@@ -23,11 +23,12 @@ import com.liferay.portal.kernel.struts.StrutsAction;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.struts.model.ActionForward;
 import com.liferay.portal.struts.model.ActionMapping;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -41,16 +42,15 @@ public class MFALoginActionStrutsAction implements StrutsAction {
 
 	@Override
 	public String execute(
-		HttpServletRequest request, HttpServletResponse response)
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
-		MFAChecker mfaChecker =
-			_mfaRegistry.getMFAIntegrationChecker(_loginMFAIntegration.getName());
+		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
+			_loginMFAIntegration.getName());
 
 		if (mfaChecker == null) {
-			ActionForward actionForward =
-				_loginAction.execute(new ActionMapping(null, null, null, null),
-					request, response);
+			ActionForward actionForward = _loginAction.execute(
+				new ActionMapping(null, null, null, null), request, response);
 
 			return actionForward.getPath();
 		}
@@ -58,17 +58,18 @@ public class MFALoginActionStrutsAction implements StrutsAction {
 		throw new UnsupportedOperationException("Not Implemented Yet");
 	}
 
+	private final LoginAction _loginAction = new LoginAction();
+
 	@Reference
-	private MFARegistry _mfaRegistry;
+	private LoginMFAIntegration _loginMFAIntegration;
 
 	@Reference
 	private MFAPortletURLFactory _mfaPortletURLFactory;
 
 	@Reference
-	private Portal _portal;
+	private MFARegistry _mfaRegistry;
 
 	@Reference
-	private LoginMFAIntegration _loginMFAIntegration;
+	private Portal _portal;
 
-	private LoginAction _loginAction = new LoginAction();
 }

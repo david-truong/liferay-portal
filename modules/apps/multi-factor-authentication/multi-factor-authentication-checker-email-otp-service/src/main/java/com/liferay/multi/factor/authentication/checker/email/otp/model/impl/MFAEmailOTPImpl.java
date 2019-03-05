@@ -28,7 +28,7 @@ import aQute.bnd.annotation.ProviderType;
 @ProviderType
 public class MFAEmailOTPImpl extends MFAEmailOTPBaseImpl {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never reference this class directly. All methods that expect a mfa email otp model instance should use the {@link com.liferay.multi.factor.authentication.checker.email.otp.model.MFAEmailOTP} interface instead.

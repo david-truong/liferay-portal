@@ -27,17 +27,20 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
+
+import java.util.Collections;
+import java.util.List;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Collections;
-import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Tomas Polesovsky
@@ -50,11 +53,11 @@ import java.util.List;
 	service = MVCRenderCommand.class
 )
 public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
+
 	@Override
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws PortletException {
-
 
 		long mfaUserId = getMFAUserId(renderRequest);
 
@@ -70,7 +73,7 @@ public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
 			renderRequest, "integrationName");
 
 		BrowserMFAChecker browserMFAChecker =
-			(BrowserMFAChecker) _mfaRegistry.getMFAIntegrationChecker(
+			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(
 				integrationName);
 
 		renderRequest.setAttribute(
@@ -82,34 +85,6 @@ public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
 		renderRequest.setAttribute("verifyMFACheckers", verifyMFACheckers);
 
 		return "/verify.jsp";
-	}
-
-	private long getMFAUserId(PortletRequest portletRequest){
-		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		if (themeDisplay.isSignedIn()) {
-			return themeDisplay.getUserId();
-		}
-		else {
-			String integrationName = ParamUtil.getString(
-				portletRequest, "integrationName");
-
-			HttpServletRequest httpServletRequest =
-				_portal.getOriginalServletRequest(
-					_portal.getHttpServletRequest(portletRequest));
-
-			HttpSession session = httpServletRequest.getSession();
-
-			Object mfaUserId = session.getAttribute(
-				MFAPortletURLFactory.MFA_USER_ID + integrationName);
-
-			if (mfaUserId == null) {
-				return 0;
-			}
-
-			return (Long)mfaUserId;
-		}
 	}
 
 	private List<BrowserMFAChecker> _getVerifyMFACheckers(
@@ -131,12 +106,40 @@ public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
 			httpServletRequest, userId);
 	}
 
+	private long getMFAUserId(PortletRequest portletRequest) {
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		if (themeDisplay.isSignedIn()) {
+			return themeDisplay.getUserId();
+		}
+
+		String integrationName = ParamUtil.getString(
+			portletRequest, "integrationName");
+
+		HttpServletRequest httpServletRequest =
+			_portal.getOriginalServletRequest(
+				_portal.getHttpServletRequest(portletRequest));
+
+		HttpSession session = httpServletRequest.getSession();
+
+		Object mfaUserId = session.getAttribute(
+			MFAPortletURLFactory.MFA_USER_ID + integrationName);
+
+		if (mfaUserId == null) {
+			return 0;
+		}
+
+		return (Long)mfaUserId;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		MFAVerifyMVCRenderCommand.class);
+
 	@Reference
 	private MFARegistry _mfaRegistry;
 
 	@Reference
 	private Portal _portal;
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		MFAVerifyMVCRenderCommand.class);
 }

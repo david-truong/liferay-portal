@@ -36,16 +36,12 @@ import org.osgi.service.component.annotations.Component;
 		"after-filter=Auto Login Filter", "dispatcher=FORWARD",
 		"dispatcher=REQUEST", "servlet-context-name=",
 		"servlet-filter-name=MFA After Auto Login Filter",
-		"url-pattern=/c/portal/login",
-		"url-pattern=/c/portal/render_portlet",
+		"url-pattern=/c/portal/login", "url-pattern=/c/portal/render_portlet",
 		"url-pattern=/c/portal/saml/auth_redirect",
 		"url-pattern=/c/portal/update_password",
 		"url-pattern=/c/portal/update_reminder_query",
-		"url-pattern=/documents/*",
-		"url-pattern=/group/*",
-		"url-pattern=/user/*",
-		"url-pattern=/web/*",
-		"url-pattern=/widget/*"
+		"url-pattern=/documents/*", "url-pattern=/group/*",
+		"url-pattern=/user/*", "url-pattern=/web/*", "url-pattern=/widget/*"
 	},
 	service = Filter.class
 )
@@ -58,8 +54,9 @@ public class MFAAfterAutoLoginFilter extends BaseFilter {
 
 	@Override
 	protected void processFilter(
-		HttpServletRequest request, HttpServletResponse response,
-		FilterChain filterChain) throws Exception {
+			HttpServletRequest request, HttpServletResponse response,
+			FilterChain filterChain)
+		throws Exception {
 
 		if (request instanceof IgnoreAutoLoginFilterHttpServletRequestWrapper) {
 			HttpServletRequestWrapper httpServletRequestWrapper =
