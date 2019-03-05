@@ -48,18 +48,18 @@ public class MFALoginServicePreAction extends Action {
 	public void run(HttpServletRequest request, HttpServletResponse response)
 		throws ActionException {
 
-		MFAChecker mfaVerifier =
+		MFAChecker mfaChecker =
 			_mfaRegistry.getMFAIntegrationChecker(_loginMFAIntegration.getName());
 
-		if (mfaVerifier == null) {
+		if (mfaChecker == null) {
 			return;
 		}
 
-		if (!mfaVerifier.isEnabled()) {
+		if (!mfaChecker.isEnabled()) {
 			return;
 		}
 
-		if (!mfaVerifier.supportsBrowser() && !mfaVerifier.supportsHeadless()) {
+		if (!mfaChecker.supportsBrowser() && !mfaChecker.supportsHeadless()) {
 			return;
 		}
 
@@ -78,27 +78,27 @@ public class MFALoginServicePreAction extends Action {
 
 		long userId = themeDisplay.getUserId();
 
-		if (mfaVerifier.supportsBrowser()) {
-			BrowserMFAChecker browserMFAVerifier =
-				(BrowserMFAChecker)mfaVerifier;
+		if (mfaChecker.supportsBrowser()) {
+			BrowserMFAChecker browserMFAChecker =
+				(BrowserMFAChecker)mfaChecker;
 
-			if (browserMFAVerifier.forceUserSetup(userId)) {
+			if (browserMFAChecker.forceUserSetup(userId)) {
 				redirectToSetup(request, response, themeDisplay, userId);
 
 				return;
 			}
 		}
 
-		if (mfaVerifier.supportsHeadless()) {
-			HeadlessMFAChecker headlessMFAVerifier =
-				(HeadlessMFAChecker)mfaVerifier;
+		if (mfaChecker.supportsHeadless()) {
+			HeadlessMFAChecker headlessMFAChecker =
+				(HeadlessMFAChecker)mfaChecker;
 
-			if (headlessMFAVerifier.isHeadlessSetupComplete(request, userId)) {
-				if (headlessMFAVerifier.isHeadlessVerified(request, userId)) {
+			if (headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
+				if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
 					return;
 				}
 
-				if (headlessMFAVerifier.verifyHeadlessRequest(
+				if (headlessMFAChecker.verifyHeadlessRequest(
 					request, userId)) {
 
 					return;
@@ -106,12 +106,12 @@ public class MFALoginServicePreAction extends Action {
 			}
 		}
 
-		if (mfaVerifier.supportsBrowser()) {
-			BrowserMFAChecker browserMFAVerifier =
-				(BrowserMFAChecker) mfaVerifier;
+		if (mfaChecker.supportsBrowser()) {
+			BrowserMFAChecker browserMFAChecker =
+				(BrowserMFAChecker) mfaChecker;
 
-			if (browserMFAVerifier.isBrowserSetupComplete(request, userId)) {
-				if (browserMFAVerifier.isBrowserVerified(request, userId)) {
+			if (browserMFAChecker.isBrowserSetupComplete(request, userId)) {
+				if (browserMFAChecker.isBrowserVerified(request, userId)) {
 					return;
 
 				}

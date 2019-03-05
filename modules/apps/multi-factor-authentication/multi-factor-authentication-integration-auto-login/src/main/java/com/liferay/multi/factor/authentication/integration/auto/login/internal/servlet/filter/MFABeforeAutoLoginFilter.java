@@ -87,19 +87,19 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 
 	@Override
 	public boolean isFilterEnabled() {
-		MFAChecker mfaVerifier =
+		MFAChecker mfaChecker =
 			_mfaRegistry.getMFAIntegrationChecker(
 				_autoLoginMFAIntegration.getName());
 
-		if (mfaVerifier == null) {
+		if (mfaChecker == null) {
 			return false;
 		}
 
-		if (!mfaVerifier.isEnabled()) {
+		if (!mfaChecker.isEnabled()) {
 			return false;
 		}
 
-		if(!mfaVerifier.supportsBrowser() && !mfaVerifier.supportsHeadless()){
+		if(!mfaChecker.supportsBrowser() && !mfaChecker.supportsHeadless()){
 			return false;
 		}
 
@@ -140,35 +140,35 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 			return null;
 		}
 
-		MFAChecker mfaVerifier =
+		MFAChecker mfaChecker =
 			_mfaRegistry.getMFAIntegrationChecker(
 				_autoLoginMFAIntegration.getName());
 
-		if (mfaVerifier.supportsHeadless()) {
-			HeadlessMFAChecker headlessMFAVerifier =
-				(HeadlessMFAChecker)mfaVerifier;
+		if (mfaChecker.supportsHeadless()) {
+			HeadlessMFAChecker headlessMFAChecker =
+				(HeadlessMFAChecker)mfaChecker;
 
-			if (headlessMFAVerifier.isHeadlessSetupComplete(
+			if (headlessMFAChecker.isHeadlessSetupComplete(
 					request, userId)){
 
-				if (headlessMFAVerifier.isHeadlessVerified(request, userId)) {
+				if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
 					return super.getLoginRemoteUser(
 						request, response, session, credentials);
 				}
 
-				if (headlessMFAVerifier.verifyHeadlessRequest(request, userId)) {
+				if (headlessMFAChecker.verifyHeadlessRequest(request, userId)) {
 					return super.getLoginRemoteUser(
 						request, response, session, credentials);
 				}
 			}
 		}
 
-		if (mfaVerifier.supportsBrowser()) {
-			BrowserMFAChecker browserMFAVerifier =
-				(BrowserMFAChecker) mfaVerifier;
+		if (mfaChecker.supportsBrowser()) {
+			BrowserMFAChecker browserMFAChecker =
+				(BrowserMFAChecker) mfaChecker;
 
-			if (browserMFAVerifier.isBrowserSetupComplete(request, userId)){
-				if (browserMFAVerifier.isBrowserVerified(request, userId)) {
+			if (browserMFAChecker.isBrowserSetupComplete(request, userId)){
+				if (browserMFAChecker.isBrowserVerified(request, userId)) {
 					return super.getLoginRemoteUser(
 						request, response, session, credentials);
 				}

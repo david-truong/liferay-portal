@@ -26,7 +26,7 @@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
 <%@ page import="com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys" %><%@
-page import="com.liferay.multi.factor.authentication.provider.email.otp.web.internal.configuration.EmailOTPConfiguration" %><%@
+page import="com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %>
 
 <liferay-frontend:defineObjects />

@@ -18,43 +18,43 @@
 
 <%
 BrowserMFAChecker
-	browserMFAVerifier = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
+	browserMFAChecker = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
 
-List<BrowserMFAChecker> setupMFAVerifiers = (List<BrowserMFAChecker>)request.getAttribute("setupMFAVerifiers");
+List<BrowserMFAChecker> setupMFACheckers = (List<BrowserMFAChecker>)request.getAttribute("setupMFACheckers");
 
-int mfaVerifierIndex = ParamUtil.getInteger(request, "mfaVerifierIndex", 0);
+int mfaCheckerIndex = ParamUtil.getInteger(request, "mfaCheckerIndex", 0);
 
-if ((mfaVerifierIndex > -1) && (mfaVerifierIndex < setupMFAVerifiers.size())) {
-	browserMFAVerifier = setupMFAVerifiers.get(mfaVerifierIndex);
+if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < setupMFACheckers.size())) {
+	browserMFAChecker = setupMFACheckers.get(mfaCheckerIndex);
 }
 
 %>
-<portlet:actionURL name="/mfa_verify/setup" var="setupMFAActionURL">
-	<portlet:param name="mvcRenderCommandName" value="/mfa_verify/setup" />
+<portlet:actionURL name="/mfa/setup" var="setupMFAActionURL">
+	<portlet:param name="mvcRenderCommandName" value="/mfa/setup" />
 </portlet:actionURL>
 
 <aui:form action="<%= setupMFAActionURL %>" cssClass="container-fluid-1280 sign-in-form" method="post" name="fm">
 	<aui:input name="integrationName" type="hidden" value='<%= ParamUtil.getString(request, "integrationName") %>' />
-	<aui:input name="mfaVerifierIndex" type="hidden" value='<%= String.valueOf(mfaVerifierIndex) %>' />
+	<aui:input name="mfaCheckerIndex" type="hidden" value='<%= String.valueOf(mfaCheckerIndex) %>' />
 	<aui:input name="redirect" type="hidden" value='<%= ParamUtil.getString(request, "redirect") %>' />
 	<aui:input name="saveLastPath" type="hidden" value="<%= false %>" />
 
 	<liferay-ui:error key="mfaFailed" message="multi-factor-authentication-setup-failed" />
 
 	<%
-		browserMFAVerifier.includeSetup(themeDisplay.getUserId(), request, response);
+		browserMFAChecker.includeSetup(themeDisplay.getUserId(), request, response);
 	%>
 
-	<c:if test="<%= setupMFAVerifiers.size() > 1 %>">
-		<portlet:renderURL var="setupAnotherMFAVerifier" copyCurrentRenderParameters="<%= true %>">
+	<c:if test="<%= setupMFACheckers.size() > 1 %>">
+		<portlet:renderURL var="setupAnotherMFAChecker" copyCurrentRenderParameters="<%= true %>">
 			<portlet:param name="integrationName" value='<%= ParamUtil.getString(request, "integrationName") %>' />
-			<portlet:param name="mfaVerifierIndex" value="<%= mfaVerifierIndex + 1 < setupMFAVerifiers.size() ?  String.valueOf(mfaVerifierIndex + 1) : "0" %>"/>
-			<portlet:param name="mvcRenderCommandName" value="/mfa_verify/setup" />
+			<portlet:param name="mfaCheckerIndex" value="<%= mfaCheckerIndex + 1 < setupMFACheckers.size() ?  String.valueOf(mfaCheckerIndex + 1) : "0" %>"/>
+			<portlet:param name="mvcRenderCommandName" value="/mfa/setup" />
 			<portlet:param name="redirect" value='<%= ParamUtil.getString(request, "redirect") %>' />
 			<portlet:param name="saveLastPath" value="<%= Boolean.FALSE.toString() %>" />
 		</portlet:renderURL>
 
-		<a href="<%= HtmlUtil.escapeAttribute(setupAnotherMFAVerifier) %>"><liferay-ui:message key="setup-another-verifier" /></a>
+		<a href="<%= HtmlUtil.escapeAttribute(setupAnotherMFAChecker) %>"><liferay-ui:message key="setup-another-verifier" /></a>
 	</c:if>
 
 	<aui:button-row>

@@ -1,5 +1,5 @@
-Bundle-Name: Liferay Multi Factor Authentication Provider Email OTP Service
-Bundle-SymbolicName: com.liferay.multi.factor.authentication.provider.email.otp.service
+Bundle-Name: Liferay Multi Factor Authentication Checker Email OTP Service
+Bundle-SymbolicName: com.liferay.multi.factor.authentication.checker.email.otp.service
 Bundle-Version: 1.0.0
 Liferay-Require-SchemaVersion: 2.0.0
 Liferay-Service: true

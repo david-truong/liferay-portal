@@ -44,8 +44,8 @@ import java.util.List;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_VERIFY,
-		"mvc.command.name=/mfa_verify/verify"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
+		"mvc.command.name=/mfa/verify"
 	},
 	service = MVCRenderCommand.class
 )
@@ -69,17 +69,17 @@ public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
 		String integrationName = ParamUtil.getString(
 			renderRequest, "integrationName");
 
-		BrowserMFAChecker browserMFAVerifier =
+		BrowserMFAChecker browserMFAChecker =
 			(BrowserMFAChecker) _mfaRegistry.getMFAIntegrationChecker(
 				integrationName);
 
 		renderRequest.setAttribute(
-			BrowserMFAChecker.class.getName(), browserMFAVerifier);
+			BrowserMFAChecker.class.getName(), browserMFAChecker);
 
-		List<BrowserMFAChecker> verifyMFAVerifiers = _getVerifyMFAVerifiers(
-			browserMFAVerifier, renderRequest, mfaUserId);
+		List<BrowserMFAChecker> verifyMFACheckers = _getVerifyMFACheckers(
+			browserMFAChecker, renderRequest, mfaUserId);
 
-		renderRequest.setAttribute("verifyMFAVerifiers", verifyMFAVerifiers);
+		renderRequest.setAttribute("verifyMFACheckers", verifyMFACheckers);
 
 		return "/verify.jsp";
 	}
@@ -112,22 +112,22 @@ public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
 		}
 	}
 
-	private List<BrowserMFAChecker> _getVerifyMFAVerifiers(
-		BrowserMFAChecker mfaVerifier, PortletRequest portletRequest,
+	private List<BrowserMFAChecker> _getVerifyMFACheckers(
+		BrowserMFAChecker mfaChecker, PortletRequest portletRequest,
 		long userId) {
 
-		if (!(mfaVerifier instanceof CompositeMFAChecker)) {
-			return Collections.singletonList(mfaVerifier);
+		if (!(mfaChecker instanceof CompositeMFAChecker)) {
+			return Collections.singletonList(mfaChecker);
 		}
 
 		HttpServletRequest httpServletRequest =
 			_portal.getOriginalServletRequest(
 				_portal.getHttpServletRequest(portletRequest));
 
-		CompositeMFAChecker compositeMFAVerifier =
-			(CompositeMFAChecker)mfaVerifier;
+		CompositeMFAChecker compositeMFAChecker =
+			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAVerifier.getMFAVerifiersAvailableForVerify(
+		return compositeMFAChecker.getMFACheckersAvailableForVerify(
 			httpServletRequest, userId);
 	}
 

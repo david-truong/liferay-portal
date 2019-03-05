@@ -78,7 +78,7 @@ public class MFAuthVerifierFilterTracker {
 	private BundleContext _bundleContext;
 
 	@Reference
-	private MFARegistry _mfaVerifierRegistry;
+	private MFARegistry _mfaCheckerRegistry;
 
 	@Reference
 	private AuthVerifierMFAIntegration _authVerifierMFAIntegration;
@@ -100,7 +100,7 @@ public class MFAuthVerifierFilterTracker {
 			mfaAuthVerifierFilter.setAuthVerifierMFAIntegration(
 				_authVerifierMFAIntegration);
 
-			mfaAuthVerifierFilter.setMfaRegistry(_mfaVerifierRegistry);
+			mfaAuthVerifierFilter.setMfaRegistry(_mfaCheckerRegistry);
 
 			return _bundleContext.registerService(
 				Filter.class, mfaAuthVerifierFilter,

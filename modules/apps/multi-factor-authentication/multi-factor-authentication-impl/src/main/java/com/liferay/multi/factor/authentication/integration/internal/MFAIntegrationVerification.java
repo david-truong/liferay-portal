@@ -65,12 +65,12 @@ public class MFAIntegrationVerification {
 			String[] verifierNamesList = StringUtil.split(verifierNames);
 
 			for (String verifierName : verifierNamesList) {
-				_mfaVerifiersNames.add(StringUtil.trim(verifierName));
+				_mfaCheckersNames.add(StringUtil.trim(verifierName));
 			}
 		}
 	}
 
-	public List<List<MFAChecker>> getMFAVerifiersList(
+	public List<List<MFAChecker>> getMFACheckersList(
 		MFARegistry mfaRegistry) {
 
 		MFAIntegration mfaIntegration = mfaRegistry.getMFAIntegration(
@@ -88,22 +88,22 @@ public class MFAIntegrationVerification {
 		String[] verifierNamesArray =
 			_mfaIntegrationVerificationConfiguration.verifierNames();
 
-		List<List<MFAChecker>> mfaVerifiersList = new ArrayList(
+		List<List<MFAChecker>> mfaCheckersList = new ArrayList(
 			verifierNamesArray.length);
 
 		for (String verifierNames : verifierNamesArray) {
 			String[] verifierNamesList = StringUtil.split(verifierNames);
 
-			List<MFAChecker> mfaVerifiers = new ArrayList<>(
+			List<MFAChecker> mfaCheckers = new ArrayList<>(
 				verifierNamesList.length);
 
 			for (String verifierName : verifierNamesList) {
 				verifierName = StringUtil.trim(verifierName);
 
-				MFAChecker mfaVerifier = mfaRegistry.getMFAChecker(
+				MFAChecker mfaChecker = mfaRegistry.getMFAChecker(
 					verifierName);
 
-				if (mfaVerifier == null) {
+				if (mfaChecker == null) {
 					_log.error(
 						StringBundler.concat(
 							"MFA integration verification '",
@@ -115,13 +115,13 @@ public class MFAIntegrationVerification {
 				}
 
 				if ((mfaIntegration.supportsHeadless() &&
-					 mfaVerifier.supportsHeadless()) ||
+					 mfaChecker.supportsHeadless()) ||
 					(mfaIntegration.supportsBrowser() &&
-					 mfaVerifier.supportsBrowser())) {
+					 mfaChecker.supportsBrowser())) {
 
-					mfaVerifiers.add(mfaVerifier);
+					mfaCheckers.add(mfaChecker);
 
-					_mfaVerifiersNames.add(mfaVerifier.getName());
+					_mfaCheckersNames.add(mfaChecker.getName());
 				}
 				else {
 					String mfaIntegrationSupports = "headless";
@@ -129,9 +129,9 @@ public class MFAIntegrationVerification {
 						mfaIntegrationSupports = "browser";
 					}
 
-					String mfaVerifierSupports = "headless";
-					if (mfaVerifier.supportsBrowser()) {
-						mfaVerifierSupports = "browser";
+					String mfaCheckerSupports = "headless";
+					if (mfaChecker.supportsBrowser()) {
+						mfaCheckerSupports = "browser";
 					}
 
 					_log.error(
@@ -141,30 +141,30 @@ public class MFAIntegrationVerification {
 							mfaIntegration.getName(),
 							". The integration supports ",
 							mfaIntegrationSupports, " but verifier supports ",
-							mfaVerifierSupports));
+							mfaCheckerSupports));
 
 					return null;
 				}
 			}
 
-			if (!mfaVerifiers.isEmpty()) {
-				mfaVerifiersList.add(mfaVerifiers);
+			if (!mfaCheckers.isEmpty()) {
+				mfaCheckersList.add(mfaCheckers);
 			}
 		}
 
-		return mfaVerifiersList;
+		return mfaCheckersList;
 	}
 
 	public String getIntegrationName() {
 		return _mfaIntegrationName;
 	}
 
-	public boolean hasMFAVerifier(String mfaVerifierName) {
-		return _mfaVerifiersNames.contains(mfaVerifierName);
+	public boolean hasMFAChecker(String mfaCheckerName) {
+		return _mfaCheckersNames.contains(mfaCheckerName);
 	}
 
-	private List<List<String>> mfaVerifiersList;
-	private Set<String> _mfaVerifiersNames = new HashSet<>();
+	private List<List<String>> mfaCheckersList;
+	private Set<String> _mfaCheckersNames = new HashSet<>();
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		MFAIntegrationVerification.class);

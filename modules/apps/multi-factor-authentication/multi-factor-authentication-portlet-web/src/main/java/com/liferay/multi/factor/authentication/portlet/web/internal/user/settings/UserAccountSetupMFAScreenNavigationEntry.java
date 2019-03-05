@@ -42,25 +42,25 @@ import java.util.Set;
 public class UserAccountSetupMFAScreenNavigationEntry
 	implements ScreenNavigationEntry<User> {
 
-	private final UserAccountSetupMFARenderer _userAccountSetupMFAVerifier;
+	private final UserAccountSetupMFARenderer _userAccountSetupMFAChecker;
 	private MFARegistry _mfaRegistry;
 
 	public UserAccountSetupMFAScreenNavigationEntry(
-		UserAccountSetupMFARenderer userAccountSetupMFAVerifier) {
+		UserAccountSetupMFARenderer userAccountSetupMFAChecker) {
 
-		_userAccountSetupMFAVerifier = userAccountSetupMFAVerifier;
+		_userAccountSetupMFAChecker = userAccountSetupMFAChecker;
 	}
 
 	@Override
 	public boolean isVisible(User user, User context) {
-		MFAChecker mfaVerifier = (MFAChecker)_userAccountSetupMFAVerifier;
+		MFAChecker mfaChecker = (MFAChecker)_userAccountSetupMFAChecker;
 
-		if (!mfaVerifier.isEnabled()) {
+		if (!mfaChecker.isEnabled()) {
 			return false;
 		}
 
 		Set<String> verifierIntegrationNames =
-			_mfaRegistry.getMFACheckerIntegrationNames(mfaVerifier.getName());
+			_mfaRegistry.getMFACheckerIntegrationNames(mfaChecker.getName());
 
 		if (verifierIntegrationNames.isEmpty()) {
 			return false;
@@ -76,7 +76,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 
 	@Override
 	public String getEntryKey() {
-		return ((MFAChecker)_userAccountSetupMFAVerifier).getProviderName();
+		return _userAccountSetupMFAChecker.getLabel();
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 
 		request.setAttribute(
 			UserAccountSetupMFARenderer.class.getName(),
-			_userAccountSetupMFAVerifier);
+			_userAccountSetupMFAChecker);
 
 		request.setAttribute("label", getLabel(request.getLocale()));
 		request.setAttribute("screenNavigationCategoryKey", getCategoryKey());

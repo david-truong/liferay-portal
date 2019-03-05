@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_2_0.dtd">
 
-<service-builder auto-import-default-references="false" auto-namespace-tables="false" package-path="com.liferay.multi.factor.authentication.provider.email.otp">
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" package-path="com.liferay.multi.factor.authentication.checker.email.otp">
 	<author>arthurchan35</author>
-	<namespace>OTP</namespace>
-	<entity local-service="true" name="EmailOTP" remote-service="false">
+	<namespace>EmailOTP</namespace>
+	<entity local-service="true" name="MFAEmailOTP" remote-service="false">
 
 		<!-- PK fields -->
 
-		<column name="emailOTPId" primary="true" type="long" />
+		<column name="mfaEmailOTPId" primary="true" type="long" />
 
 		<!-- Audit fields -->
 
@@ -21,16 +21,26 @@
 		<!-- Other fields -->
 
 		<column name="emailAddress" type="String" />
+		<column name="failedAttempts" type="int" />
 		<column name="lastSuccessDate" type="Date" />
 		<column name="lastSuccessIP" type="String" />
 		<column name="lastFailDate" type="Date" />
 		<column name="lastFailIP" type="String" />
-		<column name="failedAttempts" type="int" />
+		<column name="mfaCheckerName" type="String" />
 
 		<!-- Finder methods -->
 
-		<finder name="UserId" return-type="OTP" unique="true">
+		<finder name="M_U" return-type="MFAEmailOTP">
+			<finder-column name="mfaCheckerName" />
 			<finder-column name="userId" />
+		</finder>
+
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
+		</finder>
+
+		<finder name="MFACheckerName" return-type="Collection">
+			<finder-column name="mfaCheckerName" />
 		</finder>
 
 		<!-- References -->

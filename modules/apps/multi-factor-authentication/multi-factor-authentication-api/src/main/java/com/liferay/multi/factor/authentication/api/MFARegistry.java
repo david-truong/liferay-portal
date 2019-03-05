@@ -14,6 +14,7 @@
 
 package com.liferay.multi.factor.authentication.api;
 
+import aQute.bnd.annotation.ProviderType;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 
@@ -23,6 +24,7 @@ import java.util.Set;
 /**
  * @author Tomas Polesovsky
  */
+@ProviderType
 public interface MFARegistry {
 
 	public MFAChecker getMFAChecker(String name);

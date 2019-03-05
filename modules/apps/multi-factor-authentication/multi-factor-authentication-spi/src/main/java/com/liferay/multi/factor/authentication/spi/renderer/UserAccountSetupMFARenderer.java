@@ -26,6 +26,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface UserAccountSetupMFARenderer {
 
+	public String getLabel();
+
 	public void includeUserAccountSetup(
 			long userId, HttpServletRequest request,
 			HttpServletResponse response)

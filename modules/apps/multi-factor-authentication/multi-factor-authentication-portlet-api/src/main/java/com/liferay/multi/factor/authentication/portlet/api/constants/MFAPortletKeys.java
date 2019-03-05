@@ -18,9 +18,9 @@ package com.liferay.multi.factor.authentication.portlet.api.constants;
  * @author Tomas Polesovsky
  */
 public class MFAPortletKeys {
-	public static final String MFA_VERIFY =
+	public static final String MFA_PORTLET =
 		"com_liferay_multi_factor_authentication_portlet_web_internal_" +
-			"portlet_MFAVerifyPortlet";
+			"portlet_MFAPortlet";
 
 	public static final String CATEGORY_KEY_MFA = "multi-factor-authentication";
 

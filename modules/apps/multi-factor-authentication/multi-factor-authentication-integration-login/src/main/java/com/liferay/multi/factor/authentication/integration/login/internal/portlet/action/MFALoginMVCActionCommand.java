@@ -78,23 +78,23 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		MFAChecker mfaVerifier =
-			_mfaVerifierRegistry.getMFAIntegrationChecker(
+		MFAChecker mfaChecker =
+			_mfaCheckerRegistry.getMFAIntegrationChecker(
 				_loginMFAIntegration.getName());
 
-		if (mfaVerifier == null) {
+		if (mfaChecker == null) {
 			_loginMVCActionCommand.processAction(actionRequest, actionResponse);
 
 			return;
 		}
 
-		if (!mfaVerifier.isEnabled()) {
+		if (!mfaChecker.isEnabled()) {
 			_loginMVCActionCommand.processAction(actionRequest, actionResponse);
 
 			return;
 		}
 
-		if (!mfaVerifier.supportsBrowser() && !mfaVerifier.supportsHeadless()) {
+		if (!mfaChecker.supportsBrowser() && !mfaChecker.supportsHeadless()) {
 			_loginMVCActionCommand.processAction(actionRequest, actionResponse);
 
 			return;
@@ -121,25 +121,25 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 					request, login, password, null);
 
 			if (userId > 0) {
-				if (mfaVerifier.supportsBrowser()) {
-					BrowserMFAChecker browserMFAVerifier =
-						(BrowserMFAChecker)mfaVerifier;
+				if (mfaChecker.supportsBrowser()) {
+					BrowserMFAChecker browserMFAChecker =
+						(BrowserMFAChecker)mfaChecker;
 
-					if (browserMFAVerifier.forceUserSetup(userId)) {
+					if (browserMFAChecker.forceUserSetup(userId)) {
 						redirectToSetup(actionRequest, actionResponse);
 
 						return;
 					}
 				}
 
-				if (mfaVerifier.supportsHeadless()) {
-					HeadlessMFAChecker headlessMFAVerifier =
-						(HeadlessMFAChecker) mfaVerifier;
+				if (mfaChecker.supportsHeadless()) {
+					HeadlessMFAChecker headlessMFAChecker =
+						(HeadlessMFAChecker) mfaChecker;
 
-					if (headlessMFAVerifier.isHeadlessSetupComplete(
+					if (headlessMFAChecker.isHeadlessSetupComplete(
 						request, userId)) {
 
-						if (headlessMFAVerifier.isHeadlessVerified(
+						if (headlessMFAChecker.isHeadlessVerified(
 							request, userId)) {
 
 							_loginMVCActionCommand.processAction(
@@ -148,7 +148,7 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 							return;
 						}
 
-						if (headlessMFAVerifier.verifyHeadlessRequest(
+						if (headlessMFAChecker.verifyHeadlessRequest(
 							request, userId)) {
 
 							_loginMVCActionCommand.processAction(
@@ -159,14 +159,14 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 					}
 				}
 
-				if (mfaVerifier.supportsBrowser()) {
-					BrowserMFAChecker browserMFAVerifier =
-						(BrowserMFAChecker) mfaVerifier;
+				if (mfaChecker.supportsBrowser()) {
+					BrowserMFAChecker browserMFAChecker =
+						(BrowserMFAChecker) mfaChecker;
 
-					if (browserMFAVerifier.isBrowserSetupComplete(
+					if (browserMFAChecker.isBrowserSetupComplete(
 						request, userId)) {
 
-						if (browserMFAVerifier.isBrowserVerified(
+						if (browserMFAChecker.isBrowserVerified(
 							request, userId)){
 
 							_loginMVCActionCommand.processAction(
@@ -374,7 +374,7 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 	private MVCActionCommand _loginMVCActionCommand;
 
 	@Reference
-	private MFARegistry _mfaVerifierRegistry;
+	private MFARegistry _mfaCheckerRegistry;
 
 	@Reference
 	private MFAPortletURLFactory _mfaPortletURLFactory;

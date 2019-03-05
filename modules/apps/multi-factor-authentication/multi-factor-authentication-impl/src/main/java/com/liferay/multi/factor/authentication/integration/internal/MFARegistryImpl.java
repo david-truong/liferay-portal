@@ -15,8 +15,8 @@
 package com.liferay.multi.factor.authentication.integration.internal;
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.integration.internal.verifier.MandatoryCompositeMFAVerifier;
-import com.liferay.multi.factor.authentication.integration.internal.verifier.OptionalCompositeMFAVerifier;
+import com.liferay.multi.factor.authentication.integration.internal.verifier.MandatoryCompositeMFAChecker;
+import com.liferay.multi.factor.authentication.integration.internal.verifier.OptionalCompositeMFAChecker;
 import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
@@ -45,19 +45,19 @@ public class MFARegistryImpl implements MFARegistry {
 		_mfaIntegrationServiceTrackerMap;
 
 	private ServiceTrackerMap<String, MFAChecker>
-		_mfaVerifiersServiceTrackerMap;
+		_mfaCheckersServiceTrackerMap;
 
 	private ServiceTrackerMap<String, MFAIntegrationVerification>
 		_mfaIntegrationVerificationServiceTrackerMap;
 
 	@Override
 	public List<MFAChecker> getMFACheckers() {
-		return new ArrayList(_mfaVerifiersServiceTrackerMap.values());
+		return new ArrayList(_mfaCheckersServiceTrackerMap.values());
 	}
 
 	@Override
 	public MFAChecker getMFAChecker(String name) {
-		return _mfaVerifiersServiceTrackerMap.getService(name);
+		return _mfaCheckersServiceTrackerMap.getService(name);
 	}
 
 	@Override
@@ -70,10 +70,10 @@ public class MFARegistryImpl implements MFARegistry {
 			return null;
 		}
 
-		List<List<MFAChecker>> mfaVerifiersList =
-			mfaIntegrationVerification.getMFAVerifiersList(this);
+		List<List<MFAChecker>> mfaCheckersList =
+			mfaIntegrationVerification.getMFACheckersList(this);
 
-		if (mfaVerifiersList == null) {
+		if (mfaCheckersList == null) {
 			_log.error(
 				StringBundler.concat(
 					"Unable to continue with MFA verification for '",
@@ -83,31 +83,31 @@ public class MFARegistryImpl implements MFARegistry {
 			return null;
 		}
 
-		List<MFAChecker> mandatoryMFAVerifiers =
-			new ArrayList<>(mfaVerifiersList.size());
+		List<MFAChecker> mandatoryMFACheckers =
+			new ArrayList<>(mfaCheckersList.size());
 
-		for (List<MFAChecker> mfaVerifiers : mfaVerifiersList) {
-			if (mfaVerifiers.isEmpty()) {
+		for (List<MFAChecker> mfaCheckers : mfaCheckersList) {
+			if (mfaCheckers.isEmpty()) {
 				continue;
 			}
 
-			if (mfaVerifiers.size() == 1) {
-				mandatoryMFAVerifiers.add(mfaVerifiers.get(0));
+			if (mfaCheckers.size() == 1) {
+				mandatoryMFACheckers.add(mfaCheckers.get(0));
 			}
 			else {
-				mandatoryMFAVerifiers.add(
-					new OptionalCompositeMFAVerifier(mfaVerifiers));
+				mandatoryMFACheckers.add(
+					new OptionalCompositeMFAChecker(mfaCheckers));
 			}
 		}
 
-		if (mandatoryMFAVerifiers.isEmpty()) {
+		if (mandatoryMFACheckers.isEmpty()) {
 			return null;
 		}
-		else if (mandatoryMFAVerifiers.size() == 1) {
-			return mandatoryMFAVerifiers.get(0);
+		else if (mandatoryMFACheckers.size() == 1) {
+			return mandatoryMFACheckers.get(0);
 		}
 		else {
-			return new MandatoryCompositeMFAVerifier(mandatoryMFAVerifiers);
+			return new MandatoryCompositeMFAChecker(mandatoryMFACheckers);
 		}
 	}
 
@@ -120,7 +120,7 @@ public class MFARegistryImpl implements MFARegistry {
 		for (MFAIntegrationVerification mfaIntegrationVerification :
 			_mfaIntegrationVerificationServiceTrackerMap.values()) {
 
-			if (mfaIntegrationVerification.hasMFAVerifier(mfaCheckerName)) {
+			if (mfaIntegrationVerification.hasMFAChecker(mfaCheckerName)) {
 				verifierIntegrationNames.add(
 					mfaIntegrationVerification.getIntegrationName());
 			}
@@ -146,7 +146,7 @@ public class MFARegistryImpl implements MFARegistry {
 					(service, emitter) ->
 						emitter.emit(service.getIntegrationName())));
 
-		_mfaVerifiersServiceTrackerMap =
+		_mfaCheckersServiceTrackerMap =
 			ServiceTrackerMapFactory.openSingleValueMap(
 				bundleContext, MFAChecker.class, null,
 				ServiceReferenceMapperFactory.create(

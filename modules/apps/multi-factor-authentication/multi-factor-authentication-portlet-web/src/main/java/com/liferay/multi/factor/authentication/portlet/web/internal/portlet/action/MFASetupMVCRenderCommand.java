@@ -37,8 +37,8 @@ import java.util.List;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_VERIFY,
-		"mvc.command.name=/mfa_verify/setup"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
+		"mvc.command.name=/mfa/setup"
 	},
 	service = MVCRenderCommand.class
 )
@@ -51,35 +51,35 @@ public class MFASetupMVCRenderCommand implements MVCRenderCommand {
 		String integrationName = ParamUtil.getString(
 			renderRequest, "integrationName");
 
-		BrowserMFAChecker browserMFAVerifier =
+		BrowserMFAChecker browserMFAChecker =
 			(BrowserMFAChecker) _mfaRegistry.getMFAIntegrationChecker(
 				integrationName);
 
 		renderRequest.setAttribute(
-			BrowserMFAChecker.class.getName(), browserMFAVerifier);
+			BrowserMFAChecker.class.getName(), browserMFAChecker);
 
-		List<BrowserMFAChecker> setupMFAVerifiers = _getSetupMFAVerifiers(
-			browserMFAVerifier, renderRequest);
+		List<BrowserMFAChecker> setupMFACheckers = _getSetupMFACheckers(
+			browserMFAChecker, renderRequest);
 
-		renderRequest.setAttribute("setupMFAVerifiers", setupMFAVerifiers);
+		renderRequest.setAttribute("setupMFACheckers", setupMFACheckers);
 
 		return "/setup.jsp";
 	}
 
-	private List<BrowserMFAChecker> _getSetupMFAVerifiers(
-		BrowserMFAChecker mfaVerifier, PortletRequest portletRequest) {
+	private List<BrowserMFAChecker> _getSetupMFACheckers(
+		BrowserMFAChecker mfaChecker, PortletRequest portletRequest) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (!(mfaVerifier instanceof CompositeMFAChecker)) {
-			return Collections.singletonList(mfaVerifier);
+		if (!(mfaChecker instanceof CompositeMFAChecker)) {
+			return Collections.singletonList(mfaChecker);
 		}
 
-		CompositeMFAChecker compositeMFAVerifier =
-			(CompositeMFAChecker)mfaVerifier;
+		CompositeMFAChecker compositeMFAChecker =
+			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAVerifier.getMFAVerifiersAvailableForSetup(
+		return compositeMFAChecker.getMFACheckersAvailableForSetup(
 			themeDisplay.getUserId());
 	}
 

@@ -101,35 +101,35 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 			return;
 		}
 
-		MFAChecker mfaVerifier = _mfaRegistry.getMFAIntegrationChecker(
+		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
 				_authVerifierMFAIntegration.getName());
 
-		if ((mfaVerifier == null) || !mfaVerifier.supportsHeadless() ||
-			!mfaVerifier.isEnabled()) {
+		if ((mfaChecker == null) || !mfaChecker.supportsHeadless() ||
+			!mfaChecker.isEnabled()) {
 
 			super.processFilter(request, response, filterChain);
 
 			return;
 		}
 
-		HeadlessMFAChecker headlessMFAVerifier =
-			(HeadlessMFAChecker)mfaVerifier;
+		HeadlessMFAChecker headlessMFAChecker =
+			(HeadlessMFAChecker)mfaChecker;
 
 		long userId = authVerifierResult.getUserId();
 
-		if (!headlessMFAVerifier.isHeadlessSetupComplete(request, userId)) {
+		if (!headlessMFAChecker.isHeadlessSetupComplete(request, userId)) {
 			super.processFilter(request, response, filterChain);
 
 			return;
 		}
 
-		if (headlessMFAVerifier.isHeadlessVerified(request, userId)) {
+		if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
 			super.processFilter(request, response, filterChain);
 
 			return;
 		}
 
-		if (headlessMFAVerifier.verifyHeadlessRequest(request, userId)) {
+		if (headlessMFAChecker.verifyHeadlessRequest(request, userId)) {
 			super.processFilter(request, response, filterChain);
 
 			return;

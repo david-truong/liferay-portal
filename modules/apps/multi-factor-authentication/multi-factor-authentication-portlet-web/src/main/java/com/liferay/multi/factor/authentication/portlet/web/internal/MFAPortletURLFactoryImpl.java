@@ -60,14 +60,14 @@ public class MFAPortletURLFactoryImpl implements MFAPortletURLFactory {
 
 		LiferayPortletURL liferayPortletURL =
 			_portletURLFactory.create(
-				request, MFAPortletKeys.MFA_VERIFY, plid,
+				request, MFAPortletKeys.MFA_PORTLET, plid,
 				PortletRequest.RENDER_PHASE);
 
 		liferayPortletURL.setParameter("integrationName", integrationName);
 		liferayPortletURL.setParameter(
 			"saveLastPath", Boolean.FALSE.toString());
 		liferayPortletURL.setParameter(
-			"mvcRenderCommandName", "/mfa_verify/verify");
+			"mvcRenderCommandName", "/mfa/verify");
 		liferayPortletURL.setParameter("redirect", redirectURL);
 
 		try {
@@ -89,12 +89,12 @@ public class MFAPortletURLFactoryImpl implements MFAPortletURLFactory {
 
 		LiferayPortletURL liferayPortletURL =
 			_portletURLFactory.create(
-				request, MFAPortletKeys.MFA_VERIFY,
+				request, MFAPortletKeys.MFA_PORTLET,
 				PortletRequest.RENDER_PHASE);
 
 		liferayPortletURL.setParameter("integrationName", integrationName);
 		liferayPortletURL.setParameter(
-			"mvcRenderCommandName", "/mfa_verify/setup");
+			"mvcRenderCommandName", "/mfa/setup");
 		liferayPortletURL.setParameter("redirect", redirectURL);
 
 		try {

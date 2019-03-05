@@ -42,8 +42,8 @@ import java.util.List;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_VERIFY,
-		"mvc.command.name=/mfa_verify/verify"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
+		"mvc.command.name=/mfa/verify"
 	},
 	service = MVCActionCommand.class
 )
@@ -71,24 +71,24 @@ public class MFAVerifyMVCActionCommand extends BaseMVCActionCommand {
 		String integrationName = ParamUtil.getString(
 			actionRequest, "integrationName");
 
-		BrowserMFAChecker browserMFAVerifier =
+		BrowserMFAChecker browserMFAChecker =
 			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(integrationName);
 
-		int verifyMFAVerifierIndex =
-			ParamUtil.getInteger(actionRequest, "verifyMFAVerifierIndex", -1);
+		int verifyMFACheckerIndex =
+			ParamUtil.getInteger(actionRequest, "verifyMFACheckerIndex", -1);
 
-		if (verifyMFAVerifierIndex > 1) {
-			List<BrowserMFAChecker> verifyMFAVerifiers =
-				_getVerifyMFAVerifiers(
-					browserMFAVerifier, actionRequest, userId);
+		if (verifyMFACheckerIndex > 1) {
+			List<BrowserMFAChecker> verifyMFACheckers =
+				_getVerifyMFACheckers(
+					browserMFAChecker, actionRequest, userId);
 
-			if (verifyMFAVerifierIndex < verifyMFAVerifiers.size()) {
-				browserMFAVerifier = verifyMFAVerifiers.get(
-					verifyMFAVerifierIndex);
+			if (verifyMFACheckerIndex < verifyMFACheckers.size()) {
+				browserMFAChecker = verifyMFACheckers.get(
+					verifyMFACheckerIndex);
 			}
 		}
 
-		if (browserMFAVerifier.verifyBrowserRequest(
+		if (browserMFAChecker.verifyBrowserRequest(
 			actionRequest, actionResponse, userId)) {
 
 			sendRedirect(actionRequest, actionResponse);
@@ -125,22 +125,22 @@ public class MFAVerifyMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private List<BrowserMFAChecker> _getVerifyMFAVerifiers(
-		BrowserMFAChecker mfaVerifier, PortletRequest portletRequest,
+	private List<BrowserMFAChecker> _getVerifyMFACheckers(
+		BrowserMFAChecker mfaChecker, PortletRequest portletRequest,
 		long userId) {
 
-		if (!(mfaVerifier instanceof CompositeMFAChecker)) {
-			return Collections.singletonList(mfaVerifier);
+		if (!(mfaChecker instanceof CompositeMFAChecker)) {
+			return Collections.singletonList(mfaChecker);
 		}
 
 		HttpServletRequest httpServletRequest =
 			_portal.getOriginalServletRequest(
 				_portal.getHttpServletRequest(portletRequest));
 
-		CompositeMFAChecker compositeMFAVerifier =
-			(CompositeMFAChecker)mfaVerifier;
+		CompositeMFAChecker compositeMFAChecker =
+			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAVerifier.getMFAVerifiersAvailableForVerify(
+		return compositeMFAChecker.getMFACheckersAvailableForVerify(
 			httpServletRequest, userId);
 	}
 

@@ -39,8 +39,8 @@ import java.util.List;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_VERIFY,
-		"mvc.command.name=/mfa_verify/setup"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
+		"mvc.command.name=/mfa/setup"
 	},
 	service = MVCActionCommand.class
 )
@@ -54,26 +54,26 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		String integrationName = ParamUtil.getString(
 			actionRequest, "integrationName");
 
-		BrowserMFAChecker browserMFAVerifier =
+		BrowserMFAChecker browserMFAChecker =
 			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(integrationName);
 
-		int setupMFAVerifierIndex =
-			ParamUtil.getInteger(actionRequest, "setupMFAVerifierIndex", -1);
+		int setupMFACheckerIndex =
+			ParamUtil.getInteger(actionRequest, "setupMFACheckerIndex", -1);
 
-		if (setupMFAVerifierIndex > 1) {
-			List<BrowserMFAChecker> setupMFAVerifiers =
-				_getSetupMFAVerifiers(browserMFAVerifier, actionRequest);
+		if (setupMFACheckerIndex > 1) {
+			List<BrowserMFAChecker> setupMFACheckers =
+				_getSetupMFACheckers(browserMFAChecker, actionRequest);
 
-			if (setupMFAVerifierIndex < setupMFAVerifiers.size()) {
-				browserMFAVerifier = setupMFAVerifiers.get(
-					setupMFAVerifierIndex);
+			if (setupMFACheckerIndex < setupMFACheckers.size()) {
+				browserMFAChecker = setupMFACheckers.get(
+					setupMFACheckerIndex);
 			}
 		}
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (browserMFAVerifier.setup(actionRequest, themeDisplay.getUserId())) {
+		if (browserMFAChecker.setup(actionRequest, themeDisplay.getUserId())) {
 			String redirect = _portal.escapeRedirect(
 				ParamUtil.getString(actionRequest, "redirect"));
 
@@ -87,20 +87,20 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private List<BrowserMFAChecker> _getSetupMFAVerifiers(
-		BrowserMFAChecker mfaVerifier, PortletRequest portletRequest) {
+	private List<BrowserMFAChecker> _getSetupMFACheckers(
+		BrowserMFAChecker mfaChecker, PortletRequest portletRequest) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (!(mfaVerifier instanceof CompositeMFAChecker)) {
-			return Collections.singletonList(mfaVerifier);
+		if (!(mfaChecker instanceof CompositeMFAChecker)) {
+			return Collections.singletonList(mfaChecker);
 		}
 
-		CompositeMFAChecker compositeMFAVerifier =
-			(CompositeMFAChecker)mfaVerifier;
+		CompositeMFAChecker compositeMFAChecker =
+			(CompositeMFAChecker)mfaChecker;
 
-		return compositeMFAVerifier.getMFAVerifiersAvailableForSetup(
+		return compositeMFAChecker.getMFACheckersAvailableForSetup(
 			themeDisplay.getUserId());
 	}
 

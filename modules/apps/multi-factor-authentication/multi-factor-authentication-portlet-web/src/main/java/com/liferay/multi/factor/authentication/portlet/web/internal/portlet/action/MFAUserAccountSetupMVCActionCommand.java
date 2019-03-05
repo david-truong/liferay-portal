@@ -49,25 +49,25 @@ public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		String userAccountSetupMFAVerifierName = ParamUtil.getString(
-			actionRequest, "userAccountSetupMFAVerifierName");
+		String userAccountSetupMFACheckerName = ParamUtil.getString(
+			actionRequest, "userAccountSetupMFACheckerName");
 
-		MFAChecker mfaVerifier =
-			_mfaRegistry.getMFAChecker(userAccountSetupMFAVerifierName);
+		MFAChecker mfaChecker =
+			_mfaRegistry.getMFAChecker(userAccountSetupMFACheckerName);
 
-		if ((mfaVerifier == null) || !mfaVerifier.supportsUserAccountSetup()) {
+		if ((mfaChecker == null) || !mfaChecker.supportsUserAccountSetup()) {
 			SessionErrors.add(actionRequest, "userAccountSetupFailed");
 
 			return;
 		}
 
-		UserAccountSetupMFARenderer userAccountSetupMFAVerifier =
-			(UserAccountSetupMFARenderer)mfaVerifier;
+		UserAccountSetupMFARenderer userAccountSetupMFAChecker =
+			(UserAccountSetupMFARenderer)mfaChecker;
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (userAccountSetupMFAVerifier.setupUserAccount(
+		if (userAccountSetupMFAChecker.setupUserAccount(
 				actionRequest, themeDisplay.getUserId())) {
 
 			String redirect = _portal.escapeRedirect(

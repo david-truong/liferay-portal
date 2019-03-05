@@ -17,21 +17,21 @@
 <%@ include file="/init.jsp" %>
 <%
 BrowserMFAChecker
-	browserMFAVerifier = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
+	browserMFAChecker = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
 
-List<BrowserMFAChecker> verifyMFAVerifiers = (List<BrowserMFAChecker>)request.getAttribute("verifyMFAVerifiers");
+List<BrowserMFAChecker> verifyMFACheckers = (List<BrowserMFAChecker>)request.getAttribute("verifyMFACheckers");
 
 long mfaUserId = (Long)request.getAttribute("mfaUserId");
 
-int mfaVerifierIndex = ParamUtil.getInteger(request, "mfaVerifierIndex", 0);
+int mfaCheckerIndex = ParamUtil.getInteger(request, "mfaCheckerIndex", 0);
 
-if ((mfaVerifierIndex > -1) && (mfaVerifierIndex < verifyMFAVerifiers.size())) {
-	browserMFAVerifier = verifyMFAVerifiers.get(mfaVerifierIndex);
+if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < verifyMFACheckers.size())) {
+	browserMFAChecker = verifyMFACheckers.get(mfaCheckerIndex);
 }
 
 %>
-<portlet:actionURL name="/mfa_verify/verify" var="verifyActionURL">
-	<portlet:param name="mvcRenderCommandName" value="/mfa_verify/verify" />
+<portlet:actionURL name="/mfa/verify" var="verifyActionURL">
+	<portlet:param name="mvcRenderCommandName" value="/mfa/verify" />
 </portlet:actionURL>
 
 <aui:form action="<%= verifyActionURL %>" cssClass="container-fluid-1280 sign-in-form" method="post" name="fm">
@@ -42,19 +42,19 @@ if ((mfaVerifierIndex > -1) && (mfaVerifierIndex < verifyMFAVerifiers.size())) {
 	<liferay-ui:error key="mfaFailed" message="multi-factor-authentication-failed" />
 
 	<%
-		browserMFAVerifier.includeBrowserVerification(mfaUserId, request, response);
+		browserMFAChecker.includeBrowserVerification(mfaUserId, request, response);
 	%>
 
-	<c:if test="<%= verifyMFAVerifiers.size() > 1 %>">
-		<portlet:renderURL var="useAnotherMFAVerifier" copyCurrentRenderParameters="<%= true %>">
+	<c:if test="<%= verifyMFACheckers.size() > 1 %>">
+		<portlet:renderURL var="useAnotherMFAChecker" copyCurrentRenderParameters="<%= true %>">
 			<portlet:param name="integrationName" value='<%= ParamUtil.getString(request, "integrationName") %>' />
-			<portlet:param name="mfaVerifierIndex" value="<%= mfaVerifierIndex + 1 < verifyMFAVerifiers.size() ?  String.valueOf(mfaVerifierIndex + 1) : "0" %>"/>
-			<portlet:param name="mvcRenderCommandName" value="/mfa_verify/verify" />
+			<portlet:param name="mfaCheckerIndex" value="<%= mfaCheckerIndex + 1 < verifyMFACheckers.size() ?  String.valueOf(mfaCheckerIndex + 1) : "0" %>"/>
+			<portlet:param name="mvcRenderCommandName" value="/mfa/verify" />
 			<portlet:param name="redirect" value='<%= ParamUtil.getString(request, "redirect") %>' />
 			<portlet:param name="saveLastPath" value="<%= Boolean.FALSE.toString() %>" />
 		</portlet:renderURL>
 
-		<a href="<%= HtmlUtil.escapeAttribute(useAnotherMFAVerifier) %>"><liferay-ui:message key="use-another-verifier" /></a>
+		<a href="<%= HtmlUtil.escapeAttribute(useAnotherMFAChecker) %>"><liferay-ui:message key="use-another-verifier" /></a>
 	</c:if>
 
 	<aui:button-row>

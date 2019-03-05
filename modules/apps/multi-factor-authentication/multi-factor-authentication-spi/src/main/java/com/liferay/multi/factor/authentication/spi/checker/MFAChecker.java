@@ -23,8 +23,6 @@ public interface MFAChecker {
 
 	public String getName();
 
-	public String getProviderName();
-
 	public boolean isEnabled();
 
 	public default boolean supportsBrowser() {

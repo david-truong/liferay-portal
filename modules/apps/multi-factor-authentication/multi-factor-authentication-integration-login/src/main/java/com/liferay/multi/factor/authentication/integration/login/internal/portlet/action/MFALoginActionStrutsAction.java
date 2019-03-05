@@ -44,10 +44,10 @@ public class MFALoginActionStrutsAction implements StrutsAction {
 		HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
-		MFAChecker mfaVerifier =
+		MFAChecker mfaChecker =
 			_mfaRegistry.getMFAIntegrationChecker(_loginMFAIntegration.getName());
 
-		if (mfaVerifier == null) {
+		if (mfaChecker == null) {
 			ActionForward actionForward =
 				_loginAction.execute(new ActionMapping(null, null, null, null),
 					request, response);

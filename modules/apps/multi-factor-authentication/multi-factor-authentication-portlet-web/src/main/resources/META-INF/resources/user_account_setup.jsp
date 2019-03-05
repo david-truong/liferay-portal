@@ -30,8 +30,8 @@ page import="com.liferay.portal.kernel.util.PortalUtil" %>
 	String screenNavigationEntryKey = ParamUtil.getString(request, "screenNavigationEntryKey");
 
 	UserAccountSetupMFARenderer
-		userAccountSetupMFAVerifier = (UserAccountSetupMFARenderer)request.getAttribute(UserAccountSetupMFARenderer.class.getName());
-	MFAChecker mfaVerifier = (MFAChecker)userAccountSetupMFAVerifier;
+		userAccountSetupMFAChecker = (UserAccountSetupMFARenderer)request.getAttribute(UserAccountSetupMFARenderer.class.getName());
+	MFAChecker mfaChecker = (MFAChecker)userAccountSetupMFAChecker;
 %>
 
 <portlet:actionURL name="/my_account/setup_mfa" var="actionURL">
@@ -42,18 +42,18 @@ page import="com.liferay.portal.kernel.util.PortalUtil" %>
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="screenNavigationCategoryKey" type="hidden" value="<%= screenNavigationCategoryKey %>" />
 	<aui:input name="screenNavigationEntryKey" type="hidden" value="<%= screenNavigationEntryKey %>" />
-	<aui:input name="userAccountSetupMFAVerifierName" type="hidden" value="<%= mfaVerifier.getName()%>" />
+	<aui:input name="userAccountSetupMFACheckerName" type="hidden" value="<%= mfaChecker.getName()%>" />
 
 	<div class="sheet sheet-lg">
 			<div class="sheet-header">
-				<h2 class="sheet-title"><liferay-ui:message key="<%= mfaVerifier.getName() %>" escapeAttribute="<%= true %>"/></h2>
+				<h2 class="sheet-title"><liferay-ui:message key="<%= mfaChecker.getName() %>" escapeAttribute="<%= true %>"/></h2>
 			</div>
 
 		<liferay-ui:error key="userAccountSetupFailed" message="user-account-setup-failed" />
 
 		<div class="sheet-section">
 			<%
-				userAccountSetupMFAVerifier.includeUserAccountSetup(userId, request, response);
+				userAccountSetupMFAChecker.includeUserAccountSetup(userId, request, response);
 			%>
 		</div>
 
