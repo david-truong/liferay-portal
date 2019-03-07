@@ -1,6 +1,0 @@
-Bundle-Name: Liferay Multi Factor Authentication Checker TOTP Service
-Bundle-SymbolicName: com.liferay.multi.factor.authentication.checker.totp.service
-Bundle-Version: 1.0.0
-Liferay-Require-SchemaVersion: 2.0.0
-Liferay-Service: true
--dsannotations-options: inherit

@@ -1,8 +1,0 @@
-Bundle-Name: Liferay Multi Factor Authentication Checker TOTP API
-Bundle-SymbolicName: com.liferay.multi.factor.authentication.checker.totp.api
-Bundle-Version: 1.0.0
-Export-Package:\
-	com.liferay.multi.factor.authentication.checker.totp.exception,\
-	com.liferay.multi.factor.authentication.checker.totp.model,\
-	com.liferay.multi.factor.authentication.checker.totp.service,\
-	com.liferay.multi.factor.authentication.checker.totp.service.persistence
