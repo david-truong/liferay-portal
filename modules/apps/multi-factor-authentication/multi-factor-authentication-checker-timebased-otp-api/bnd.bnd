@@ -1,0 +1,8 @@
+Bundle-Name: Liferay Multi Factor Authentication Checker Time-based OTP API
+Bundle-SymbolicName: com.liferay.multi.factor.authentication.checker.timebased.otp.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	com.liferay.multi.factor.authentication.checker.timebased.otp.exception,\
+	com.liferay.multi.factor.authentication.checker.timebased.otp.model,\
+	com.liferay.multi.factor.authentication.checker.timebased.otp.service,\
+	com.liferay.multi.factor.authentication.checker.timebased.otp.service.persistence
