@@ -21,10 +21,9 @@ import com.liferay.multi.factor.authentication.checker.timebased.otp.web.interna
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.io.BigEndianCodec;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -42,10 +41,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -72,7 +69,7 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class TimebasedOTPMFAChecker
 	implements BrowserMFAChecker, HeadlessMFAChecker, MFAChecker,
-			   UserAccountSetupMFACheckerRenderer {
+			   MFACheckerSetup {
 
 	@Override
 	public boolean forceUserSetup(long userId) {
@@ -88,8 +85,8 @@ public class TimebasedOTPMFAChecker
 	}
 
 	@Override
-	public String getLabel() {
-		return "time-based-one-time-password";
+	public String getLabel(Locale locale) {
+		return _label;
 	}
 
 	@Override
@@ -121,12 +118,13 @@ public class TimebasedOTPMFAChecker
 			HttpServletResponse response)
 		throws IOException {
 
-		List<TimebasedOTPEntry> timebasedOTPEntries =
-			_timebasedOTPEntryLocalService.getTimebasedOTPEntriesByUserId(
-				userId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+		TimebasedOTPEntry timebasedOTPEntry =
+			_timebasedOTPEntryLocalService.fetchTimebasedOTPEntry(
+				userId, _name);
 
-		if (!timebasedOTPEntries.isEmpty()) {
-			request.setAttribute("timebasedOTPEntries", timebasedOTPEntries);
+		if (timebasedOTPEntry != null) {
+			request.setAttribute(
+				TimebasedOTPEntry.class.getName(), timebasedOTPEntry);
 		}
 		else {
 			String sharedSecret = generateSharedSecret();
@@ -157,20 +155,6 @@ public class TimebasedOTPMFAChecker
 	}
 
 	@Override
-	public void includeUserAccountSetup(
-			long userId, HttpServletRequest request,
-			HttpServletResponse response)
-		throws IOException {
-
-		includeSetup(userId, request, response);
-	}
-
-	@Override
-	public boolean isBrowserSetupComplete(long userId) {
-		return isUserSetUp(userId);
-	}
-
-	@Override
 	public boolean isBrowserVerified(HttpServletRequest request, long userId) {
 		HttpServletRequest originalServletRequest =
 			_portal.getOriginalServletRequest(request);
@@ -190,26 +174,25 @@ public class TimebasedOTPMFAChecker
 	}
 
 	@Override
-	public boolean isHeadlessSetupComplete(long userId) {
-		return isUserSetUp(userId);
-	}
-
-	@Override
 	public boolean isHeadlessVerified(HttpServletRequest request, long userId) {
 		return false;
 	}
 
 	@Override
-	public boolean setup(ActionRequest actionRequest, long userId) {
+	public boolean isUserSetupComplete(long userId) {
+		return isUserSetUp(userId);
+	}
+
+	@Override
+	public boolean setup(HttpServletRequest request, long userId) {
 		HttpServletRequest originalServletRequest =
-			_portal.getOriginalServletRequest(
-				_portal.getHttpServletRequest(actionRequest));
+			_portal.getOriginalServletRequest(request);
 
 		HttpSession session = originalServletRequest.getSession();
 
 		String sharedSecret = (String)session.getAttribute("sharedSecret");
 
-		String totpValue = ParamUtil.getString(actionRequest, "totp");
+		String totpValue = ParamUtil.getString(request, "totp");
 
 		try {
 			if (TOTPUtil.verifyTOTP(
@@ -237,20 +220,29 @@ public class TimebasedOTPMFAChecker
 	}
 
 	@Override
-	public boolean setupUserAccount(ActionRequest actionRequest, long userId) {
-		return setup(actionRequest, userId);
+	public boolean supportsBrowser() {
+		return true;
+	}
+
+	@Override
+	public boolean supportsHeadless() {
+		return true;
+	}
+
+	@Override
+	public boolean supportsSetup() {
+		return true;
 	}
 
 	@Override
 	public boolean verifyBrowserRequest(
-		ActionRequest actionRequest, ActionResponse actionResponse,
-		long userId) {
+		HttpServletRequest request, HttpServletResponse response, long userId) {
 
 		if (!isUserSetUp(userId)) {
 			return false;
 		}
 
-		String totpValue = ParamUtil.getString(actionRequest, "totp");
+		String totpValue = ParamUtil.getString(request, "totp");
 
 		if (Validator.isBlank(totpValue)) {
 			return false;
@@ -258,15 +250,15 @@ public class TimebasedOTPMFAChecker
 
 		boolean verified = verify(totpValue, userId);
 
-		HttpServletRequest request = _portal.getOriginalServletRequest(
-			_portal.getHttpServletRequest(actionRequest));
+		HttpServletRequest originalRequest = _portal.getOriginalServletRequest(
+			request);
 
-		String userIP = request.getRemoteAddr();
+		String userIP = originalRequest.getRemoteAddr();
 
 		if (verified) {
 			long validatedAt = System.currentTimeMillis();
 
-			HttpSession session = request.getSession();
+			HttpSession session = originalRequest.getSession();
 
 			Map<String, Object> validatedMap =
 				(Map<String, Object>)session.getAttribute(_VALIDATED);
@@ -332,6 +324,7 @@ public class TimebasedOTPMFAChecker
 		_enabled = totpConfiguration.enabled();
 		_forceUserSetup = totpConfiguration.forceUserSetup();
 		_headlessHeaderName = totpConfiguration.headlessHeaderName();
+		_label = totpConfiguration.label();
 		_name = totpConfiguration.name();
 		_timeWindow = totpConfiguration.timeWindow();
 		_validationExpirationTime =
@@ -462,6 +455,7 @@ public class TimebasedOTPMFAChecker
 	private boolean _enabled;
 	private boolean _forceUserSetup;
 	private String _headlessHeaderName;
+	private String _label;
 	private String _name;
 
 	@Reference

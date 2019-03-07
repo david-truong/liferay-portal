@@ -21,6 +21,7 @@ import com.liferay.multi.factor.authentication.portlet.api.MFAPortletURLFactory;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.petra.encryptor.Encryptor;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -141,36 +142,41 @@ public class MFABeforeAutoLoginFilter extends AutoLoginFilter {
 		MFAChecker mfaChecker = _mfaRegistry.getMFAIntegrationChecker(
 			_autoLoginMFAIntegration.getName());
 
+		if (mfaChecker.supportsSetup()) {
+			MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
+
+			if (!mfaCheckerSetup.isUserSetupComplete(userId)) {
+				return super.getLoginRemoteUser(
+					request, response, session, credentials);
+			}
+		}
+
 		if (mfaChecker.supportsHeadless()) {
 			HeadlessMFAChecker headlessMFAChecker =
 				(HeadlessMFAChecker)mfaChecker;
 
-			if (headlessMFAChecker.isHeadlessSetupComplete(userId)) {
-				if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
-					return super.getLoginRemoteUser(
-						request, response, session, credentials);
-				}
+			if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
+				return super.getLoginRemoteUser(
+					request, response, session, credentials);
+			}
 
-				if (headlessMFAChecker.verifyHeadlessRequest(request, userId)) {
-					return super.getLoginRemoteUser(
-						request, response, session, credentials);
-				}
+			if (headlessMFAChecker.verifyHeadlessRequest(request, userId)) {
+				return super.getLoginRemoteUser(
+					request, response, session, credentials);
 			}
 		}
 
 		if (mfaChecker.supportsBrowser()) {
 			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if (browserMFAChecker.isBrowserSetupComplete(userId)) {
-				if (browserMFAChecker.isBrowserVerified(request, userId)) {
-					return super.getLoginRemoteUser(
-						request, response, session, credentials);
-				}
-
-				_redirectToVerify(credentials, request, session, userId);
-
-				return jUsername;
+			if (browserMFAChecker.isBrowserVerified(request, userId)) {
+				return super.getLoginRemoteUser(
+					request, response, session, credentials);
 			}
+
+			_redirectToVerify(credentials, request, session, userId);
+
+			return null;
 		}
 
 		if (_log.isDebugEnabled()) {

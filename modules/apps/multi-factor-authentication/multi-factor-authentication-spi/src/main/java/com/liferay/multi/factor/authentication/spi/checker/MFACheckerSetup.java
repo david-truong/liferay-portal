@@ -14,16 +14,25 @@
 
 package com.liferay.multi.factor.authentication.spi.checker;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Tomas Polesovsky
  */
-public interface HeadlessMFAChecker {
+public interface MFACheckerSetup {
 
-	public boolean isHeadlessVerified(HttpServletRequest request, long userId);
+	public boolean forceUserSetup(long userId);
 
-	public boolean verifyHeadlessRequest(
-		HttpServletRequest request, long userId);
+	public void includeSetup(
+			long userId, HttpServletRequest request,
+			HttpServletResponse response)
+		throws IOException;
+
+	public boolean isUserSetupComplete(long userId);
+
+	public boolean setup(HttpServletRequest request, long userId);
 
 }

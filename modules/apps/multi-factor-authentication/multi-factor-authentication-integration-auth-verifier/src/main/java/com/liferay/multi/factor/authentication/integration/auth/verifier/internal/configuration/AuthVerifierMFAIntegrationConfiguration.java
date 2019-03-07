@@ -38,4 +38,10 @@ public interface AuthVerifierMFAIntegrationConfiguration {
 	)
 	public String name();
 
+	@Meta.AD(
+		deflt = "true", description = "require-user-setup-description",
+		name = "require-user-setup", required = false
+	)
+	public boolean requireUserSetup();
+
 }

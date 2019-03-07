@@ -55,7 +55,7 @@ public class EmailOTPEntryLocalServiceImpl
 			emailOTPEntryLocalService.fetchEmailOTPEntry(
 				userId, mfaCheckerName);
 
-		if (emailOTPEntry == null) {
+		if (emailOTPEntry != null) {
 			throw new IllegalArgumentException(
 				StringBundler.concat(
 					"There is already one Email OTP Entry for user ", userId,

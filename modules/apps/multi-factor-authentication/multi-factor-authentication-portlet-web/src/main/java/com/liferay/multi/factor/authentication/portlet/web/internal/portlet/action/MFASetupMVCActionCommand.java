@@ -17,7 +17,7 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.act
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
-import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -41,8 +41,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
-		"mvc.command.name=/mfa/setup"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_SETUP_PORTLET,
+		"mvc.command.name=/mfa_setup/setup"
 	},
 	service = MVCActionCommand.class
 )
@@ -56,26 +56,29 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		String integrationName = ParamUtil.getString(
 			actionRequest, "integrationName");
 
-		BrowserMFAChecker browserMFAChecker =
-			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(
+		MFACheckerSetup mfaCheckerSetup =
+			(MFACheckerSetup)_mfaRegistry.getMFAIntegrationChecker(
 				integrationName);
 
-		int setupMFACheckerIndex = ParamUtil.getInteger(
-			actionRequest, "setupMFACheckerIndex", -1);
+		int mfaCheckerIndex = ParamUtil.getInteger(
+			actionRequest, "mfaCheckerIndex", 0);
 
-		if (setupMFACheckerIndex > 1) {
-			List<BrowserMFAChecker> setupMFACheckers = _getSetupMFACheckers(
-				browserMFAChecker, actionRequest);
+		List<MFACheckerSetup> setupMFACheckers = _getSetupMFACheckers(
+			mfaCheckerSetup, actionRequest);
 
-			if (setupMFACheckerIndex < setupMFACheckers.size()) {
-				browserMFAChecker = setupMFACheckers.get(setupMFACheckerIndex);
-			}
+		if ((mfaCheckerIndex > -1) &&
+			(mfaCheckerIndex < setupMFACheckers.size())) {
+
+			mfaCheckerSetup = setupMFACheckers.get(mfaCheckerIndex);
 		}
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (browserMFAChecker.setup(actionRequest, themeDisplay.getUserId())) {
+		if (mfaCheckerSetup.setup(
+				_portal.getHttpServletRequest(actionRequest),
+				themeDisplay.getUserId())) {
+
 			String redirect = _portal.escapeRedirect(
 				ParamUtil.getString(actionRequest, "redirect"));
 
@@ -89,8 +92,8 @@ public class MFASetupMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private List<BrowserMFAChecker> _getSetupMFACheckers(
-		BrowserMFAChecker mfaChecker, PortletRequest portletRequest) {
+	private List<MFACheckerSetup> _getSetupMFACheckers(
+		MFACheckerSetup mfaChecker, PortletRequest portletRequest) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);

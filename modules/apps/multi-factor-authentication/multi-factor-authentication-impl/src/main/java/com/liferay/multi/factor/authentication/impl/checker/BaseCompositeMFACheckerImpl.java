@@ -18,14 +18,14 @@ import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 
 import java.io.IOException;
 
 import java.util.List;
-
-import javax.portlet.ActionRequest;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public abstract class BaseCompositeMFACheckerImpl
 	implements BrowserMFAChecker, CompositeMFAChecker, HeadlessMFAChecker,
-			   MFAChecker {
+			   MFAChecker, MFACheckerSetup {
 
 	public BaseCompositeMFACheckerImpl(List<MFAChecker> mfaCheckers) {
 		this.mfaCheckers = mfaCheckers;
@@ -44,18 +44,37 @@ public abstract class BaseCompositeMFACheckerImpl
 	@Override
 	public boolean forceUserSetup(long userId) {
 		for (MFAChecker mfaChecker : mfaCheckers) {
-			if (!mfaChecker.supportsBrowser()) {
+			if (!mfaChecker.supportsSetup()) {
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
+			MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
 
-			if (browserMFAChecker.forceUserSetup(userId)) {
+			if (mfaCheckerSetup.forceUserSetup(userId)) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	@Override
+	public String getLabel(Locale locale) {
+		if (mfaCheckers.isEmpty()) {
+			return StringPool.BLANK;
+		}
+
+		StringBundler sb = new StringBundler(mfaCheckers.size() * 2 - 1);
+
+		for (MFAChecker mfaChecker : mfaCheckers) {
+			if (sb.length() > 0) {
+				sb.append(StringPool.COMMA);
+			}
+
+			sb.append(mfaChecker.getLabel(locale));
+		}
+
+		return sb.toString();
 	}
 
 	@Override
@@ -88,11 +107,15 @@ public abstract class BaseCompositeMFACheckerImpl
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
+			if (mfaChecker.supportsSetup()) {
+				MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
 
-			if (!browserMFAChecker.isBrowserSetupComplete(userId)) {
-				continue;
+				if (!mfaCheckerSetup.isUserSetupComplete(userId)) {
+					continue;
+				}
 			}
+
+			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
 			if (browserMFAChecker.isBrowserVerified(request, userId)) {
 				continue;
@@ -112,17 +135,17 @@ public abstract class BaseCompositeMFACheckerImpl
 		throws IOException {
 
 		for (MFAChecker mfaChecker : mfaCheckers) {
-			if (!mfaChecker.supportsBrowser()) {
+			if (!mfaChecker.supportsSetup()) {
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
+			MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
 
-			if (!browserMFAChecker.forceUserSetup(userId)) {
+			if (mfaCheckerSetup.isUserSetupComplete(userId)) {
 				continue;
 			}
 
-			browserMFAChecker.includeSetup(userId, request, response);
+			mfaCheckerSetup.includeSetup(userId, request, response);
 
 			return;
 		}
@@ -140,21 +163,21 @@ public abstract class BaseCompositeMFACheckerImpl
 	}
 
 	@Override
-	public boolean setup(ActionRequest actionRequest, long userId) {
+	public boolean setup(HttpServletRequest request, long userId) {
 		boolean setup = false;
 
 		for (MFAChecker mfaChecker : mfaCheckers) {
-			if (!mfaChecker.supportsBrowser()) {
+			if (!mfaChecker.supportsSetup()) {
 				continue;
 			}
 
-			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
+			MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
 
-			if (browserMFAChecker.isBrowserSetupComplete(userId)) {
+			if (mfaCheckerSetup.isUserSetupComplete(userId)) {
 				continue;
 			}
 
-			setup |= browserMFAChecker.setup(actionRequest, userId);
+			setup |= mfaCheckerSetup.setup(request, userId);
 		}
 
 		return setup;
@@ -175,6 +198,17 @@ public abstract class BaseCompositeMFACheckerImpl
 	public boolean supportsHeadless() {
 		for (MFAChecker mfaChecker : mfaCheckers) {
 			if (mfaChecker.supportsHeadless()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean supportsSetup() {
+		for (MFAChecker mfaChecker : mfaCheckers) {
+			if (mfaChecker.supportsSetup()) {
 				return true;
 			}
 		}

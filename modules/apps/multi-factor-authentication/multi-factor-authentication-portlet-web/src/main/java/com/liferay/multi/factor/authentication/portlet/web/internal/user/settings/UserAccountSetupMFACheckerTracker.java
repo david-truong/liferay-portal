@@ -17,7 +17,7 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.user.settin
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 
@@ -52,7 +52,7 @@ public class UserAccountSetupMFACheckerTracker {
 
 		_serviceTracker = ServiceTrackerFactory.open(
 			bundleContext, MFAChecker.class,
-			new UserAccountSetupMFACheckerServiceTrackerCustomizer());
+			new MFACheckerSetupServiceTrackerCustomizer());
 	}
 
 	@Deactivate
@@ -60,7 +60,7 @@ public class UserAccountSetupMFACheckerTracker {
 		_serviceTracker.close();
 	}
 
-	class UserAccountSetupMFACheckerServiceTrackerCustomizer
+	class MFACheckerSetupServiceTrackerCustomizer
 		implements ServiceTrackerCustomizer
 			<MFAChecker, ServiceRegistration<ScreenNavigationEntry>> {
 
@@ -70,14 +70,13 @@ public class UserAccountSetupMFACheckerTracker {
 
 			MFAChecker mfaChecker = _bundleContext.getService(reference);
 
-			if (!mfaChecker.supportsUserAccountSetup()) {
+			if (!mfaChecker.supportsSetup()) {
 				_bundleContext.ungetService(reference);
 
 				return null;
 			}
 
-			UserAccountSetupMFACheckerRenderer userAccountSetupMFAChecker =
-				(UserAccountSetupMFACheckerRenderer)mfaChecker;
+			MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
 
 			Dictionary<String, Object> dictionary = new HashMapDictionary<>();
 
@@ -88,7 +87,7 @@ public class UserAccountSetupMFACheckerTracker {
 			UserAccountSetupMFAScreenNavigationEntry
 				userAccountSetupMFAScreenNavigationEntry =
 					new UserAccountSetupMFAScreenNavigationEntry(
-						userAccountSetupMFAChecker);
+						mfaCheckerSetup);
 
 			userAccountSetupMFAScreenNavigationEntry.setServletContext(
 				_servletContext);

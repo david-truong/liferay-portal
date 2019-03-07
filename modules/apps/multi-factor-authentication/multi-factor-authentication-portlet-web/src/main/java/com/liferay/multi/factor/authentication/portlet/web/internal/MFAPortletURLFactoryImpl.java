@@ -46,11 +46,15 @@ public class MFAPortletURLFactoryImpl implements MFAPortletURLFactory {
 		String redirectURL) {
 
 		LiferayPortletURL liferayPortletURL = _portletURLFactory.create(
-			request, MFAPortletKeys.MFA_PORTLET, PortletRequest.RENDER_PHASE);
+			request, MFAPortletKeys.MFA_SETUP_PORTLET,
+			PortletRequest.RENDER_PHASE);
 
 		liferayPortletURL.setParameter("integrationName", integrationName);
-		liferayPortletURL.setParameter("mvcRenderCommandName", "/mfa/setup");
+		liferayPortletURL.setParameter(
+			"mvcRenderCommandName", "/mfa_setup/view");
 		liferayPortletURL.setParameter("redirect", redirectURL);
+		liferayPortletURL.setParameter(
+			"saveLastPath", Boolean.FALSE.toString());
 
 		try {
 			liferayPortletURL.setWindowState(WindowState.MAXIMIZED);
@@ -85,14 +89,15 @@ public class MFAPortletURLFactoryImpl implements MFAPortletURLFactory {
 		}
 
 		LiferayPortletURL liferayPortletURL = _portletURLFactory.create(
-			request, MFAPortletKeys.MFA_PORTLET, plid,
+			request, MFAPortletKeys.MFA_VERIFY_PORTLET, plid,
 			PortletRequest.RENDER_PHASE);
 
 		liferayPortletURL.setParameter("integrationName", integrationName);
 		liferayPortletURL.setParameter(
-			"saveLastPath", Boolean.FALSE.toString());
-		liferayPortletURL.setParameter("mvcRenderCommandName", "/mfa/verify");
+			"mvcRenderCommandName", "/mfa_verify/view");
 		liferayPortletURL.setParameter("redirect", redirectURL);
+		liferayPortletURL.setParameter(
+			"saveLastPath", Boolean.FALSE.toString());
 
 		try {
 			liferayPortletURL.setWindowState(WindowState.MAXIMIZED);

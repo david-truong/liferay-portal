@@ -18,18 +18,15 @@ import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.users.admin.constants.UserFormConstants;
 
 import java.io.IOException;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import javax.servlet.RequestDispatcher;
@@ -45,9 +42,9 @@ public class UserAccountSetupMFAScreenNavigationEntry
 	implements ScreenNavigationEntry<User> {
 
 	public UserAccountSetupMFAScreenNavigationEntry(
-		UserAccountSetupMFACheckerRenderer userAccountSetupMFAChecker) {
+		MFACheckerSetup mfaCheckerSetup) {
 
-		_userAccountSetupMFAChecker = userAccountSetupMFAChecker;
+		_mfaCheckerSetup = mfaCheckerSetup;
 	}
 
 	@Override
@@ -57,15 +54,12 @@ public class UserAccountSetupMFAScreenNavigationEntry
 
 	@Override
 	public String getEntryKey() {
-		return _userAccountSetupMFAChecker.getLabel();
+		return ((MFAChecker)_mfaCheckerSetup).getName();
 	}
 
 	@Override
 	public String getLabel(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			"content.Language", locale, getClass());
-
-		return LanguageUtil.get(resourceBundle, getEntryKey());
+		return ((MFAChecker)_mfaCheckerSetup).getLabel(locale);
 	}
 
 	@Override
@@ -75,7 +69,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 
 	@Override
 	public boolean isVisible(User user, User context) {
-		MFAChecker mfaChecker = (MFAChecker)_userAccountSetupMFAChecker;
+		MFAChecker mfaChecker = (MFAChecker)_mfaCheckerSetup;
 
 		if (!mfaChecker.isEnabled()) {
 			return false;
@@ -95,9 +89,7 @@ public class UserAccountSetupMFAScreenNavigationEntry
 	public void render(HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 
-		request.setAttribute(
-			UserAccountSetupMFACheckerRenderer.class.getName(),
-			_userAccountSetupMFAChecker);
+		request.setAttribute(MFACheckerSetup.class.getName(), _mfaCheckerSetup);
 
 		request.setAttribute("label", getLabel(request.getLocale()));
 		request.setAttribute("screenNavigationCategoryKey", getCategoryKey());
@@ -128,8 +120,8 @@ public class UserAccountSetupMFAScreenNavigationEntry
 	private static Log _log = LogFactoryUtil.getLog(
 		UserAccountSetupMFAScreenNavigationEntry.class);
 
+	private final MFACheckerSetup _mfaCheckerSetup;
 	private MFARegistry _mfaRegistry;
 	private ServletContext _servletContext;
-	private final UserAccountSetupMFACheckerRenderer _userAccountSetupMFAChecker;
 
 }

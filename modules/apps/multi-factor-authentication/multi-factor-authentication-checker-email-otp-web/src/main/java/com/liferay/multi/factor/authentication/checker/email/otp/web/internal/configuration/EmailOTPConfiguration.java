@@ -100,4 +100,10 @@ public interface EmailOTPConfiguration {
 	)
 	public int otpSize();
 
+	@Meta.AD(
+		deflt = "Primary Email", description = "label-description",
+		name = "label", required = false
+	)
+	public String label();
+
 }

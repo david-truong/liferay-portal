@@ -14,23 +14,22 @@
  */
 --%>
 
-<%@ include file="/init.jsp" %>
+<%@ include file="../init.jsp" %>
 
 <%
-BrowserMFAChecker
-	browserMFAChecker = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
+MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)request.getAttribute(MFACheckerSetup.class.getName());
 
-List<BrowserMFAChecker> setupMFACheckers = (List<BrowserMFAChecker>)request.getAttribute("setupMFACheckers");
+List<MFACheckerSetup> setupMFACheckers = (List<MFACheckerSetup>)request.getAttribute("setupMFACheckers");
 
 int mfaCheckerIndex = ParamUtil.getInteger(request, "mfaCheckerIndex", 0);
 
 if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < setupMFACheckers.size())) {
-	browserMFAChecker = setupMFACheckers.get(mfaCheckerIndex);
+	mfaCheckerSetup = setupMFACheckers.get(mfaCheckerIndex);
 }
 %>
 
-<portlet:actionURL name="/mfa/setup" var="setupMFAActionURL">
-	<portlet:param name="mvcRenderCommandName" value="/mfa/setup" />
+<portlet:actionURL name="/mfa_setup/setup" var="setupMFAActionURL">
+	<portlet:param name="mvcRenderCommandName" value="/mfa_setup/view" />
 </portlet:actionURL>
 
 <aui:form action="<%= setupMFAActionURL %>" cssClass="container-fluid-1280 sign-in-form" method="post" name="fm">
@@ -39,17 +38,21 @@ if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < setupMFACheckers.size())) {
 	<aui:input name="redirect" type="hidden" value='<%= ParamUtil.getString(request, "redirect") %>' />
 	<aui:input name="saveLastPath" type="hidden" value="<%= false %>" />
 
+	<h1>
+		<liferay-ui:message key="<%= HtmlUtil.escape(((MFAChecker)mfaCheckerSetup).getLabel(locale)) %>" />
+	</h1>
+
 	<liferay-ui:error key="mfaFailed" message="multi-factor-authentication-setup-failed" />
 
 	<%
-	browserMFAChecker.includeSetup(themeDisplay.getUserId(), request, response);
+	mfaCheckerSetup.includeSetup(themeDisplay.getUserId(), request, response);
 	%>
 
 	<c:if test="<%= setupMFACheckers.size() > 1 %>">
 		<portlet:renderURL copyCurrentRenderParameters="<%= true %>" var="setupAnotherMFAChecker">
 			<portlet:param name="integrationName" value='<%= ParamUtil.getString(request, "integrationName") %>' />
 			<portlet:param name="mfaCheckerIndex" value='<%= mfaCheckerIndex + 1 < setupMFACheckers.size() ? String.valueOf(mfaCheckerIndex + 1) : "0" %>' />
-			<portlet:param name="mvcRenderCommandName" value="/mfa/setup" />
+			<portlet:param name="mvcRenderCommandName" value="/mfa_setup/view" />
 			<portlet:param name="redirect" value='<%= ParamUtil.getString(request, "redirect") %>' />
 			<portlet:param name="saveLastPath" value="<%= Boolean.FALSE.toString() %>" />
 		</portlet:renderURL>

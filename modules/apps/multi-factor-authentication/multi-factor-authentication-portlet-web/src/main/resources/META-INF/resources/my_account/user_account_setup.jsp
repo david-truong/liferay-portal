@@ -1,6 +1,3 @@
-<%@ page import="com.liferay.multi.factor.authentication.spi.checker.MFAChecker" %><%@
-page import="com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer" %>
-
 <%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
@@ -17,17 +14,15 @@ page import="com.liferay.multi.factor.authentication.spi.checker.renderer.UserAc
  */
 --%>
 
-<%@ include file="/init.jsp" %>
+<%@ include file="../init.jsp" %>
 
 <%
-	long userId = user.getUserId();
+long userId = user.getUserId();
 
-	String screenNavigationCategoryKey = ParamUtil.getString(request, "screenNavigationCategoryKey");
-	String screenNavigationEntryKey = ParamUtil.getString(request, "screenNavigationEntryKey");
+String screenNavigationCategoryKey = ParamUtil.getString(request, "screenNavigationCategoryKey");
+String screenNavigationEntryKey = ParamUtil.getString(request, "screenNavigationEntryKey");
 
-	UserAccountSetupMFACheckerRenderer
-		userAccountSetupMFAChecker = (UserAccountSetupMFACheckerRenderer)request.getAttribute(UserAccountSetupMFACheckerRenderer.class.getName());
-	MFAChecker mfaChecker = (MFAChecker)userAccountSetupMFAChecker;
+MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)request.getAttribute(MFACheckerSetup.class.getName());
 %>
 
 <portlet:actionURL name="/my_account/setup_mfa" var="actionURL">
@@ -38,19 +33,19 @@ page import="com.liferay.multi.factor.authentication.spi.checker.renderer.UserAc
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="screenNavigationCategoryKey" type="hidden" value="<%= screenNavigationCategoryKey %>" />
 	<aui:input name="screenNavigationEntryKey" type="hidden" value="<%= screenNavigationEntryKey %>" />
-	<aui:input name="userAccountSetupMFACheckerName" type="hidden" value="<%= mfaChecker.getName() %>" />
+	<aui:input name="userAccountSetupMFACheckerName" type="hidden" value="<%= ((MFAChecker)mfaCheckerSetup).getName() %>" />
 
 	<div class="sheet sheet-lg">
-			<div class="sheet-header">
-				<h2 class="sheet-title"><liferay-ui:message escapeAttribute="<%= true %>" key="<%= mfaChecker.getName() %>" /></h2>
-			</div>
+		<div class="sheet-header">
+			<h1 class="sheet-title"><liferay-ui:message key="<%= HtmlUtil.escape(((MFAChecker)mfaCheckerSetup).getLabel(locale)) %>" /></h1>
+		</div>
 
 		<liferay-ui:error key="userAccountSetupFailed" message="user-account-setup-failed" />
 
 		<div class="sheet-section">
 
 			<%
-				userAccountSetupMFAChecker.includeUserAccountSetup(userId, request, response);
+			mfaCheckerSetup.includeSetup(userId, request, response);
 			%>
 
 		</div>

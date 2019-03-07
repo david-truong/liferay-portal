@@ -47,8 +47,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
-		"mvc.command.name=/mfa/verify"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_VERIFY_PORTLET,
+		"mvc.command.name=/mfa_verify/view"
 	},
 	service = MVCRenderCommand.class
 )
@@ -84,7 +84,7 @@ public class MFAVerifyMVCRenderCommand implements MVCRenderCommand {
 
 		renderRequest.setAttribute("verifyMFACheckers", verifyMFACheckers);
 
-		return "/verify.jsp";
+		return "/mfa_verify/verify.jsp";
 	}
 
 	private List<BrowserMFAChecker> _getVerifyMFACheckers(

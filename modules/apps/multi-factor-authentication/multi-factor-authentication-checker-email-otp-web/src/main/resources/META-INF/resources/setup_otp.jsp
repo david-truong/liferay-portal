@@ -50,31 +50,31 @@ EmailOTPConfiguration emailOTPConfiguration = (EmailOTPConfiguration)request.get
 </div>
 
 <aui:script use="aui-base,aui-io-request">
-	<liferay-portlet:resourceURL id="/mfa/sendemailotp" portletName="<%= MFAPortletKeys.MFA_PORTLET %>" var="sendOTPURL">
+	<liferay-portlet:resourceURL id="/mfa/sendemailotp" portletName="<%= MFAPortletKeys.MFA_SETUP_PORTLET %>" var="sendOTPURL">
 		<portlet:param name="mfaCheckerName" value="<%= emailOTPConfiguration.name() %>" />
 	</liferay-portlet:resourceURL>
 
 	A.one('#<portlet:namespace />sendEmailButton').on(
 		'click',
 		function(event) {
-			var sendEmailButton = A.one('#<portlet:namespace />sendEmailButton')._node;
+			var sendEmailButton = A.one('#<portlet:namespace />sendEmailButton');
 
-			sendEmailButton.disabled = true;
+			sendEmailButton.setAttribute('disabled', 'disabled');
 
-			var buttonText = sendEmailButton.innerText;
+			var buttonText = sendEmailButton.text();
 
 			var resendDuration = <%= emailOTPConfiguration.resendEmailTimeout() %>;
 
 			var interval = setInterval(
 				function() {
 					if (resendDuration === 0) {
-						sendEmailButton.innerText = buttonText;
-						sendEmailButton.disabled = false;
+						sendEmailButton.text(buttonText);
+						sendEmailButton.removeAttribute('disabled');
 
 						clearInterval(interval);
 					}
 					else {
-						sendEmailButton.innerText = --resendDuration;
+						sendEmailButton.text(--resendDuration);
 					}
 
 				},
@@ -88,7 +88,7 @@ EmailOTPConfiguration emailOTPConfiguration = (EmailOTPConfiguration)request.get
 			var setupEmail = A.one('#<portlet:namespace />setupEmail');
 
 			if (setupEmail) {
-				data["email"] = setupEmail.value;
+				data["email"] = setupEmail.val();
 			}
 
 			var sendOTPURL = '<%= HtmlUtil.escapeJS(sendOTPURL) %>';
@@ -104,8 +104,8 @@ EmailOTPConfiguration emailOTPConfiguration = (EmailOTPConfiguration)request.get
 							var messageContainer = A.one('#<portlet:namespace />messageContainer');
 							messageContainer.html('<span class="alert alert-danger"><liferay-ui:message key="unable-to-send-email" /></span>');
 
-							sendEmailButton.innerText = buttonText;
-							sendEmailButton.disabled = false;
+							sendEmailButton.text(buttonText);
+							sendEmailButton.removeAttribute('disabled');
 
 							clearInterval(interval);
 						},

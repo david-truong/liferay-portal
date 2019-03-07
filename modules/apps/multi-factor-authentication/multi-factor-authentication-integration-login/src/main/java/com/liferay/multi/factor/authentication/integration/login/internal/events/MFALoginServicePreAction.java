@@ -20,6 +20,7 @@ import com.liferay.multi.factor.authentication.portlet.api.MFAPortletURLFactory;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.portal.kernel.events.Action;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.events.LifecycleAction;
@@ -27,14 +28,16 @@ import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.util.Map;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -42,7 +45,14 @@ import org.osgi.service.component.annotations.Reference;
  * @author Tomas Polesovsky
  */
 @Component(
-	property = "key=servlet.service.events.pre", service = LifecycleAction.class
+	property = {
+		"key=servlet.service.events.pre", "whitelisted.paths=/portal/error",
+		"whitelisted.paths=/portal/expire_session",
+		"whitelisted.paths=/portal/extend_session",
+		"whitelisted.paths=/portal/logout",
+		"whitelisted.paths=/portal/update_terms_of_use"
+	},
+	service = LifecycleAction.class
 )
 public class MFALoginServicePreAction extends Action {
 
@@ -74,18 +84,22 @@ public class MFALoginServicePreAction extends Action {
 			return;
 		}
 
-		if (StringUtil.equals("/c/portal/logout", request.getRequestURI())) {
+		if (ArrayUtil.contains(_whitelistedPaths, request.getPathInfo())) {
 			return;
 		}
 
 		long userId = themeDisplay.getUserId();
 
-		if (mfaChecker.supportsBrowser()) {
-			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
+		if (mfaChecker.supportsSetup()) {
+			MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
 
-			if (browserMFAChecker.forceUserSetup(userId)) {
+			if (mfaCheckerSetup.forceUserSetup(userId)) {
 				redirectToSetup(request, response, themeDisplay, userId);
 
+				return;
+			}
+
+			if (!mfaCheckerSetup.isUserSetupComplete(userId)) {
 				return;
 			}
 		}
@@ -94,36 +108,36 @@ public class MFALoginServicePreAction extends Action {
 			HeadlessMFAChecker headlessMFAChecker =
 				(HeadlessMFAChecker)mfaChecker;
 
-			if (headlessMFAChecker.isHeadlessSetupComplete(userId)) {
-				if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
-					return;
-				}
+			if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
+				return;
+			}
 
-				if (headlessMFAChecker.verifyHeadlessRequest(request, userId)) {
-					return;
-				}
+			if (headlessMFAChecker.verifyHeadlessRequest(request, userId)) {
+				return;
 			}
 		}
 
 		if (mfaChecker.supportsBrowser()) {
 			BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)mfaChecker;
 
-			if (browserMFAChecker.isBrowserSetupComplete(userId)) {
-				if (browserMFAChecker.isBrowserVerified(request, userId)) {
-					return;
-				}
-
-				redirectToVerifyBrowserRequest(
-					request, response, themeDisplay, userId);
-
+			if (browserMFAChecker.isBrowserVerified(request, userId)) {
 				return;
 			}
+
+			redirectToVerifyBrowserRequest(
+				request, response, themeDisplay, userId);
+
+			return;
 		}
-		else {
-			throw new ActionException(
-				new PrincipalException.MustBeAuthenticated(
-					"Unable to verify Multi Factor Authentication"));
-		}
+
+		throw new ActionException(
+			new PrincipalException.MustBeAuthenticated(
+				"Unable to verify Multi Factor Authentication"));
+	}
+
+	@Activate
+	protected void activate(Map<String, Object> properties) {
+		_whitelistedPaths = (String[])properties.get("whitelisted.paths");
 	}
 
 	protected void redirectToSetup(
@@ -164,13 +178,13 @@ public class MFALoginServicePreAction extends Action {
 
 		if (Objects.equals(
 				liferayPortletURL.getPortletId(), themeDisplay.getPpid()) &&
-			LiferayWindowState.isExclusive(request)) {
+			LiferayWindowState.isPopUp(request)) {
 
 			return;
 		}
 
 		try {
-			liferayPortletURL.setWindowState(LiferayWindowState.EXCLUSIVE);
+			liferayPortletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			response.sendRedirect(liferayPortletURL.toString());
 		}
@@ -188,5 +202,7 @@ public class MFALoginServicePreAction extends Action {
 
 	@Reference
 	private MFARegistry _mfaRegistry;
+
+	private String[] _whitelistedPaths;
 
 }

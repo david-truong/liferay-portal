@@ -14,12 +14,16 @@
 
 package com.liferay.multi.factor.authentication.spi.checker;
 
-import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
+import java.util.Locale;
 
 /**
  * @author Tomas Polesovsky
  */
 public interface MFAChecker {
+
+	public default String getLabel(Locale locale) {
+		return getName();
+	}
 
 	public String getName();
 
@@ -33,9 +37,8 @@ public interface MFAChecker {
 		return HeadlessMFAChecker.class.isAssignableFrom(getClass());
 	}
 
-	public default boolean supportsUserAccountSetup() {
-		return UserAccountSetupMFACheckerRenderer.class.isAssignableFrom(
-			getClass());
+	public default boolean supportsSetup() {
+		return MFACheckerSetup.class.isAssignableFrom(getClass());
 	}
 
 }

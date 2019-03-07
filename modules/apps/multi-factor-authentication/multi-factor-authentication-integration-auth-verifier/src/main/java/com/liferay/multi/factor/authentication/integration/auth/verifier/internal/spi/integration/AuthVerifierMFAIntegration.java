@@ -44,6 +44,14 @@ public class AuthVerifierMFAIntegration implements MFAIntegration {
 		return _enabled;
 	}
 
+	public boolean isRequireUserSetup() {
+		return _requireUserSetup;
+	}
+
+	public void setRequireUserSetup(boolean requireUserSetup) {
+		_requireUserSetup = requireUserSetup;
+	}
+
 	@Override
 	public boolean supportsBrowser() {
 		return false;
@@ -63,9 +71,12 @@ public class AuthVerifierMFAIntegration implements MFAIntegration {
 
 		_enabled = authVerifierMFAIntegrationConfiguration.enabled();
 		_name = authVerifierMFAIntegrationConfiguration.name();
+		_requireUserSetup =
+			authVerifierMFAIntegrationConfiguration.requireUserSetup();
 	}
 
 	private boolean _enabled;
 	private String _name;
+	private boolean _requireUserSetup;
 
 }

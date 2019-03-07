@@ -45,8 +45,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
-		"mvc.command.name=/mfa/verify"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_VERIFY_PORTLET,
+		"mvc.command.name=/mfa_verify/verify"
 	},
 	service = MVCActionCommand.class
 )
@@ -78,21 +78,21 @@ public class MFAVerifyMVCActionCommand extends BaseMVCActionCommand {
 			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(
 				integrationName);
 
-		int verifyMFACheckerIndex = ParamUtil.getInteger(
-			actionRequest, "verifyMFACheckerIndex", -1);
+		int mfaCheckerIndex = ParamUtil.getInteger(
+			actionRequest, "mfaCheckerIndex", 0);
 
-		if (verifyMFACheckerIndex > 1) {
-			List<BrowserMFAChecker> verifyMFACheckers = _getVerifyMFACheckers(
-				browserMFAChecker, actionRequest, userId);
+		List<BrowserMFAChecker> verifyMFACheckers = _getVerifyMFACheckers(
+			browserMFAChecker, actionRequest, userId);
 
-			if (verifyMFACheckerIndex < verifyMFACheckers.size()) {
-				browserMFAChecker = verifyMFACheckers.get(
-					verifyMFACheckerIndex);
-			}
+		if ((mfaCheckerIndex > -1) &&
+			(mfaCheckerIndex < verifyMFACheckers.size())) {
+
+			browserMFAChecker = verifyMFACheckers.get(mfaCheckerIndex);
 		}
 
 		if (browserMFAChecker.verifyBrowserRequest(
-				actionRequest, actionResponse, userId)) {
+				_portal.getHttpServletRequest(actionRequest),
+				_portal.getHttpServletResponse(actionResponse), userId)) {
 
 			sendRedirect(actionRequest, actionResponse);
 

@@ -1,3 +1,4 @@
+<%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -11,28 +12,14 @@
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  */
+--%>
 
-package com.liferay.multi.factor.authentication.spi.checker.renderer;
+<%@ include file="/init.jsp" %>
 
-import java.io.IOException;
+<p>
+	<liferay-ui:message key="incorrect-ip-address" />
+</p>
 
-import javax.portlet.ActionRequest;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/**
- * @author Tomas Polesovsky
- */
-public interface UserAccountSetupMFACheckerRenderer {
-
-	public String getLabel();
-
-	public void includeUserAccountSetup(
-			long userId, HttpServletRequest request,
-			HttpServletResponse response)
-		throws IOException;
-
-	public boolean setupUserAccount(ActionRequest actionRequest, long userId);
-
-}
+<p>
+	<%= LanguageUtil.format(request, "your-ip-address-does-not-match-requirements", request.getRemoteAddr()) %>
+</p>

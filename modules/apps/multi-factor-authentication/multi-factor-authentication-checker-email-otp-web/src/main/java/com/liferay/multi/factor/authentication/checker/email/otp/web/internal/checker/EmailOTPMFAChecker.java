@@ -19,7 +19,7 @@ import com.liferay.multi.factor.authentication.checker.email.otp.service.EmailOT
 import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.IOException;
@@ -36,10 +37,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -63,8 +62,7 @@ import org.osgi.service.component.annotations.Reference;
 	service = MFAChecker.class
 )
 public class EmailOTPMFAChecker
-	implements BrowserMFAChecker, MFAChecker,
-		UserAccountSetupMFACheckerRenderer {
+	implements BrowserMFAChecker, MFAChecker, MFACheckerSetup {
 
 	@Override
 	public boolean forceUserSetup(long userId) {
@@ -84,8 +82,8 @@ public class EmailOTPMFAChecker
 	}
 
 	@Override
-	public String getLabel() {
-		return "email-one-time-password";
+	public String getLabel(Locale locale) {
+		return _emailOTPConfiguration.label();
 	}
 
 	@Override
@@ -100,8 +98,7 @@ public class EmailOTPMFAChecker
 		throws IOException {
 
 		EmailOTPEntry emailOTPEntry =
-			_emailOTPEntryLocalService.fetchEmailOTPEntry(
-				userId, _name);
+			_emailOTPEntryLocalService.fetchEmailOTPEntry(userId, _name);
 
 		request.setAttribute("sendToEmail", emailOTPEntry.getEmailAddress());
 
@@ -135,8 +132,7 @@ public class EmailOTPMFAChecker
 		throws IOException {
 
 		EmailOTPEntry emailOTPEntry =
-			_emailOTPEntryLocalService.fetchEmailOTPEntry(
-				userId, _name);
+			_emailOTPEntryLocalService.fetchEmailOTPEntry(userId, _name);
 
 		//todo: include some parameter so we can allow user to re-setup
 
@@ -169,20 +165,6 @@ public class EmailOTPMFAChecker
 	}
 
 	@Override
-	public void includeUserAccountSetup(
-			long userId, HttpServletRequest request,
-			HttpServletResponse response)
-		throws IOException {
-
-		includeSetup(userId, request, response);
-	}
-
-	@Override
-	public boolean isBrowserSetupComplete(long userId) {
-		return isUserSetUp(userId);
-	}
-
-	@Override
 	public boolean isBrowserVerified(HttpServletRequest request, long userId) {
 		HttpServletRequest originalServletRequest =
 			_portal.getOriginalServletRequest(request);
@@ -201,11 +183,16 @@ public class EmailOTPMFAChecker
 	}
 
 	@Override
-	public boolean setup(ActionRequest request, long userId) {
+	public boolean isUserSetupComplete(long userId) {
+		return isUserSetUp(userId);
+	}
+
+	@Override
+	public boolean setup(HttpServletRequest request, long userId) {
 		String userInput = ParamUtil.getString(request, "otp");
 
 		HttpServletRequest originalRequest = _portal.getOriginalServletRequest(
-			_portal.getHttpServletRequest(request));
+			request);
 
 		HttpSession session = originalRequest.getSession();
 
@@ -218,7 +205,7 @@ public class EmailOTPMFAChecker
 				email = user.getEmailAddress();
 			}
 
-			String userIP = originalRequest.getRemoteAddr();
+			String userIP = request.getRemoteAddr();
 
 			if (_verify(session, userInput)) {
 				_emailOTPEntryLocalService.addEmailOTPEntry(
@@ -254,11 +241,6 @@ public class EmailOTPMFAChecker
 	}
 
 	@Override
-	public boolean setupUserAccount(ActionRequest actionRequest, long userId) {
-		return setup(actionRequest, userId);
-	}
-
-	@Override
 	public boolean supportsBrowser() {
 		return true;
 	}
@@ -269,13 +251,22 @@ public class EmailOTPMFAChecker
 	}
 
 	@Override
+	public boolean supportsSetup() {
+		return true;
+	}
+
+	@Override
 	public boolean verifyBrowserRequest(
-		ActionRequest request, ActionResponse response, long userId) {
+		HttpServletRequest request, HttpServletResponse response, long userId) {
 
 		String userInput = ParamUtil.getString(request, "otp");
 
+		if (Validator.isBlank(userInput)) {
+			return false;
+		}
+
 		HttpServletRequest originalRequest = _portal.getOriginalServletRequest(
-			_portal.getHttpServletRequest(request));
+			request);
 
 		HttpSession session = originalRequest.getSession();
 
@@ -305,7 +296,8 @@ public class EmailOTPMFAChecker
 				return true;
 			}
 
-			_emailOTPEntryLocalService.updateFailedAttempt(_name, userId, userIP);
+			_emailOTPEntryLocalService.updateFailedAttempt(
+				_name, userId, userIP);
 		}
 		catch (Exception e) {
 			_log.error(e.getMessage(), e);
@@ -408,8 +400,7 @@ public class EmailOTPMFAChecker
 
 	private boolean isUserSetUp(long userId) {
 		EmailOTPEntry emailOTPEntry =
-			_emailOTPEntryLocalService.fetchEmailOTPEntry(
-				userId, _name);
+			_emailOTPEntryLocalService.fetchEmailOTPEntry(userId, _name);
 
 		if (emailOTPEntry != null) {
 			return true;
@@ -427,12 +418,12 @@ public class EmailOTPMFAChecker
 	private boolean _allowCustomEmail;
 	private EmailOTPConfiguration _emailOTPConfiguration;
 	private String _emailOTPConfigurationPid;
-	private boolean _enabled;
-	private boolean _forceUserSetup;
 
 	@Reference
 	private EmailOTPEntryLocalService _emailOTPEntryLocalService;
 
+	private boolean _enabled;
+	private boolean _forceUserSetup;
 	private String _name;
 
 	@Reference

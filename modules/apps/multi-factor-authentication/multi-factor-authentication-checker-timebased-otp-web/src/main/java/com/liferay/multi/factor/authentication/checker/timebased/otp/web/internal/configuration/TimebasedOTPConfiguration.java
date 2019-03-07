@@ -90,4 +90,10 @@ public interface TimebasedOTPConfiguration {
 	)
 	public long validationExpirationTime();
 
+	@Meta.AD(
+		deflt = "Time-based One Time Password",
+		description = "label-description", name = "label", required = false
+	)
+	public String label();
+
 }

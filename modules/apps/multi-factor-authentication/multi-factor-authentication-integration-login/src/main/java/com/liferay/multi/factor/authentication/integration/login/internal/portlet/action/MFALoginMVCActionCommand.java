@@ -21,6 +21,7 @@ import com.liferay.multi.factor.authentication.portlet.api.MFAPortletURLFactory;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.petra.encryptor.Encryptor;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -125,12 +126,19 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 					request, login, password, null);
 
 			if (userId > 0) {
-				if (mfaChecker.supportsBrowser()) {
-					BrowserMFAChecker browserMFAChecker =
-						(BrowserMFAChecker)mfaChecker;
+				if (mfaChecker.supportsSetup()) {
+					MFACheckerSetup mfaCheckerSetup =
+						(MFACheckerSetup)mfaChecker;
 
-					if (browserMFAChecker.forceUserSetup(userId)) {
+					if (mfaCheckerSetup.forceUserSetup(userId)) {
 						redirectToSetup(actionRequest, actionResponse);
+
+						return;
+					}
+
+					if (!mfaCheckerSetup.isUserSetupComplete(userId)) {
+						_loginMVCActionCommand.processAction(
+							actionRequest, actionResponse);
 
 						return;
 					}
@@ -140,24 +148,22 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 					HeadlessMFAChecker headlessMFAChecker =
 						(HeadlessMFAChecker)mfaChecker;
 
-					if (headlessMFAChecker.isHeadlessSetupComplete(userId)) {
-						if (headlessMFAChecker.isHeadlessVerified(
-								request, userId)) {
+					if (headlessMFAChecker.isHeadlessVerified(
+							request, userId)) {
 
-							_loginMVCActionCommand.processAction(
-								actionRequest, actionResponse);
+						_loginMVCActionCommand.processAction(
+							actionRequest, actionResponse);
 
-							return;
-						}
+						return;
+					}
 
-						if (headlessMFAChecker.verifyHeadlessRequest(
-								request, userId)) {
+					if (headlessMFAChecker.verifyHeadlessRequest(
+							request, userId)) {
 
-							_loginMVCActionCommand.processAction(
-								actionRequest, actionResponse);
+						_loginMVCActionCommand.processAction(
+							actionRequest, actionResponse);
 
-							return;
-						}
+						return;
 					}
 				}
 
@@ -165,26 +171,19 @@ public class MFALoginMVCActionCommand extends BaseMVCActionCommand {
 					BrowserMFAChecker browserMFAChecker =
 						(BrowserMFAChecker)mfaChecker;
 
-					if (browserMFAChecker.isBrowserSetupComplete(userId)) {
-						if (browserMFAChecker.isBrowserVerified(
-								request, userId)) {
-
-							_loginMVCActionCommand.processAction(
-								actionRequest, actionResponse);
-
-							return;
-						}
-
-						_redirectToVerify(
-							userId, actionRequest, actionResponse);
+					if (browserMFAChecker.isBrowserVerified(request, userId)) {
+						_loginMVCActionCommand.processAction(
+							actionRequest, actionResponse);
 
 						return;
 					}
+
+					_redirectToVerify(userId, actionRequest, actionResponse);
+
+					return;
 				}
-				else {
-					throw new AuthException(
-						"Multi Factor Authentication failed");
-				}
+
+				throw new AuthException("Multi Factor Authentication failed");
 			}
 		}
 

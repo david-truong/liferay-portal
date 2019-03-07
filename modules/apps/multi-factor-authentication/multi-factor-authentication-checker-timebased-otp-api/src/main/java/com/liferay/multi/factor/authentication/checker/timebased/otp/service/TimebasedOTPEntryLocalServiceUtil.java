@@ -214,7 +214,7 @@ public class TimebasedOTPEntryLocalServiceUtil {
 	public static
 		com.liferay.multi.factor.authentication.checker.timebased.otp.model.
 			TimebasedOTPEntry fetchTimebasedOTPEntry(
-				String mfaCheckerName, long userId) {
+				long userId, String mfaCheckerName) {
 
 		return getService().fetchTimebasedOTPEntry(userId, mfaCheckerName);
 	}

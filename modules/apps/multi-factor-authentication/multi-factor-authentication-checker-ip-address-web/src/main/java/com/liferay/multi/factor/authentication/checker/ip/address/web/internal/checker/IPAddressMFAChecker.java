@@ -15,6 +15,7 @@
 package com.liferay.multi.factor.authentication.checker.ip.address.web.internal.checker;
 
 import com.liferay.multi.factor.authentication.checker.ip.address.web.internal.configuration.IPAddressConfiguration;
+import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
@@ -22,13 +23,18 @@ import com.liferay.portal.kernel.security.access.control.AccessControlUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Portal;
 
+import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -43,11 +49,34 @@ import org.osgi.service.component.annotations.Reference;
 	configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true,
 	service = MFAChecker.class
 )
-public class IPAddressMFAChecker implements HeadlessMFAChecker, MFAChecker {
+public class IPAddressMFAChecker
+	implements BrowserMFAChecker, HeadlessMFAChecker, MFAChecker {
 
 	@Override
 	public String getName() {
 		return _name;
+	}
+
+	@Override
+	public void includeBrowserVerification(
+			long userId, HttpServletRequest request,
+			HttpServletResponse response)
+		throws IOException {
+
+		RequestDispatcher requestDispatcher =
+			_servletContext.getRequestDispatcher("/error.jsp");
+
+		try {
+			requestDispatcher.include(request, response);
+		}
+		catch (ServletException se) {
+			throw new IOException("Unable to include /error.jsp: " + se, se);
+		}
+	}
+
+	@Override
+	public boolean isBrowserVerified(HttpServletRequest request, long userId) {
+		return AccessControlUtil.isAccessAllowed(request, _allowedIPsWithMasks);
 	}
 
 	@Override
@@ -56,15 +85,15 @@ public class IPAddressMFAChecker implements HeadlessMFAChecker, MFAChecker {
 	}
 
 	@Override
-	public boolean isHeadlessSetupComplete(
-		long userId) {
-
-		return true;
+	public boolean isHeadlessVerified(HttpServletRequest request, long userId) {
+		return AccessControlUtil.isAccessAllowed(request, _allowedIPsWithMasks);
 	}
 
 	@Override
-	public boolean isHeadlessVerified(HttpServletRequest request, long userId) {
-		return false;
+	public boolean verifyBrowserRequest(
+		HttpServletRequest request, HttpServletResponse response, long userId) {
+
+		return AccessControlUtil.isAccessAllowed(request, _allowedIPsWithMasks);
 	}
 
 	@Override

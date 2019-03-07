@@ -22,11 +22,17 @@ import com.liferay.multi.factor.authentication.spi.integration.MFAIntegration;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.security.auth.InterruptedPortletRequestWhitelistUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.util.PropsValues;
 
 import java.io.IOException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -37,7 +43,9 @@ import javax.portlet.PortletRequestDispatcher;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -53,16 +61,16 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.header-portlet-css=/css/main.css",
 		"com.liferay.portlet.preferences-company-wide=true",
 		"javax.portlet.display-name=Multi Factor Authentication Portlet",
-		"javax.portlet.init-param.mvc-command-names-default-views=/mfa/verify",
+		"javax.portlet.init-param.mvc-command-names-default-views=/mfa_setup/view",
 		"javax.portlet.init-param.portlet-title-based-navigation=true",
-		"javax.portlet.init-param.template-path=/META-INF/resources/",
-		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
+		"javax.portlet.init-param.template-path=/META-INF/resources/mfa_setup/",
+		"javax.portlet.name=" + MFAPortletKeys.MFA_SETUP_PORTLET,
 		"javax.portlet.resource-bundle=content.Language",
-		"portlet.add.default.resource.check.whitelist=" + MFAPortletKeys.MFA_PORTLET
+		"portlet.add.default.resource.check.whitelist=" + MFAPortletKeys.MFA_SETUP_PORTLET
 	},
 	service = Portlet.class
 )
-public class MFAPortlet extends MVCPortlet {
+public class MFASetupPortlet extends MVCPortlet {
 
 	@Override
 	public void processAction(
@@ -182,7 +190,44 @@ public class MFAPortlet extends MVCPortlet {
 		super.render(renderRequest, renderResponse);
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(MFAPortlet.class);
+	@Activate
+	protected void activate() {
+		List<String> portletInterruptedRequestWhitelistList = new ArrayList(
+			Arrays.asList(PropsValues.PORTLET_INTERRUPTED_REQUEST_WHITELIST));
+
+		portletInterruptedRequestWhitelistList.add(
+			MFAPortletKeys.MFA_SETUP_PORTLET);
+
+		PropsValues.PORTLET_INTERRUPTED_REQUEST_WHITELIST =
+			portletInterruptedRequestWhitelistList.toArray(
+				new String[portletInterruptedRequestWhitelistList.size()]);
+
+		_interruptedPortletRequestWhitelistUtil.
+			resetPortletInvocationWhitelist();
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		List<String> portletInterruptedRequestWhitelistList = new ArrayList(
+			Arrays.asList(PropsValues.PORTLET_INTERRUPTED_REQUEST_WHITELIST));
+
+		portletInterruptedRequestWhitelistList.add(
+			MFAPortletKeys.MFA_SETUP_PORTLET);
+
+		PropsValues.PORTLET_INTERRUPTED_REQUEST_WHITELIST =
+			portletInterruptedRequestWhitelistList.toArray(
+				new String[portletInterruptedRequestWhitelistList.size()]);
+
+		_interruptedPortletRequestWhitelistUtil.
+			resetPortletInvocationWhitelist();
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		MFASetupPortlet.class);
+
+	@Reference
+	private InterruptedPortletRequestWhitelistUtil
+		_interruptedPortletRequestWhitelistUtil;
 
 	@Reference
 	private MFARegistry _mfaRegistry;

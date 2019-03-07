@@ -14,11 +14,10 @@
  */
 --%>
 
-<%@ include file="/init.jsp" %>
+<%@ include file="../init.jsp" %>
 
 <%
-BrowserMFAChecker
-	browserMFAChecker = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
+BrowserMFAChecker browserMFAChecker = (BrowserMFAChecker)request.getAttribute(BrowserMFAChecker.class.getName());
 
 List<BrowserMFAChecker> verifyMFACheckers = (List<BrowserMFAChecker>)request.getAttribute("verifyMFACheckers");
 
@@ -31,14 +30,19 @@ if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < verifyMFACheckers.size())) {
 }
 %>
 
-<portlet:actionURL name="/mfa/verify" var="verifyActionURL">
-	<portlet:param name="mvcRenderCommandName" value="/mfa/verify" />
+<portlet:actionURL name="/mfa_verify/verify" var="verifyActionURL">
+	<portlet:param name="mvcRenderCommandName" value="/mfa_verify/view" />
 </portlet:actionURL>
 
 <aui:form action="<%= verifyActionURL %>" cssClass="container-fluid-1280 sign-in-form" method="post" name="fm">
 	<aui:input name="integrationName" type="hidden" value='<%= ParamUtil.getString(request, "integrationName") %>' />
+	<aui:input name="mfaCheckerIndex" type="hidden" value="<%= mfaCheckerIndex %>" />
 	<aui:input name="redirect" type="hidden" value='<%= ParamUtil.getString(request, "redirect") %>' />
 	<aui:input name="saveLastPath" type="hidden" value="<%= false %>" />
+
+	<h1>
+		<liferay-ui:message key="<%= HtmlUtil.escape(((MFAChecker)browserMFAChecker).getLabel(locale)) %>" />
+	</h1>
 
 	<liferay-ui:error key="mfaFailed" message="multi-factor-authentication-failed" />
 
@@ -50,7 +54,7 @@ if ((mfaCheckerIndex > -1) && (mfaCheckerIndex < verifyMFACheckers.size())) {
 		<portlet:renderURL copyCurrentRenderParameters="<%= true %>" var="useAnotherMFAChecker">
 			<portlet:param name="integrationName" value='<%= ParamUtil.getString(request, "integrationName") %>' />
 			<portlet:param name="mfaCheckerIndex" value='<%= mfaCheckerIndex + 1 < verifyMFACheckers.size() ? String.valueOf(mfaCheckerIndex + 1) : "0" %>' />
-			<portlet:param name="mvcRenderCommandName" value="/mfa/verify" />
+			<portlet:param name="mvcRenderCommandName" value="/mfa_verify/view" />
 			<portlet:param name="redirect" value='<%= ParamUtil.getString(request, "redirect") %>' />
 			<portlet:param name="saveLastPath" value="<%= Boolean.FALSE.toString() %>" />
 		</portlet:renderURL>

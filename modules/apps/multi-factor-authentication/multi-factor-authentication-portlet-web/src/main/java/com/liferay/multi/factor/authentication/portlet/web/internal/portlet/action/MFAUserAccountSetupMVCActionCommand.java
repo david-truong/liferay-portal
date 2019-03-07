@@ -16,7 +16,7 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.act
 
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
-import com.liferay.multi.factor.authentication.spi.checker.renderer.UserAccountSetupMFACheckerRenderer;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -56,20 +56,21 @@ public class MFAUserAccountSetupMVCActionCommand extends BaseMVCActionCommand {
 		MFAChecker mfaChecker = _mfaRegistry.getMFAChecker(
 			userAccountSetupMFACheckerName);
 
-		if ((mfaChecker == null) || !mfaChecker.supportsUserAccountSetup()) {
+		if ((mfaChecker == null) || !mfaChecker.supportsSetup()) {
 			SessionErrors.add(actionRequest, "userAccountSetupFailed");
 
 			return;
 		}
 
-		UserAccountSetupMFACheckerRenderer userAccountSetupMFAChecker =
-			(UserAccountSetupMFACheckerRenderer)mfaChecker;
+		MFACheckerSetup userAccountSetupMFAChecker =
+			(MFACheckerSetup)mfaChecker;
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (userAccountSetupMFAChecker.setupUserAccount(
-				actionRequest, themeDisplay.getUserId())) {
+		if (userAccountSetupMFAChecker.setup(
+				_portal.getHttpServletRequest(actionRequest),
+				themeDisplay.getUserId())) {
 
 			String redirect = _portal.escapeRedirect(
 				ParamUtil.getString(actionRequest, "redirect"));

@@ -17,7 +17,7 @@ package com.liferay.multi.factor.authentication.portlet.web.internal.portlet.act
 import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.api.checker.CompositeMFAChecker;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
-import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -39,8 +39,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
-		"mvc.command.name=/mfa/setup"
+		"javax.portlet.name=" + MFAPortletKeys.MFA_SETUP_PORTLET,
+		"mvc.command.name=/mfa_setup/view"
 	},
 	service = MVCRenderCommand.class
 )
@@ -54,33 +54,33 @@ public class MFASetupMVCRenderCommand implements MVCRenderCommand {
 		String integrationName = ParamUtil.getString(
 			renderRequest, "integrationName");
 
-		BrowserMFAChecker browserMFAChecker =
-			(BrowserMFAChecker)_mfaRegistry.getMFAIntegrationChecker(
+		MFACheckerSetup mfaCheckerSetup =
+			(MFACheckerSetup)_mfaRegistry.getMFAIntegrationChecker(
 				integrationName);
 
 		renderRequest.setAttribute(
-			BrowserMFAChecker.class.getName(), browserMFAChecker);
+			MFACheckerSetup.class.getName(), mfaCheckerSetup);
 
-		List<BrowserMFAChecker> setupMFACheckers = _getSetupMFACheckers(
-			browserMFAChecker, renderRequest);
+		List<MFACheckerSetup> setupMFACheckers = _getSetupMFACheckers(
+			mfaCheckerSetup, renderRequest);
 
 		renderRequest.setAttribute("setupMFACheckers", setupMFACheckers);
 
-		return "/setup.jsp";
+		return "/mfa_setup/setup.jsp";
 	}
 
-	private List<BrowserMFAChecker> _getSetupMFACheckers(
-		BrowserMFAChecker mfaChecker, PortletRequest portletRequest) {
+	private List<MFACheckerSetup> _getSetupMFACheckers(
+		MFACheckerSetup mfaCheckerSetup, PortletRequest portletRequest) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (!(mfaChecker instanceof CompositeMFAChecker)) {
-			return Collections.singletonList(mfaChecker);
+		if (!(mfaCheckerSetup instanceof CompositeMFAChecker)) {
+			return Collections.singletonList(mfaCheckerSetup);
 		}
 
 		CompositeMFAChecker compositeMFAChecker =
-			(CompositeMFAChecker)mfaChecker;
+			(CompositeMFAChecker)mfaCheckerSetup;
 
 		return compositeMFAChecker.getMFACheckersWaitingForSetup(
 			true, themeDisplay.getUserId());

@@ -69,7 +69,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + MFAPortletKeys.MFA_PORTLET,
+		"javax.portlet.name=" + MFAPortletKeys.MFA_SETUP_PORTLET,
+		"javax.portlet.name=" + MFAPortletKeys.MFA_VERIFY_PORTLET,
 		"mvc.command.name=/mfa/sendemailotp"
 	},
 	service = MVCResourceCommand.class
@@ -135,8 +136,10 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 				email = user.getEmailAddress();
 
 				if (emailOTPConfiguration.allowCustomEmail()) {
-					email = ParamUtil.getString(originalRequest, "setupEmail");
+					email = ParamUtil.getString(originalRequest, "email");
 				}
+
+				session.setAttribute("otpEmail", email);
 			}
 			else {
 				return false;
@@ -285,6 +288,9 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 	@Reference
 	private ConfigurationProvider _configurationProvider;
 
+	@Reference
+	private EmailOTPEntryLocalService _emailOTPEntryLocalService;
+
 	private final LocationVariableResolver _locationVariableResolver =
 		new LocationVariableResolver(
 			new ClassLoaderResourceManager(
@@ -293,9 +299,6 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 
 	@Reference
 	private MailService _mailService;
-
-	@Reference
-	private EmailOTPEntryLocalService _emailOTPEntryLocalService;
 
 	@Reference
 	private MFARegistry _mfaRegistry;

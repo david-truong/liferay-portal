@@ -18,6 +18,7 @@ import com.liferay.multi.factor.authentication.api.MFARegistry;
 import com.liferay.multi.factor.authentication.integration.auth.verifier.internal.spi.integration.AuthVerifierMFAIntegration;
 import com.liferay.multi.factor.authentication.spi.checker.HeadlessMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
+import com.liferay.multi.factor.authentication.spi.checker.MFACheckerSetup;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -25,6 +26,12 @@ import com.liferay.portal.kernel.security.access.control.AccessControlUtil;
 import com.liferay.portal.kernel.security.auth.AccessControlContext;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifierResult;
 import com.liferay.portal.kernel.servlet.BaseFilter;
+import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.GetterUtil;
+
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import java.util.Objects;
 
@@ -116,10 +123,20 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 
 		long userId = authVerifierResult.getUserId();
 
-		if (!headlessMFAChecker.isHeadlessSetupComplete(userId)) {
-			super.processFilter(request, response, filterChain);
+		if (mfaChecker.supportsSetup()) {
+			MFACheckerSetup mfaCheckerSetup = (MFACheckerSetup)mfaChecker;
 
-			return;
+			if (!mfaCheckerSetup.isUserSetupComplete(userId)) {
+				if (_authVerifierMFAIntegration.isRequireUserSetup()) {
+					sendError(request, response);
+
+					return;
+				}
+
+				super.processFilter(request, response, filterChain);
+
+				return;
+			}
 		}
 
 		if (headlessMFAChecker.isHeadlessVerified(request, userId)) {
@@ -134,16 +151,40 @@ public class MFAAuthVerifierFilter extends BaseFilter {
 			return;
 		}
 
+		sendError(request, response);
+	}
+
+	protected void sendError(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
 		if (_log.isWarnEnabled()) {
 			_log.warn(
 				StringBundler.concat(
-					"Unable to verify Multi Factor " +
-						"Authentication token for ",
+					"Unable to verify Multi Factor Authentication token for ",
 					request.getPathInfo()));
 		}
 
-		response.sendError(
-			HttpServletResponse.SC_FORBIDDEN, "Two Factor Required");
+		String accept = GetterUtil.getString(
+			request.getHeader(HttpHeaders.ACCEPT));
+
+		if (accept.contains("json")) {
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			response.setContentType(ContentTypes.APPLICATION_JSON);
+
+			try (PrintWriter writer = response.getWriter()) {
+				writer.write(
+					"{'error':'Multi Factor Authentication Required'}");
+			}
+		}
+		else {
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			response.setContentType(ContentTypes.TEXT_PLAIN_UTF8);
+
+			try (PrintWriter writer = response.getWriter()) {
+				writer.write("Multi Factor Authentication Required");
+			}
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
