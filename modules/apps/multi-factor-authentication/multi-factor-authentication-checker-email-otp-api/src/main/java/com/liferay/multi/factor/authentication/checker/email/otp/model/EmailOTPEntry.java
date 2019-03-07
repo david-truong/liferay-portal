@@ -21,29 +21,29 @@ import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
- * The extended model interface for the MFAEmailOTP service. Represents a row in the &quot;MFAEmailOTP&quot; database table, with each column mapped to a property of this class.
+ * The extended model interface for the EmailOTPEntry service. Represents a row in the &quot;MFAEmailOTPEntry&quot; database table, with each column mapped to a property of this class.
  *
  * @author arthurchan35
- * @see MFAEmailOTPModel
+ * @see EmailOTPEntryModel
  * @generated
  */
 @ImplementationClassName(
-	"com.liferay.multi.factor.authentication.checker.email.otp.model.impl.MFAEmailOTPImpl"
+	"com.liferay.multi.factor.authentication.checker.email.otp.model.impl.EmailOTPEntryImpl"
 )
 @ProviderType
-public interface MFAEmailOTP extends MFAEmailOTPModel, PersistedModel {
+public interface EmailOTPEntry extends EmailOTPEntryModel, PersistedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
-	 * Never modify this interface directly. Add methods to <code>com.liferay.multi.factor.authentication.checker.email.otp.model.impl.MFAEmailOTPImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 * Never modify this interface directly. Add methods to <code>com.liferay.multi.factor.authentication.checker.email.otp.model.impl.EmailOTPEntryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public static final Accessor<MFAEmailOTP, Long> MFA_EMAIL_OTP_ID_ACCESSOR =
-		new Accessor<MFAEmailOTP, Long>() {
+	public static final Accessor<EmailOTPEntry, Long> ENTRY_ID_ACCESSOR =
+		new Accessor<EmailOTPEntry, Long>() {
 
 			@Override
-			public Long get(MFAEmailOTP mfaEmailOTP) {
-				return mfaEmailOTP.getMfaEmailOTPId();
+			public Long get(EmailOTPEntry emailOTPEntry) {
+				return emailOTPEntry.getEntryId();
 			}
 
 			@Override
@@ -52,8 +52,8 @@ public interface MFAEmailOTP extends MFAEmailOTPModel, PersistedModel {
 			}
 
 			@Override
-			public Class<MFAEmailOTP> getTypeClass() {
-				return MFAEmailOTP.class;
+			public Class<EmailOTPEntry> getTypeClass() {
+				return EmailOTPEntry.class;
 			}
 
 		};

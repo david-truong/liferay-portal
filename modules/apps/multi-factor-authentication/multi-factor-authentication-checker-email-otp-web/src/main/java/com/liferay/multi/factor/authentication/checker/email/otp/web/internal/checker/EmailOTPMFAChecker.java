@@ -14,8 +14,8 @@
 
 package com.liferay.multi.factor.authentication.checker.email.otp.web.internal.checker;
 
-import com.liferay.multi.factor.authentication.checker.email.otp.model.MFAEmailOTP;
-import com.liferay.multi.factor.authentication.checker.email.otp.service.MFAEmailOTPLocalService;
+import com.liferay.multi.factor.authentication.checker.email.otp.model.EmailOTPEntry;
+import com.liferay.multi.factor.authentication.checker.email.otp.service.EmailOTPEntryLocalService;
 import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration;
 import com.liferay.multi.factor.authentication.spi.checker.BrowserMFAChecker;
 import com.liferay.multi.factor.authentication.spi.checker.MFAChecker;
@@ -99,10 +99,11 @@ public class EmailOTPMFAChecker
 			HttpServletResponse response)
 		throws IOException {
 
-		MFAEmailOTP mfaEmailOTP = _mfaEmailOTPLocalService.fetchMFAEmailOTP(
-			_name, userId);
+		EmailOTPEntry emailOTPEntry =
+			_emailOTPEntryLocalService.fetchEmailOTPEntry(
+				userId, _name);
 
-		request.setAttribute("sendToEmail", mfaEmailOTP.getEmailAddress());
+		request.setAttribute("sendToEmail", emailOTPEntry.getEmailAddress());
 
 		RequestDispatcher requestDispatcher =
 			_servletContext.getRequestDispatcher("/verify_otp.jsp");
@@ -133,12 +134,13 @@ public class EmailOTPMFAChecker
 			HttpServletResponse response)
 		throws IOException {
 
-		MFAEmailOTP mfaEmailOTP = _mfaEmailOTPLocalService.fetchMFAEmailOTP(
-			_name, userId);
+		EmailOTPEntry emailOTPEntry =
+			_emailOTPEntryLocalService.fetchEmailOTPEntry(
+				userId, _name);
 
 		//todo: include some parameter so we can allow user to re-setup
 
-		if (mfaEmailOTP != null) {
+		if (emailOTPEntry != null) {
 			_log.error("Setup is already finished for user: " + userId);
 
 			return;
@@ -219,18 +221,24 @@ public class EmailOTPMFAChecker
 			String userIP = originalRequest.getRemoteAddr();
 
 			if (_verify(session, userInput)) {
-				_mfaEmailOTPLocalService.addMFAEmailTOTP(_name, email, userId);
+				_emailOTPEntryLocalService.addEmailOTPEntry(
+					_name, email, userId);
 
 				long validatedAt = System.currentTimeMillis();
 
-				Map<String, Object> validatedMap = new HashMap(2);
+				Map<String, Object> validatedMap =
+					(Map<String, Object>)session.getAttribute(_VALIDATED);
 
-				validatedMap.put("validatedAt", validatedAt);
-				validatedMap.put("userId", userId);
+				if (validatedMap == null) {
+					validatedMap = new HashMap(2);
 
-				session.setAttribute(_VALIDATED, validatedMap);
+					session.setAttribute(_VALIDATED, validatedMap);
+				}
 
-				_mfaEmailOTPLocalService.updateSuccessAttempt(
+				validatedMap.put(_name + "validatedAt", validatedAt);
+				validatedMap.put(_name + "userId", userId);
+
+				_emailOTPEntryLocalService.updateSuccessAttempt(
 					_name, userId, userIP);
 
 				return true;
@@ -279,20 +287,25 @@ public class EmailOTPMFAChecker
 			if (verified) {
 				long validatedAt = System.currentTimeMillis();
 
-				Map<String, Object> validatedMap = new HashMap(2);
+				Map<String, Object> validatedMap =
+					(Map<String, Object>)session.getAttribute(_VALIDATED);
 
-				validatedMap.put("validatedAt", validatedAt);
-				validatedMap.put("userId", userId);
+				if (validatedMap == null) {
+					validatedMap = new HashMap(2);
 
-				session.setAttribute(_VALIDATED, validatedMap);
+					session.setAttribute(_VALIDATED, validatedMap);
+				}
 
-				_mfaEmailOTPLocalService.updateSuccessAttempt(
+				validatedMap.put(_name + "validatedAt", validatedAt);
+				validatedMap.put(_name + "userId", userId);
+
+				_emailOTPEntryLocalService.updateSuccessAttempt(
 					_name, userId, userIP);
 
 				return true;
 			}
 
-			_mfaEmailOTPLocalService.updateFailedAttempt(_name, userId, userIP);
+			_emailOTPEntryLocalService.updateFailedAttempt(_name, userId, userIP);
 		}
 		catch (Exception e) {
 			_log.error(e.getMessage(), e);
@@ -353,7 +366,7 @@ public class EmailOTPMFAChecker
 			_VALIDATED);
 
 		if (validatedMap != null) {
-			if (userId != MapUtil.getLong(validatedMap, "userId")) {
+			if (userId != MapUtil.getLong(validatedMap, _name + "userId")) {
 				return false;
 			}
 
@@ -361,7 +374,8 @@ public class EmailOTPMFAChecker
 				return true;
 			}
 
-			long validatedAt = MapUtil.getLong(validatedMap, "validatedAt");
+			long validatedAt = MapUtil.getLong(
+				validatedMap, _name + "validatedAt");
 
 			if (validatedAt + _validationExpirationTime * 1000 >
 					System.currentTimeMillis()) {
@@ -393,10 +407,11 @@ public class EmailOTPMFAChecker
 	}
 
 	private boolean isUserSetUp(long userId) {
-		MFAEmailOTP mfaEmailOTP = _mfaEmailOTPLocalService.fetchMFAEmailOTP(
-			_name, userId);
+		EmailOTPEntry emailOTPEntry =
+			_emailOTPEntryLocalService.fetchEmailOTPEntry(
+				userId, _name);
 
-		if (mfaEmailOTP != null) {
+		if (emailOTPEntry != null) {
 			return true;
 		}
 
@@ -416,7 +431,7 @@ public class EmailOTPMFAChecker
 	private boolean _forceUserSetup;
 
 	@Reference
-	private MFAEmailOTPLocalService _mfaEmailOTPLocalService;
+	private EmailOTPEntryLocalService _emailOTPEntryLocalService;
 
 	private String _name;
 

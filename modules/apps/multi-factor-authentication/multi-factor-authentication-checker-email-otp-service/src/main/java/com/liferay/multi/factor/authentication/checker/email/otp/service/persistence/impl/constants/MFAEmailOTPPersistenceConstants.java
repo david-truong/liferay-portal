@@ -27,7 +27,7 @@ import org.osgi.service.component.annotations.Component;
  * @generated
  */
 @Component(immediate = true, service = {})
-public class EmailOTPPersistenceConstants {
+public class MFAEmailOTPPersistenceConstants {
 
 	public static final String BUNDLE_SYMBOLIC_NAME =
 		"com.liferay.multi.factor.authentication.checker.email.otp.service";

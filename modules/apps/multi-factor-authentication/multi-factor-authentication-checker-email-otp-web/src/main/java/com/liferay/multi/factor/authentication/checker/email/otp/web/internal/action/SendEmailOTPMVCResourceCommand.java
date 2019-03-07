@@ -21,8 +21,8 @@ import com.liferay.mail.kernel.template.MailTemplateContext;
 import com.liferay.mail.kernel.template.MailTemplateContextBuilder;
 import com.liferay.mail.kernel.template.MailTemplateFactoryUtil;
 import com.liferay.multi.factor.authentication.api.MFARegistry;
-import com.liferay.multi.factor.authentication.checker.email.otp.model.MFAEmailOTP;
-import com.liferay.multi.factor.authentication.checker.email.otp.service.MFAEmailOTPLocalService;
+import com.liferay.multi.factor.authentication.checker.email.otp.model.EmailOTPEntry;
+import com.liferay.multi.factor.authentication.checker.email.otp.service.EmailOTPEntryLocalService;
 import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.checker.EmailOTPMFAChecker;
 import com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration;
 import com.liferay.multi.factor.authentication.portlet.api.constants.MFAPortletKeys;
@@ -118,11 +118,11 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 
 				user = _userLocalService.fetchUserById(userId);
 
-				MFAEmailOTP emailOTP =
-					_mfaEmailOTPLocalService.fetchMFAEmailOTP(
-						emailOTPMFAChecker.getName(), userId);
+				EmailOTPEntry emailOTPEntry =
+					_emailOTPEntryLocalService.fetchEmailOTPEntry(
+						userId, emailOTPMFAChecker.getName());
 
-				email = emailOTP.getEmailAddress();
+				email = emailOTPEntry.getEmailAddress();
 
 				session.setAttribute("otpEmail", email);
 			}
@@ -295,7 +295,7 @@ public class SendEmailOTPMVCResourceCommand implements MVCResourceCommand {
 	private MailService _mailService;
 
 	@Reference
-	private MFAEmailOTPLocalService _mfaEmailOTPLocalService;
+	private EmailOTPEntryLocalService _emailOTPEntryLocalService;
 
 	@Reference
 	private MFARegistry _mfaRegistry;

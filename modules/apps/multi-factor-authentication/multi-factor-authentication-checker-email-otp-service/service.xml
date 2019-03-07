@@ -3,12 +3,12 @@
 
 <service-builder auto-import-default-references="false" auto-namespace-tables="false" package-path="com.liferay.multi.factor.authentication.checker.email.otp">
 	<author>arthurchan35</author>
-	<namespace>EmailOTP</namespace>
-	<entity local-service="true" name="MFAEmailOTP" remote-service="false">
+	<namespace>MFAEmailOTP</namespace>
+	<entity local-service="true" name="EmailOTPEntry" remote-service="false" table="MFAEmailOTPEntry">
 
 		<!-- PK fields -->
 
-		<column name="mfaEmailOTPId" primary="true" type="long" />
+		<column name="entryId" primary="true" type="long" />
 
 		<!-- Audit fields -->
 
@@ -30,14 +30,14 @@
 
 		<!-- Finder methods -->
 
-		<finder name="M_U" return-type="MFAEmailOTP">
-			<finder-column name="mfaCheckerName" />
-			<finder-column name="userId" />
-		</finder>
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
 		</finder>
 		<finder name="MFACheckerName" return-type="Collection">
+			<finder-column name="mfaCheckerName" />
+		</finder>
+		<finder name="U_M" return-type="TimebasedOTPEntry">
+			<finder-column name="userId" />
 			<finder-column name="mfaCheckerName" />
 		</finder>
 

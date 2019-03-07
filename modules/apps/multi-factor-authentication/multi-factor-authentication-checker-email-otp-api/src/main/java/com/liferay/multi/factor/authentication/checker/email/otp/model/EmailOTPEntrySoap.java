@@ -29,12 +29,12 @@ import java.util.List;
  * @generated
  */
 @ProviderType
-public class MFAEmailOTPSoap implements Serializable {
+public class EmailOTPEntrySoap implements Serializable {
 
-	public static MFAEmailOTPSoap toSoapModel(MFAEmailOTP model) {
-		MFAEmailOTPSoap soapModel = new MFAEmailOTPSoap();
+	public static EmailOTPEntrySoap toSoapModel(EmailOTPEntry model) {
+		EmailOTPEntrySoap soapModel = new EmailOTPEntrySoap();
 
-		soapModel.setMfaEmailOTPId(model.getMfaEmailOTPId());
+		soapModel.setEntryId(model.getEntryId());
 		soapModel.setCompanyId(model.getCompanyId());
 		soapModel.setUserId(model.getUserId());
 		soapModel.setUserName(model.getUserName());
@@ -51,8 +51,8 @@ public class MFAEmailOTPSoap implements Serializable {
 		return soapModel;
 	}
 
-	public static MFAEmailOTPSoap[] toSoapModels(MFAEmailOTP[] models) {
-		MFAEmailOTPSoap[] soapModels = new MFAEmailOTPSoap[models.length];
+	public static EmailOTPEntrySoap[] toSoapModels(EmailOTPEntry[] models) {
+		EmailOTPEntrySoap[] soapModels = new EmailOTPEntrySoap[models.length];
 
 		for (int i = 0; i < models.length; i++) {
 			soapModels[i] = toSoapModel(models[i]);
@@ -61,14 +61,14 @@ public class MFAEmailOTPSoap implements Serializable {
 		return soapModels;
 	}
 
-	public static MFAEmailOTPSoap[][] toSoapModels(MFAEmailOTP[][] models) {
-		MFAEmailOTPSoap[][] soapModels = null;
+	public static EmailOTPEntrySoap[][] toSoapModels(EmailOTPEntry[][] models) {
+		EmailOTPEntrySoap[][] soapModels = null;
 
 		if (models.length > 0) {
-			soapModels = new MFAEmailOTPSoap[models.length][models[0].length];
+			soapModels = new EmailOTPEntrySoap[models.length][models[0].length];
 		}
 		else {
-			soapModels = new MFAEmailOTPSoap[0][0];
+			soapModels = new EmailOTPEntrySoap[0][0];
 		}
 
 		for (int i = 0; i < models.length; i++) {
@@ -78,34 +78,34 @@ public class MFAEmailOTPSoap implements Serializable {
 		return soapModels;
 	}
 
-	public static MFAEmailOTPSoap[] toSoapModels(List<MFAEmailOTP> models) {
-		List<MFAEmailOTPSoap> soapModels = new ArrayList<MFAEmailOTPSoap>(
+	public static EmailOTPEntrySoap[] toSoapModels(List<EmailOTPEntry> models) {
+		List<EmailOTPEntrySoap> soapModels = new ArrayList<EmailOTPEntrySoap>(
 			models.size());
 
-		for (MFAEmailOTP model : models) {
+		for (EmailOTPEntry model : models) {
 			soapModels.add(toSoapModel(model));
 		}
 
-		return soapModels.toArray(new MFAEmailOTPSoap[soapModels.size()]);
+		return soapModels.toArray(new EmailOTPEntrySoap[soapModels.size()]);
 	}
 
-	public MFAEmailOTPSoap() {
+	public EmailOTPEntrySoap() {
 	}
 
 	public long getPrimaryKey() {
-		return _mfaEmailOTPId;
+		return _entryId;
 	}
 
 	public void setPrimaryKey(long pk) {
-		setMfaEmailOTPId(pk);
+		setEntryId(pk);
 	}
 
-	public long getMfaEmailOTPId() {
-		return _mfaEmailOTPId;
+	public long getEntryId() {
+		return _entryId;
 	}
 
-	public void setMfaEmailOTPId(long mfaEmailOTPId) {
-		_mfaEmailOTPId = mfaEmailOTPId;
+	public void setEntryId(long entryId) {
+		_entryId = entryId;
 	}
 
 	public long getCompanyId() {
@@ -204,7 +204,7 @@ public class MFAEmailOTPSoap implements Serializable {
 		_mfaCheckerName = mfaCheckerName;
 	}
 
-	private long _mfaEmailOTPId;
+	private long _entryId;
 	private long _companyId;
 	private long _userId;
 	private String _userName;

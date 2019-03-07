@@ -26,6 +26,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 	factoryInstanceLabelAttribute = "name"
 )
 @Meta.OCD(
+	factory = true,
 	id = "com.liferay.multi.factor.authentication.checker.email.otp.web.internal.configuration.EmailOTPConfiguration",
 	localization = "content/Language", name = "email-otp-configuration-name"
 )

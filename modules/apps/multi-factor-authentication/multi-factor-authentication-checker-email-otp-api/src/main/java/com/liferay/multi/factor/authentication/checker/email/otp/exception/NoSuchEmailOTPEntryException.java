@@ -22,20 +22,20 @@ import com.liferay.portal.kernel.exception.NoSuchModelException;
  * @author arthurchan35
  */
 @ProviderType
-public class NoSuchMFAEmailOTPException extends NoSuchModelException {
+public class NoSuchEmailOTPEntryException extends NoSuchModelException {
 
-	public NoSuchMFAEmailOTPException() {
+	public NoSuchEmailOTPEntryException() {
 	}
 
-	public NoSuchMFAEmailOTPException(String msg) {
+	public NoSuchEmailOTPEntryException(String msg) {
 		super(msg);
 	}
 
-	public NoSuchMFAEmailOTPException(String msg, Throwable cause) {
+	public NoSuchEmailOTPEntryException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 
-	public NoSuchMFAEmailOTPException(Throwable cause) {
+	public NoSuchEmailOTPEntryException(Throwable cause) {
 		super(cause);
 	}
 
