@@ -351,6 +351,18 @@ gradle.beforeProject {
 			}
 		}
 
+		pluginManager.withPlugin("com.liferay.source.formatter") {
+			if (tasks.findByName("findbugsMain")) {
+				checkSourceFormatting.finalizedBy findbugsMain
+				formatSource.finalizedBy findbugsMain
+			}
+
+			if (tasks.findByName("pmdMain")) {
+				checkSourceFormatting.finalizedBy pmdMain
+				formatSource.finalizedBy pmdMain
+			}
+		}
+
 		pluginManager.withPlugin("com.liferay.portal.tools.wsdd.builder") {
 			if (bndPrintJarFiles != null) {
 				buildWSDDJar {
