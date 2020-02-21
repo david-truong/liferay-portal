@@ -48,8 +48,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
 import org.osgi.service.resolver.ResolutionException;
@@ -59,6 +62,7 @@ import org.osgi.service.resolver.ResolutionException;
  * @author Andrea Di Giorgi
  * @author Raymond Augé
  */
+@CacheableTask
 public class ResolveTask extends DefaultTask {
 
 	public ResolveTask() {
@@ -78,11 +82,13 @@ public class ResolveTask extends DefaultTask {
 	}
 
 	@InputFile
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getBndrunFile() {
 		return GradleUtil.toFile(getProject(), _bndrunFile);
 	}
 
 	@InputFile
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getDistroFile() {
 		return _distroFileCollection.getSingleFile();
 	}

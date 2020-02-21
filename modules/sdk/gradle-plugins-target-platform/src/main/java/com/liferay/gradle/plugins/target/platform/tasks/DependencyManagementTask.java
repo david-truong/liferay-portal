@@ -39,6 +39,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -48,6 +49,7 @@ import org.gradle.api.tasks.options.Option;
  * @author Simon Jiang
  * @author Gregory Amerson
  */
+@CacheableTask
 public class DependencyManagementTask extends DefaultTask {
 
 	@Optional

@@ -29,12 +29,16 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
 /**
  * @author Andrea Di Giorgi
  */
+@CacheableTask
 public class UpdatePropertiesTask extends DefaultTask {
 
 	@Input
@@ -43,6 +47,7 @@ public class UpdatePropertiesTask extends DefaultTask {
 	}
 
 	@Input
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getPropertiesFile() {
 		return GradleUtil.toFile(getProject(), _propertiesFile);
 	}

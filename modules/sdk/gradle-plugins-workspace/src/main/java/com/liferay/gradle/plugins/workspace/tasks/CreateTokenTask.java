@@ -35,15 +35,19 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
 /**
  * @author Andrea Di Giorgi
  * @author Gregory Amerson
  */
+@CacheableTask
 public class CreateTokenTask extends DefaultTask {
 
 	public CreateTokenTask() {
@@ -95,11 +99,13 @@ public class CreateTokenTask extends DefaultTask {
 
 	@InputFile
 	@Optional
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getPasswordFile() {
 		return GradleUtil.toFile(getProject(), _passwordFile);
 	}
 
 	@Input
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getTokenFile() {
 		return GradleUtil.toFile(getProject(), _tokenFile);
 	}
