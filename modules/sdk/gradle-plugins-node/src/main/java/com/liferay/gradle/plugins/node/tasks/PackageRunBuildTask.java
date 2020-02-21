@@ -18,13 +18,21 @@ import com.liferay.gradle.plugins.node.internal.util.GradleUtil;
 
 import java.io.File;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.util.GUtil;
 
 /**
  * @author Peter Shin
@@ -84,11 +92,14 @@ public class PackageRunBuildTask extends PackageRunTask {
 		return _getExistentFile(super.getScriptFile());
 	}
 
-	@InputDirectory
+	@InputFiles
 	@Optional
 	@PathSensitive(PathSensitivity.RELATIVE)
-	public File getSourceDir() {
-		return GradleUtil.toFile(getProject(), _sourceDir);
+	@SkipWhenEmpty
+	public FileCollection getSourceFiles() {
+		Project project = getProject();
+
+		return project.files(_sourceFiles);
 	}
 
 	@InputFile
@@ -138,12 +149,28 @@ public class PackageRunBuildTask extends PackageRunTask {
 		_destinationDir = destinationDir;
 	}
 
-	public void setSourceDir(Object sourceDir) {
-		_sourceDir = sourceDir;
+	public void setSourceFiles(Iterable<?> sourceFiles) {
+		_sourceFiles.clear();
+
+		sourceFiles(sourceFiles);
+	}
+
+	public void setSourceFiles(Object... sourceFiles) {
+		setSourceFiles(Arrays.asList(sourceFiles));
 	}
 
 	public void setYarnWorkingDir(Object yarnWorkingDir) {
 		_yarnWorkingDir = yarnWorkingDir;
+	}
+
+	public PackageRunBuildTask sourceFiles(Iterable<?>... sourceFiles) {
+		GUtil.addToCollection(_sourceFiles, sourceFiles);
+
+		return this;
+	}
+
+	public PackageRunBuildTask sourceFiles(Object... sourceFiles) {
+		return sourceFiles(Arrays.asList(sourceFiles));
 	}
 
 	private File _getExistentFile(Object path) {
@@ -175,7 +202,7 @@ public class PackageRunBuildTask extends PackageRunTask {
 	}
 
 	private Object _destinationDir;
-	private Object _sourceDir;
+	private final List<Object> _sourceFiles = new ArrayList<>();
 	private Object _yarnWorkingDir;
 
 }

@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,6 +52,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -646,16 +648,21 @@ public class NodePlugin implements Plugin<Project> {
 			final File sourceDir = project.file(
 				"src/main/resources/META-INF/resources");
 
-			packageRunBuildTask.setSourceDir(
-				new Callable<File>() {
+			packageRunBuildTask.setSourceFiles(
+				new Callable<FileCollection>() {
 
 					@Override
-					public File call() throws Exception {
+					public FileCollection call() throws Exception {
 						if (!sourceDir.exists()) {
-							return null;
+							return project.files();
 						}
 
-						return sourceDir;
+						Map<String, Object> args = new HashMap<>();
+
+						args.put("dir", sourceDir);
+						args.put("exclude", "**/.sass-cache/");
+
+						return project.fileTree(args);
 					}
 
 				});
