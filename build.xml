@@ -1338,6 +1338,16 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 	</target>
 
 	<target name="update-binaries-cache">
+		<delete dir="${build.binaries.cache.dir}/.gradle/caches/build-cache-1" />
+
+		<copy
+			todir="${build.binaries.cache.dir}/.gradle/caches/build-cache-1"
+		>
+			<fileset
+				dir="${project.dir}/.gradle/caches/build-cache-1"
+			/>
+		</copy>
+
 		<copy
 			overwrite="false"
 			todir="${build.binaries.cache.dir}/.gradle/caches/modules-2/files-2.1"
@@ -1350,6 +1360,30 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 		<gradle-execute dir="${project.dir}/modules" task="updateYarnBinariesCache">
 			<arg value="--build-file=${project.dir}/modules/util.gradle" />
 		</gradle-execute>
+	</target>
+
+	<target name="update-gradle-build-cache">
+		<if>
+			<os family="unix" />
+			<then>
+				<property name="gradlew.suffix" value="" />
+			</then>
+			<else>
+				<property name="gradlew.suffix" value=".bat" />
+			</else>
+		</if>
+
+		<exec dir="${project.dir}/modules/apps" executable="${project.dir}/gradlew${gradlew.suffix}" failonerror="true">
+			<arg value="--parallel" />
+			<arg value="deploy" />
+		</exec>
+
+		<antcall target="setup-profile-dxp" />
+
+		<exec dir="${project.dir}/modules/dxp" executable="${project.dir}/gradlew${gradlew.suffix}" failonerror="true">
+			<arg value="--parallel" />
+			<arg value="deploy" />
+		</exec>
 	</target>
 
 	<target name="update-gradle-cache">

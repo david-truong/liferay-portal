@@ -1615,6 +1615,20 @@ artifact.url=${remote.repository.url}/com/liferay/portal/com.liferay.${processed
 						</then>
 					</if>
 
+					<if>
+						<available file="${project.dir}/${build.binaries.cache.dir}/.gradle/caches/build-cache-1" />
+						<then>
+							<copy
+								overwrite="false"
+								todir="${project.dir}/.gradle/caches/build-cache-1"
+							>
+								<fileset
+									dir="${project.dir}/${build.binaries.cache.dir}/.gradle/caches/build-cache-1"
+								/>
+							</copy>
+						</then>
+					</if>
+
 					<condition else="true" property="sync.dir.symbolic" value="false">
 						<os family="windows" />
 					</condition>
