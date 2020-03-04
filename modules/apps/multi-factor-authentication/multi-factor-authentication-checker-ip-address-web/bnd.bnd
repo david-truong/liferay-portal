@@ -1,0 +1,11 @@
+Bundle-Name: Liferay Multi Factor Authentication Checker IP Address Web
+Bundle-SymbolicName: com.liferay.multi.factor.authentication.checker.ip.address.web
+Bundle-Version: 1.0.0
+Provide-Capability:\
+	liferay.resource.bundle;\
+		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.multi.factor.authentication.checker.ip.address.web),(bundle.symbolic.name=com.liferay.multi.factor.authentication.lang)";\
+		resource.bundle.base.name="content.Language"
+Require-Capability:\
+	liferay.resource.bundle;\
+		filter:="(bundle.symbolic.name=com.liferay.multi.factor.authentication.lang)"
+Web-ContextPath: /multi-factor-authentication-checker-ip-address-web

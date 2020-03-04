@@ -1,0 +1,7 @@
+Bundle-Name: Liferay Multi Factor Authentication Portlet Web
+Bundle-SymbolicName: com.liferay.multi.factor.authentication.portlet.web
+Bundle-Version: 1.0.0
+Require-Capability:\
+	liferay.resource.bundle;\
+		filter:="(bundle.symbolic.name=com.liferay.multi.factor.authentication.lang)"
+Web-ContextPath: /multi-factor-authentication-portlet-web
