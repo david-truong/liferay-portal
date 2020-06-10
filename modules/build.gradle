@@ -79,6 +79,20 @@ if (Boolean.getBoolean("build.bnd.print.enabled")) {
 	bndPrintJarFiles = new ConcurrentSkipListSet<File>()
 }
 
+if (gradle.startParameter.taskNames.contains(":buildPortal")) {
+	ant.importBuild(rootProject.file("../build.xml")) {
+		String targetName ->
+
+		return "ant-" + targetName
+	}
+
+	task buildPortal
+
+	buildPortal {
+		dependsOn "ant-compile", "ant-install-portal-snapshots"
+	}
+}
+
 buildDir = new File(rootDir.parentFile, "build")
 
 for (String gradleVersion in ["5.6.4"]) {
