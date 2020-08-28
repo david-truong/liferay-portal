@@ -863,32 +863,48 @@ class ChangeTrackingChangesView extends React.Component {
 	}
 
 	_getTableHead() {
-		if (this.state.viewType === 'context') {
-			return '';
+		const cells = [];
+
+		if (this.state.viewType === 'changes') {
+			cells.push(
+				<ClayTable.Cell headingCell>
+					{Liferay.Language.get('user')}
+				</ClayTable.Cell>
+			);
+
+			cells.push(
+				<ClayTable.Cell headingCell>
+					{Liferay.Language.get('site')}
+				</ClayTable.Cell>
+			);
+		}
+
+		cells.push(
+			<ClayTable.Cell className="table-cell-expand" headingCell>
+				{Liferay.Language.get('title')}
+			</ClayTable.Cell>
+		);
+
+		cells.push(
+			<ClayTable.Cell className="table-cell-expand-smallest" headingCell>
+				{Liferay.Language.get('change-type')}
+			</ClayTable.Cell>
+		);
+
+		if (this.state.viewType === 'changes') {
+			cells.push(
+				<ClayTable.Cell
+					className="table-cell-expand-smallest"
+					headingCell
+				>
+					{Liferay.Language.get('last-modified')}
+				</ClayTable.Cell>
+			);
 		}
 
 		return (
 			<ClayTable.Head>
-				<ClayTable.Row>
-					<ClayTable.Cell headingCell>
-						{Liferay.Language.get('user')}
-					</ClayTable.Cell>
-
-					<ClayTable.Cell headingCell>
-						{Liferay.Language.get('site')}
-					</ClayTable.Cell>
-
-					<ClayTable.Cell className="table-cell-expand" headingCell>
-						{Liferay.Language.get('change')}
-					</ClayTable.Cell>
-
-					<ClayTable.Cell
-						className="table-cell-expand-smallest"
-						headingCell
-					>
-						{Liferay.Language.get('last-modified')}
-					</ClayTable.Cell>
-				</ClayTable.Row>
+				<ClayTable.Row>{cells}</ClayTable.Row>
 			</ClayTable.Head>
 		);
 	}
@@ -911,7 +927,7 @@ class ChangeTrackingChangesView extends React.Component {
 				rows.push(
 					<ClayTable.Row divider>
 						<ClayTable.Cell
-							colSpan={this.state.viewType === 'changes' ? 4 : 1}
+							colSpan={this.state.viewType === 'changes' ? 5 : 2}
 						>
 							{node.typeName}
 						</ClayTable.Cell>
@@ -973,30 +989,27 @@ class ChangeTrackingChangesView extends React.Component {
 				cells.push(<ClayTable.Cell>{node.siteName}</ClayTable.Cell>);
 			}
 
-			let descriptionMarkup = '';
+			cells.push(
+				<ClayTable.Cell className="table-cell-expand">
+					{node.title}
+				</ClayTable.Cell>
+			);
 
-			if (node.description) {
-				descriptionMarkup = (
-					<div className="change-list-description">
-						{node.description}
-					</div>
-				);
+			let changeType;
+
+			if (node.changeType === 'added') {
+				changeType = Liferay.Language.get('added');
+			}
+			if (node.changeType === 'deleted') {
+				changeType = Liferay.Language.get('deleted');
+			}
+			else if (node.changeType === 'modified') {
+				changeType = Liferay.Language.get('modified');
 			}
 
 			cells.push(
-				<ClayTable.Cell className="table-cell-expand">
-					<button
-						className="change-row-button"
-						onClick={() =>
-							this._handleNavigationUpdate({
-								nodeId: node.nodeId,
-							})
-						}
-					>
-						<div className="change-list-name">{node.title}</div>
-
-						{descriptionMarkup}
-					</button>
+				<ClayTable.Cell className="table-cell-expand-smallest">
+					{changeType}
 				</ClayTable.Cell>
 			);
 
@@ -1010,7 +1023,18 @@ class ChangeTrackingChangesView extends React.Component {
 				);
 			}
 
-			rows.push(<ClayTable.Row>{cells}</ClayTable.Row>);
+			rows.push(
+				<ClayTable.Row
+					className="cursor-pointer"
+					onClick={() =>
+						this._handleNavigationUpdate({
+							nodeId: node.nodeId,
+						})
+					}
+				>
+					{cells}
+				</ClayTable.Row>
+			);
 		}
 
 		return rows;
@@ -1419,7 +1443,7 @@ class ChangeTrackingChangesView extends React.Component {
 				<ClayTable
 					className="change-lists-table"
 					headingNoWrap
-					hover={false}
+					hover
 					noWrap
 				>
 					{this._getTableHead()}
