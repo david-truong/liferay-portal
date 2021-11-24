@@ -393,9 +393,9 @@ public interface BaseProjectTemplatesTestCase {
 			File mavenOutputDir, String... gradleTaskPath)
 		throws Exception {
 
-		if (!isBuildProjects()) {
-			return;
-		}
+//		if (!isBuildProjects()) {
+//			return;
+//		}
 
 		executeGradle(gradleProjectDir, gradleDistribution, gradleTaskPath);
 
@@ -432,16 +432,16 @@ public interface BaseProjectTemplatesTestCase {
 			}
 		}
 		catch (Throwable throwable) {
-			if (TEST_DEBUG_BUNDLE_DIFFS) {
+//			if (TEST_DEBUG_BUNDLE_DIFFS) {
 				Path dirPath = Paths.get("build");
 
 				Files.copy(
 					gradleOutputFile.toPath(),
-					dirPath.resolve(gradleOutputFileName));
+					dirPath.resolve(gradleOutputFileName), StandardCopyOption.REPLACE_EXISTING);
 				Files.copy(
 					mavenOutputFile.toPath(),
-					dirPath.resolve(mavenOutputFileName));
-			}
+					dirPath.resolve(mavenOutputFileName), StandardCopyOption.REPLACE_EXISTING);
+//			}
 
 			throw throwable;
 		}
@@ -1157,14 +1157,14 @@ public interface BaseProjectTemplatesTestCase {
 			mavenProjectDir, "package.json",
 			"build/resources/main/META-INF/resources");
 
-		if (Validator.isNotNull(System.getenv("JENKINS_HOME"))) {
+//		if (Validator.isNotNull(System.getenv("JENKINS_HOME"))) {
 			addNpmrc(gradleProjectDir);
 			addNpmrc(mavenProjectDir);
 			configureExecutePackageManagerTask(gradleProjectDir);
 			configurePomNpmConfiguration(mavenProjectDir);
-		}
+//		}
 
-		if (isBuildProjects()) {
+//		if (isBuildProjects()) {
 			File gradleOutputDir = new File(gradleProjectDir, "build/libs");
 			File mavenOutputDir = new File(mavenProjectDir, "target");
 
@@ -1172,7 +1172,7 @@ public interface BaseProjectTemplatesTestCase {
 				gradleDistribution, mavenExecutor, gradleWorkspaceDir,
 				mavenProjectDir, gradleOutputDir, mavenOutputDir,
 				":modules:" + name + GRADLE_TASK_PATH_BUILD);
-		}
+//		}
 	}
 
 	public default File testBuildTemplatePortlet(
