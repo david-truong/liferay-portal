@@ -15,8 +15,15 @@
 package com.liferay.change.tracking.web.internal.security.permission.resource;
 
 import com.liferay.change.tracking.constants.CTConstants;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+
+import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -29,6 +36,26 @@ public class CTPermission {
 
 	public static boolean contains(
 		PermissionChecker permissionChecker, String actionId) {
+
+		User user = permissionChecker.getUser();
+
+		try {
+			List<Group> sites = user.getSiteGroups();
+
+			for (Group site : sites) {
+				if (_userGroupRoleLocalService.hasUserGroupRole(
+						user.getUserId(), site.getGroupId(),
+						RoleConstants.SITE_ADMINISTRATOR, true) ||
+					_userGroupRoleLocalService.hasUserGroupRole(
+						user.getUserId(), site.getGroupId(),
+						RoleConstants.SITE_OWNER, true)) {
+
+					return true;
+				}
+			}
+		}
+		catch (PortalException portalException) {
+		}
 
 		return _portletResourcePermission.contains(
 			permissionChecker, null, actionId);
@@ -44,6 +71,14 @@ public class CTPermission {
 		_portletResourcePermission = portletResourcePermission;
 	}
 
+	@Reference(unbind = "-")
+	protected void setUserGroupRoleLocalService(
+		UserGroupRoleLocalService userGroupRoleLocalService) {
+
+		_userGroupRoleLocalService = userGroupRoleLocalService;
+	}
+
 	private static PortletResourcePermission _portletResourcePermission;
+	private static UserGroupRoleLocalService _userGroupRoleLocalService;
 
 }
