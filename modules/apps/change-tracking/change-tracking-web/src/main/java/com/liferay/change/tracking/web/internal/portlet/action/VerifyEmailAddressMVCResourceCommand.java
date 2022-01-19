@@ -17,6 +17,7 @@ package com.liferay.change.tracking.web.internal.portlet.action;
 import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
+import com.liferay.change.tracking.web.internal.security.permission.resource.CTPermission;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
@@ -28,7 +29,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.service.permission.PortletPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -132,14 +132,14 @@ public class VerifyEmailAddressMVCResourceCommand
 						PermissionChecker permissionChecker =
 							PermissionCheckerFactoryUtil.create(user);
 
-						return _portletPermission.contains(
+						return CTPermission.contains(
 							permissionChecker, PortletKeys.PORTAL,
 							ActionKeys.VIEW_CONTROL_PANEL) &&
-							   _portletPermission.contains(
+							   CTPermission.contains(
 								   permissionChecker,
 								   CTPortletKeys.PUBLICATIONS,
 								   ActionKeys.ACCESS_IN_CONTROL_PANEL) &&
-							   _portletPermission.contains(
+							   CTPermission.contains(
 								   permissionChecker,
 								   CTPortletKeys.PUBLICATIONS, ActionKeys.VIEW);
 					}
@@ -156,9 +156,6 @@ public class VerifyEmailAddressMVCResourceCommand
 
 	@Reference
 	private Portal _portal;
-
-	@Reference
-	private PortletPermission _portletPermission;
 
 	@Reference
 	private UserLocalService _userLocalService;

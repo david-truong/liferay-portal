@@ -17,6 +17,7 @@ package com.liferay.change.tracking.web.internal.portlet.action;
 import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
+import com.liferay.change.tracking.web.internal.security.permission.resource.CTPermission;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -30,7 +31,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.service.permission.PortletPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -141,13 +141,13 @@ public class AutocompleteUserMVCResourceCommand extends BaseMVCResourceCommand {
 					"fullName", user.getFullName()
 				).put(
 					"hasPublicationsAccess",
-					_portletPermission.contains(
+					CTPermission.contains(
 						permissionChecker, PortletKeys.PORTAL,
 						ActionKeys.VIEW_CONTROL_PANEL) &&
-					_portletPermission.contains(
+					CTPermission.contains(
 						permissionChecker, CTPortletKeys.PUBLICATIONS,
 						ActionKeys.ACCESS_IN_CONTROL_PANEL) &&
-					_portletPermission.contains(
+					CTPermission.contains(
 						permissionChecker, CTPortletKeys.PUBLICATIONS,
 						ActionKeys.VIEW)
 				).put(
@@ -166,9 +166,6 @@ public class AutocompleteUserMVCResourceCommand extends BaseMVCResourceCommand {
 
 	@Reference
 	private CTCollectionLocalService _ctCollectionLocalService;
-
-	@Reference
-	private PortletPermission _portletPermission;
 
 	@Reference
 	private UserLocalService _userLocalService;

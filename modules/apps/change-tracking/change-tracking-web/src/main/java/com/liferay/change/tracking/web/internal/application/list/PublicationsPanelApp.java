@@ -20,12 +20,12 @@ import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.model.CTPreferences;
 import com.liferay.change.tracking.service.CTPreferencesLocalService;
+import com.liferay.change.tracking.web.internal.security.permission.resource.CTPermission;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.service.permission.PortletPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -80,7 +80,7 @@ public class PublicationsPanelApp extends BasePanelApp {
 	public boolean isShow(PermissionChecker permissionChecker, Group group)
 		throws PortalException {
 
-		if (_portletPermission.contains(
+		if (CTPermission.contains(
 				permissionChecker, CTPortletKeys.PUBLICATIONS,
 				ActionKeys.CONFIGURATION)) {
 
@@ -92,7 +92,7 @@ public class PublicationsPanelApp extends BasePanelApp {
 				group.getCompanyId(), 0);
 
 		if ((ctPreferences != null) &&
-			_portletPermission.contains(
+			CTPermission.contains(
 				permissionChecker, CTPortletKeys.PUBLICATIONS,
 				ActionKeys.VIEW)) {
 
@@ -113,8 +113,5 @@ public class PublicationsPanelApp extends BasePanelApp {
 
 	@Reference
 	private CTPreferencesLocalService _ctPreferencesLocalService;
-
-	@Reference
-	private PortletPermission _portletPermission;
 
 }

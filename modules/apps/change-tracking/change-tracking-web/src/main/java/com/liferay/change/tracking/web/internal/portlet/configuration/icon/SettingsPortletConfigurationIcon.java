@@ -15,6 +15,7 @@
 package com.liferay.change.tracking.web.internal.portlet.configuration.icon;
 
 import com.liferay.change.tracking.constants.CTPortletKeys;
+import com.liferay.change.tracking.web.internal.security.permission.resource.CTPermission;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -25,13 +26,11 @@ import com.liferay.portal.kernel.portlet.configuration.icon.BasePortletConfigura
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
-import com.liferay.portal.kernel.service.permission.PortletPermission;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Samuel Trong Tran
@@ -65,7 +64,7 @@ public class SettingsPortletConfigurationIcon
 	@Override
 	public boolean isShow(PortletRequest portletRequest) {
 		try {
-			return _portletPermission.contains(
+			return CTPermission.contains(
 				PermissionThreadLocal.getPermissionChecker(),
 				CTPortletKeys.PUBLICATIONS, ActionKeys.CONFIGURATION);
 		}
@@ -80,8 +79,5 @@ public class SettingsPortletConfigurationIcon
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SettingsPortletConfigurationIcon.class);
-
-	@Reference
-	private PortletPermission _portletPermission;
 
 }

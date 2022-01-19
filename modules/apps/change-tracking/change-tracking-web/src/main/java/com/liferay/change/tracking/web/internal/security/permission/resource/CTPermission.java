@@ -17,11 +17,14 @@ package com.liferay.change.tracking.web.internal.security.permission.resource;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.service.permission.PortletPermission;
 
 import java.util.List;
 
@@ -33,6 +36,18 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(immediate = true, service = {})
 public class CTPermission {
+
+	public static void check(
+			PermissionChecker permissionChecker, String portletId,
+			String actionId)
+		throws PortalException {
+
+		if (!contains(permissionChecker, portletId, actionId)) {
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, Portlet.class.getName(), portletId,
+				actionId);
+		}
+	}
 
 	public static boolean contains(
 		PermissionChecker permissionChecker, String actionId) {
@@ -61,6 +76,36 @@ public class CTPermission {
 			permissionChecker, null, actionId);
 	}
 
+	public static boolean contains(
+			PermissionChecker permissionChecker, String portletId,
+			String actionId)
+		throws PortalException {
+
+		User user = permissionChecker.getUser();
+
+		List<Group> sites = user.getSiteGroups();
+
+		for (Group site : sites) {
+			if (_userGroupRoleLocalService.hasUserGroupRole(
+					user.getUserId(), site.getGroupId(),
+					RoleConstants.SITE_ADMINISTRATOR, true) ||
+				_userGroupRoleLocalService.hasUserGroupRole(
+					user.getUserId(), site.getGroupId(),
+					RoleConstants.SITE_OWNER, true)) {
+
+				return true;
+			}
+		}
+
+		return _portletPermission.contains(
+			permissionChecker, portletId, actionId);
+	}
+
+	@Reference(unbind = "-")
+	protected void setPortletPermission(PortletPermission portletPermission) {
+		_portletPermission = portletPermission;
+	}
+
 	@Reference(
 		target = "(resource.name=" + CTConstants.RESOURCE_NAME + ")",
 		unbind = "-"
@@ -78,6 +123,7 @@ public class CTPermission {
 		_userGroupRoleLocalService = userGroupRoleLocalService;
 	}
 
+	private static PortletPermission _portletPermission;
 	private static PortletResourcePermission _portletResourcePermission;
 	private static UserGroupRoleLocalService _userGroupRoleLocalService;
 
