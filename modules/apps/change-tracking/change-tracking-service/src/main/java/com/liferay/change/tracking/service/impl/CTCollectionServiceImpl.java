@@ -90,9 +90,6 @@ public class CTCollectionServiceImpl extends CTCollectionServiceBaseImpl {
 			long companyId, long userId, String name, String description)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), null, CTActionKeys.ADD_PUBLICATION);
-
 		return ctCollectionLocalService.addCTCollection(
 			companyId, userId, name, description);
 	}
@@ -298,9 +295,6 @@ public class CTCollectionServiceImpl extends CTCollectionServiceBaseImpl {
 
 		_ctCollectionModelResourcePermission.check(
 			permissionChecker, ctCollectionId, ActionKeys.VIEW);
-
-		_portletResourcePermission.check(
-			permissionChecker, null, CTActionKeys.ADD_PUBLICATION);
 
 		return ctCollectionLocalService.undoCTCollection(
 			ctCollectionId, userId, name, description);
