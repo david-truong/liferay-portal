@@ -32,4 +32,6 @@ public @interface CTAware {
 
 	public boolean onProduction() default false;
 
+	public boolean productionOnly() default false;
+
 }

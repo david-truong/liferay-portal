@@ -53,7 +53,10 @@ public class CTTransactionAdvice extends ChainableMethodAdvice {
 		CTAware ctAware = (CTAware)annotations.get(CTAware.class);
 
 		if (ctAware != null) {
-			if (ctAware.onProduction()) {
+			if (ctAware.productionOnly()) {
+				return CTMode.PRODUCTION_ONLY;
+			}
+			else if (ctAware.onProduction()) {
 				return CTMode.REQUIRES_NEW;
 			}
 
@@ -82,10 +85,22 @@ public class CTTransactionAdvice extends ChainableMethodAdvice {
 
 		CTMode ctMode = aopMethodInvocation.getAdviceMethodContext();
 
+		boolean requiresNew = false;
+
 		if ((ctMode == CTMode.REQUIRES_NEW) ||
 			(TransactionExecutorThreadLocal.getCurrentTransactionExecutor() ==
 				null)) {
 
+			requiresNew = true;
+		}
+
+		if (ctMode == CTMode.PRODUCTION_ONLY) {
+			throw new CTTransactionException(
+				"CT transaction validation failure. Nested operation using " +
+					aopMethodInvocation.getThis() +
+						" can only be performed in production mode.");
+		}
+		else if (requiresNew) {
 			try (SafeCloseable safeCloseable =
 					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 						CTConstants.CT_COLLECTION_ID_PRODUCTION)) {
@@ -105,7 +120,7 @@ public class CTTransactionAdvice extends ChainableMethodAdvice {
 
 	private enum CTMode {
 
-		READ_ONLY, REQUIRES_NEW, STRICT
+		PRODUCTION_ONLY, READ_ONLY, REQUIRES_NEW, STRICT
 
 	}
 
