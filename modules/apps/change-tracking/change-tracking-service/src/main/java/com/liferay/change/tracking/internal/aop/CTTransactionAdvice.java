@@ -19,10 +19,12 @@ import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.aop.AopMethodInvocation;
 import com.liferay.portal.kernel.aop.ChainableMethodAdvice;
 import com.liferay.portal.kernel.change.tracking.CTAware;
+import com.liferay.portal.kernel.change.tracking.CTAwareOnProductionThreadLocal;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.change.tracking.CTTransactionException;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.spring.transaction.TransactionExecutor;
 import com.liferay.portal.spring.transaction.TransactionExecutorThreadLocal;
 
 import java.lang.annotation.Annotation;
@@ -53,8 +55,11 @@ public class CTTransactionAdvice extends ChainableMethodAdvice {
 		CTAware ctAware = (CTAware)annotations.get(CTAware.class);
 
 		if (ctAware != null) {
-			if (ctAware.onProduction()) {
-				return CTMode.REQUIRES_NEW;
+			if (ctAware.productionOnly()) {
+				return CTMode.PRODUCTION_ONLY;
+			}
+			else if (ctAware.onProduction()) {
+				return CTMode.ON_PRODUCTION;
 			}
 
 			return null;
@@ -82,19 +87,29 @@ public class CTTransactionAdvice extends ChainableMethodAdvice {
 
 		CTMode ctMode = aopMethodInvocation.getAdviceMethodContext();
 
-		if ((ctMode == CTMode.REQUIRES_NEW) ||
-			(TransactionExecutorThreadLocal.getCurrentTransactionExecutor() ==
-				null)) {
+		if (ctMode == CTMode.ON_PRODUCTION) {
+			CTAwareOnProductionThreadLocal.setOnProduction(true);
+		}
 
-			try (SafeCloseable safeCloseable =
-					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
-						CTConstants.CT_COLLECTION_ID_PRODUCTION)) {
+		if (ctMode != CTMode.PRODUCTION_ONLY) {
+			TransactionExecutor transactionExecutor =
+				TransactionExecutorThreadLocal.getCurrentTransactionExecutor();
 
+			if ((ctMode == CTMode.ON_PRODUCTION) ||
+				(ctMode == CTMode.REQUIRES_NEW) ||
+				(transactionExecutor == null)) {
+
+				try (SafeCloseable safeCloseable =
+						CTCollectionThreadLocal.
+							setCTCollectionIdWithSafeCloseable(
+								CTConstants.CT_COLLECTION_ID_PRODUCTION)) {
+
+					return aopMethodInvocation.proceed(arguments);
+				}
+			}
+			else if (ctMode == CTMode.READ_ONLY) {
 				return aopMethodInvocation.proceed(arguments);
 			}
-		}
-		else if (ctMode == CTMode.READ_ONLY) {
-			return aopMethodInvocation.proceed(arguments);
 		}
 
 		throw new CTTransactionException(
@@ -105,7 +120,7 @@ public class CTTransactionAdvice extends ChainableMethodAdvice {
 
 	private enum CTMode {
 
-		READ_ONLY, REQUIRES_NEW, STRICT
+		ON_PRODUCTION, PRODUCTION_ONLY, READ_ONLY, REQUIRES_NEW, STRICT
 
 	}
 

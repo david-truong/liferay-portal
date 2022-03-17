@@ -15,6 +15,8 @@
 package com.liferay.users.admin.web.internal.portlet.action;
 
 import com.liferay.portal.kernel.bean.BeanParamUtil;
+import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
+import com.liferay.portal.kernel.change.tracking.CTTransactionException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.exception.UserPasswordException;
 import com.liferay.portal.kernel.model.Company;
@@ -63,6 +65,12 @@ public class UpdatePasswordMVCActionCommand extends BaseMVCActionCommand {
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
+
+		if (!CTCollectionThreadLocal.isProductionMode()) {
+			throw new CTTransactionException(
+				"CT transaction validation failure. Nested operation using " +
+					getClass() + " can only be performed in production mode.");
+		}
 
 		try {
 			ThemeDisplay themeDisplay =

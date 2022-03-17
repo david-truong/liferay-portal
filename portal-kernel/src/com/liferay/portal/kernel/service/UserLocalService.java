@@ -2742,6 +2742,7 @@ public interface UserLocalService
 	 bridge attributes for the user.
 	 * @return the user
 	 */
+	@CTAware(productionOnly = true)
 	public User updateUser(
 			long userId, String oldPassword, String newPassword1,
 			String newPassword2, boolean passwordReset,
@@ -2843,6 +2844,7 @@ public interface UserLocalService
 	 * @param user the user
 	 * @return the user that was updated
 	 */
+	@CTAware(productionOnly = true)
 	@Indexable(type = IndexableType.REINDEX)
 	public User updateUser(User user);
 

@@ -5451,6 +5451,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	 *         bridge attributes for the user.
 	 * @return the user
 	 */
+	@CTAware(productionOnly = true)
 	@Override
 	public User updateUser(
 			long userId, String oldPassword, String newPassword1,
@@ -5786,6 +5787,12 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		user.setOpenId(openId);
 
 		return userLocalService.updateUser(user);
+	}
+
+	@CTAware(productionOnly = true)
+	@Override
+	public User updateUser(User user) {
+		return super.updateUser(user);
 	}
 
 	/**

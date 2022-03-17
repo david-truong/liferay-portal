@@ -14,24 +14,27 @@
 
 package com.liferay.portal.kernel.change.tracking;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.liferay.petra.lang.CentralizedThreadLocal;
 
 /**
  * @author Preston Crary
  */
-@Documented
-@Inherited
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface CTAware {
+public class CTAwareOnProductionThreadLocal {
 
-	public boolean onProduction() default false;
+	public static boolean isOnProduction() {
+		return _onProduction.get();
+	}
 
-	public boolean productionOnly() default false;
+	public static void setOnProduction(boolean onProduction) {
+		_onProduction.set(onProduction);
+	}
+
+	private CTAwareOnProductionThreadLocal() {
+	}
+
+	private static final CentralizedThreadLocal<Boolean> _onProduction =
+		new CentralizedThreadLocal<>(
+			CTAwareOnProductionThreadLocal.class + "._onProduction",
+			() -> Boolean.FALSE);
 
 }
