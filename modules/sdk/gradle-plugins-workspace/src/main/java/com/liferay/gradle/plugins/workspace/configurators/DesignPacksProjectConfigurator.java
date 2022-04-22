@@ -16,6 +16,7 @@ package com.liferay.gradle.plugins.workspace.configurators;
 
 import com.liferay.gradle.plugins.LiferayBasePlugin;
 import com.liferay.gradle.plugins.css.builder.CSSBuilderPlugin;
+import com.liferay.gradle.plugins.node.NodePlugin;
 import com.liferay.gradle.plugins.theme.builder.BuildThemeTask;
 import com.liferay.gradle.plugins.theme.builder.ThemeBuilderPlugin;
 import com.liferay.gradle.plugins.workspace.WorkspaceExtension;
@@ -39,6 +40,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -101,6 +103,7 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 
 		GradleUtil.applyPlugin(project, LiferayBasePlugin.class);
 		GradleUtil.applyPlugin(project, WarPlugin.class);
+		GradleUtil.applyPlugin(project, NodePlugin.class);
 
 		_configureTaskProcessResources(project);
 
@@ -114,7 +117,8 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 
 		_addDependenciesPortalCommonCSS(project);
 
-		_configureTaskBuildTheme(project);
+		_configureTaskBuildTheme(project, workspaceExtension);
+
 		_configureWar(project);
 
 		Zip zipDesignPackTask = _addTaskZipDesignPack(
@@ -207,9 +211,6 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 			project, CSSBuilderPlugin.PORTAL_COMMON_CSS_CONFIGURATION_NAME,
 			"com.liferay", "com.liferay.frontend.css.common", "latest.release",
 			false);
-		GradleUtil.addDependency(
-			project, CSSBuilderPlugin.PORTAL_COMMON_CSS_CONFIGURATION_NAME,
-			"org.webjars", "font-awesome", "latest.release", false);
 	}
 
 	@SuppressWarnings("serial")
@@ -218,7 +219,7 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 		final WorkspaceExtension workspaceExtension) {
 
 		Zip task = GradleUtil.addTask(project, taskName, Zip.class);
-		
+
 		task.dependsOn(CSSBuilderPlugin.BUILD_CSS_TASK_NAME);
 
 		_configureTaskDisableUpToDate(task);
@@ -266,7 +267,9 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void _configureTaskBuildTheme(Project project) {
+	private void _configureTaskBuildTheme(
+		Project project, WorkspaceExtension workspaceExtension) {
+
 		File packageJsonFile = project.file("package.json");
 
 		if (!packageJsonFile.exists()) {
@@ -275,6 +278,8 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 
 		BuildThemeTask buildThemeTask = (BuildThemeTask)GradleUtil.getTask(
 			project, ThemeBuilderPlugin.BUILD_THEME_TASK_NAME);
+
+		buildThemeTask.dependsOn(NodePlugin.NPM_INSTALL_TASK_NAME);
 
 		Map<String, Object> packageJsonMap = _getPackageJsonMap(
 			packageJsonFile);
@@ -290,6 +295,67 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 
 		buildThemeTask.setParentName(baseTheme);
 		buildThemeTask.setTemplateExtension("ftl");
+
+		buildThemeTask.doLast(
+			new Action<Task>() {
+
+				@Override
+				public void execute(Task task) {
+					Map<String, String> liferayDevDependenciesMap =
+						(Map<String, String>)packageJsonMap.get(
+							"devDependencies");
+
+					if (Objects.isNull(liferayDevDependenciesMap) ||
+						liferayDevDependenciesMap.isEmpty()) {
+
+						return;
+					}
+
+					project.copy(
+						new Action<CopySpec>() {
+
+							@Override
+							public void execute(CopySpec copySpec) {
+								Set<String> devDependencies =
+									liferayDevDependenciesMap.keySet();
+
+								String nodePackageManager =
+									workspaceExtension.getNodePackageManager();
+
+								for (String dependencyName : devDependencies) {
+									if (Objects.equals(
+											nodePackageManager, "yarn")) {
+
+										Project rootProject =
+											project.getRootProject();
+
+										copySpec.from(
+											new File(
+												rootProject.getProjectDir(),
+												"node_modules/" +
+													dependencyName));
+									}
+									else {
+										copySpec.from(
+											new File(
+												project.getProjectDir(),
+												"node_modules/" +
+													dependencyName));
+									}
+
+									File themeBuildCssDir = new File(
+										buildThemeTask.getOutputDir(), "css");
+
+									copySpec.into(
+										new File(
+											themeBuildCssDir, dependencyName));
+								}
+							}
+
+						});
+				}
+
+			});
 	}
 
 	private void _configureTaskDesignPack(Project project, Zip zipTask) {

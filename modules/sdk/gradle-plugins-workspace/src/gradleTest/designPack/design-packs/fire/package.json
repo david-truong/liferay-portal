@@ -1,9 +1,13 @@
 {
+	"devDependencies": {
+		"liferay-font-awesome": "3.5.1"
+	},
 	"keywords": [
 		"liferay-design-pack"
 	],
 	"liferayDesignPack": {
-		"baseTheme": "styled"
+		"baseTheme": "styled",
+		"fontAwesome": true
 	},
 	"main": "package.json",
 	"name": "fire",
