@@ -14,40 +14,29 @@
 
 package com.liferay.gradle.plugins.workspace.configurators;
 
-import com.liferay.gradle.plugins.LiferayBasePlugin;
-import com.liferay.gradle.plugins.css.builder.CSSBuilderPlugin;
-import com.liferay.gradle.plugins.theme.builder.BuildThemeTask;
-import com.liferay.gradle.plugins.theme.builder.ThemeBuilderPlugin;
-import com.liferay.gradle.plugins.workspace.WorkspaceExtension;
-import com.liferay.gradle.plugins.workspace.WorkspacePlugin;
-import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
-import com.liferay.gradle.util.Validator;
-
-import groovy.json.JsonSlurper;
-
-import groovy.lang.Closure;
-
 import java.io.File;
 import java.io.IOException;
-
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaPlugin;
@@ -60,6 +49,20 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.api.tasks.bundling.Zip;
+
+import com.liferay.gradle.plugins.LiferayBasePlugin;
+import com.liferay.gradle.plugins.css.builder.BuildCSSTask;
+import com.liferay.gradle.plugins.css.builder.CSSBuilderPlugin;
+import com.liferay.gradle.plugins.node.NodePlugin;
+import com.liferay.gradle.plugins.theme.builder.BuildThemeTask;
+import com.liferay.gradle.plugins.theme.builder.ThemeBuilderPlugin;
+import com.liferay.gradle.plugins.workspace.WorkspaceExtension;
+import com.liferay.gradle.plugins.workspace.WorkspacePlugin;
+import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
+import com.liferay.gradle.util.Validator;
+
+import groovy.json.JsonSlurper;
+import groovy.lang.Closure;
 
 /**
  * @author Simon Jiang
@@ -99,9 +102,12 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 		WorkspaceExtension workspaceExtension = GradleUtil.getExtension(
 			(ExtensionAware)project.getGradle(), WorkspaceExtension.class);
 
+		
 		GradleUtil.applyPlugin(project, LiferayBasePlugin.class);
 		GradleUtil.applyPlugin(project, WarPlugin.class);
-
+		GradleUtil.applyPlugin(project, NodePlugin.class);
+		
+		
 		_configureTaskProcessResources(project);
 
 		if (isDefaultRepositoryEnabled()) {
@@ -115,6 +121,8 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 		_addDependenciesPortalCommonCSS(project);
 
 		_configureTaskBuildTheme(project);
+		
+//		_configureTaskBuildCss(project);
 		_configureWar(project);
 
 		Zip zipDesignPackTask = _addTaskZipDesignPack(
@@ -265,6 +273,35 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 		return task;
 	}
 
+//	@SuppressWarnings("unchecked")
+//	private void _configureTaskBuildCss(Project project) {
+//		File packageJsonFile = project.file("package.json");
+//
+//		if (!packageJsonFile.exists()) {
+//			return;
+//		}
+//		
+//		BuildCSSTask buildCssTask = (BuildCSSTask)GradleUtil.getTask(
+//				project,CSSBuilderPlugin.BUILD_CSS_TASK_NAME);
+//
+//		buildCssTask.dependsOn(NodePlugin.NPM_INSTALL_TASK_NAME);
+//		
+//		Map<String, Object> packageJsonMap = _getPackageJsonMap(
+//			packageJsonFile);
+//
+//		Map<String, String> liferayDesignPackMap =
+//			(Map<String, String>)packageJsonMap.get("liferayDesignPack");
+//
+//		String baseTheme = liferayDesignPackMap.get("baseTheme");
+//
+//		if (baseTheme.equals("styled") || baseTheme.equals("unstyled")) {
+//			baseTheme = "_" + baseTheme;
+//		}
+//
+//		buildThemeTask.setParentName(baseTheme);
+//		buildThemeTask.setTemplateExtension("ftl");
+//	}
+	
 	@SuppressWarnings("unchecked")
 	private void _configureTaskBuildTheme(Project project) {
 		File packageJsonFile = project.file("package.json");
@@ -272,10 +309,12 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 		if (!packageJsonFile.exists()) {
 			return;
 		}
-
+		
 		BuildThemeTask buildThemeTask = (BuildThemeTask)GradleUtil.getTask(
 			project, ThemeBuilderPlugin.BUILD_THEME_TASK_NAME);
-
+		
+		buildThemeTask.dependsOn(NodePlugin.NPM_INSTALL_TASK_NAME);
+		
 		Map<String, Object> packageJsonMap = _getPackageJsonMap(
 			packageJsonFile);
 
@@ -288,6 +327,19 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 			baseTheme = "_" + baseTheme;
 		}
 
+		buildThemeTask.setParentDir(
+				new Callable<File>() {
+
+					@Override
+					public File call() throws Exception {
+						Project rootProject = project.getRootProject();
+						
+						return new File(rootProject.getProjectDir(),"node_modules/liferay-font-awesome/"); 
+//						return _getThemeFile(parentThemeFiles, parentName);
+					}
+
+				});
+		
 		buildThemeTask.setParentName(baseTheme);
 		buildThemeTask.setTemplateExtension("ftl");
 	}
@@ -435,5 +487,7 @@ public class DesignPacksProjectConfigurator extends BaseProjectConfigurator {
 
 	private final boolean _defaultRepositoryEnabled;
 	private final Set<File> _defaultRootDirs;
+	
+	private static boolean _javaBuild = false;
 
 }
