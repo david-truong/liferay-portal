@@ -14,12 +14,17 @@
 
 package com.liferay.change.tracking.internal.search.spi.model.query.contributor;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
@@ -102,6 +107,31 @@ public class CTModelPreFilterContributor implements ModelPreFilterContributor {
 
 					excludeModelClassPKs.add(ctEntry.getModelClassPK());
 				}
+
+				// if AssetEntry, get what it points to and check if _isVersionedClass(...)
+				if (ctEntry.getModelClass() == AssetEntry.class && changeType == CTConstants.CT_CHANGE_TYPE_ADDITION) {
+					try {
+						AssetEntry assetEntry = _assetEntryLocalService.getAssetEntry(
+							ctEntry.getModelClassPK());
+
+						long classNameId = assetEntry.getClassNameId();
+
+						// if false, continue to next loop iteration
+						if (!_isVersionedClass(_classNameLocalService.getClassName(classNameId).getModelClass())) {
+							continue;
+						}
+
+						// get model obj from classNameId and classPk
+						long classPk = assetEntry.getClassPK();
+						//TODO
+
+						//if version != 1 then add ctEntry to excludeModelClassPKs
+//						excludeModelClassPKs.add(ctEntry.getModelClassPK());
+
+					} catch (PortalException portalException) {
+						_log.error("Unable to get AssetEntry with PK=" + ctEntry.getModelClassPK());
+					}
+				}
 			}
 
 			ctBooleanFilter.add(
@@ -137,6 +167,16 @@ public class CTModelPreFilterContributor implements ModelPreFilterContributor {
 		}
 	}
 
+	private boolean _isVersionedClass(Class<?> modelClass) {
+		try {
+			modelClass.getMethod("getVersion");
+
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
@@ -155,7 +195,7 @@ public class CTModelPreFilterContributor implements ModelPreFilterContributor {
 	protected void deactivate() {
 		_serviceTrackerMap.close();
 	}
-
+	private static final Log _log = LogFactoryUtil.getLog(CTModelPreFilterContributor.class);
 	private static final String _CT_COLLECTION_ID = "ctCollectionId";
 
 	private static final Filter _CT_COLLECTION_ID_MISSING_FILTER =
@@ -172,4 +212,6 @@ public class CTModelPreFilterContributor implements ModelPreFilterContributor {
 	@Reference
 	private UIDFactory _uidFactory;
 
+	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
 }
