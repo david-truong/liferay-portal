@@ -214,6 +214,14 @@ public class EntityCacheImpl
 
 	@Override
 	public void putResult(
+		Class<?> clazz, Serializable primaryKey, BaseModel<?> baseModel,
+		boolean quiet, boolean updateFinderCache) {
+
+		_putResult(clazz, primaryKey, baseModel, quiet, updateFinderCache);
+	}
+
+	@Override
+	public void putResult(
 		Class<?> clazz, Serializable primaryKey, Serializable result) {
 
 		_putResult(clazz, primaryKey, (BaseModel<?>)result, true, false);

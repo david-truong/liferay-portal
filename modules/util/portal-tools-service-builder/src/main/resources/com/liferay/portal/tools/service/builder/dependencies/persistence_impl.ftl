@@ -338,6 +338,8 @@ public class ${entity.name}PersistenceImpl extends BasePersistenceImpl<${entity.
 			if (${entity.variableName}.getCtCollectionId() != 0) {
 				<#if serviceBuilder.isVersionLTE_7_2_0()>
 					${entity.variableName}.resetOriginalValues();
+				<#elseif serviceBuilder.isVersionGTE_7_4_0()>
+					${entityCache}.putResult(${entity.name}Impl.class, new CTPrimaryKey(${entity.variableName}), ${entity.variableName});
 				</#if>
 
 				return;
@@ -1027,14 +1029,26 @@ public class ${entity.name}PersistenceImpl extends BasePersistenceImpl<${entity.
 		</#if>
 
 		<#if serviceBuilder.isVersionGTE_7_3_0()>
-			${entityCache}.putResult(
-				${entity.name}Impl.class,
-				<#if (entity.collectionEntityFinders?size != 0) || (entity.uniqueEntityFinders?size &gt; 0)>
-					${entity.variableName}ModelImpl
-				<#else>
-					${entity.variableName}
-				</#if>
-				, false, true);
+			<#if (entity.collectionEntityFinders?size != 0) || (entity.uniqueEntityFinders?size &gt; 0)>
+				<#assign variableName = "${entity.variableName}ModelImpl" />
+			<#else>
+				<#assign variableName = "${entity.variableName}" />
+			</#if>
+
+			<#if serviceBuilder.isVersionGTE_7_4_0() && entity.isChangeTrackingEnabled()>
+				if (${variableName}.getCtCollectionId() != 0) {
+					${entityCache}.putResult(
+						${entity.name}Impl.class,
+						new CTPrimaryKey(${variableName}),
+						${variableName}, false, true);
+				}
+				else {
+			</#if>
+				${entityCache}.putResult(
+					${entity.name}Impl.class, ${variableName}, false, true);
+			<#if serviceBuilder.isVersionGTE_7_4_0() && entity.isChangeTrackingEnabled()>
+				}
+			</#if>
 
 			<#if entity.uniqueEntityFinders?size &gt; 0>
 				cacheUniqueFindersCache(${entity.variableName}ModelImpl);
@@ -1252,25 +1266,39 @@ public class ${entity.name}PersistenceImpl extends BasePersistenceImpl<${entity.
 				return super.fetchByPrimaryKey(primaryKey);
 			}
 
-			${entity.name} ${entity.variableName} = null;
+			<#if serviceBuilder.isVersionGTE_7_4_0()>
+				Serializable serializable = ${entityCache}.getResult(${entity.name}Impl.class, new CTPrimaryKey(primaryKey));
 
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				${entity.variableName} = (${entity.name})session.get(${entity.name}Impl.class, primaryKey);
-
-				if (${entity.variableName} != null) {
-					cacheResult(${entity.variableName});
+				if (serializable == nullModel) {
+					return null;
 				}
+
+				${entity.name} ${entity.variableName} = (${entity.name})serializable;
+
+				if (${entity.variableName} == null) {
+			<#else>
+				${entity.name} ${entity.variableName} = null;
+			</#if>
+				Session session = null;
+
+				try {
+					session = openSession();
+
+					${entity.variableName} = (${entity.name})session.get(${entity.name}Impl.class, primaryKey);
+
+					if (${entity.variableName} != null) {
+						cacheResult(${entity.variableName});
+					}
+				}
+				catch (Exception exception) {
+					throw processException(exception);
+				}
+				finally {
+					closeSession(session);
+				}
+			<#if serviceBuilder.isVersionGTE_7_4_0()>
 			}
-			catch (Exception exception) {
-				throw processException(exception);
-			}
-			finally {
-				closeSession(session);
-			}
+			</#if>
 
 			return ${entity.variableName};
 		}

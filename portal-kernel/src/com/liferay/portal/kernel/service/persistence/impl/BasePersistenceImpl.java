@@ -71,6 +71,7 @@ import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.ModelListenerRegistrationUtil;
 import com.liferay.portal.kernel.model.ModelWrapper;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
@@ -1042,6 +1043,50 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	 */
 	@Deprecated
 	protected boolean finderCacheEnabled = true;
+
+	protected static class CTPrimaryKey implements Serializable {
+
+		public CTPrimaryKey(CTModel<?> ctModel) {
+			_ctCollectionId = ctModel.getCtCollectionId();
+			_primaryKey = ctModel.getPrimaryKey();
+		}
+
+		public CTPrimaryKey(Serializable primaryKey) {
+			_primaryKey = primaryKey;
+
+			_ctCollectionId = CTCollectionThreadLocal.getCTCollectionId();
+		}
+
+		@Override
+		public boolean equals(Object object) {
+			if (this == object) {
+				return true;
+			}
+
+			if (!(object instanceof CTPrimaryKey)) {
+				return false;
+			}
+
+			CTPrimaryKey ctPrimaryKey = (CTPrimaryKey)object;
+
+			if ((ctPrimaryKey._ctCollectionId == _ctCollectionId) &&
+				Objects.equals(ctPrimaryKey._primaryKey, _primaryKey)) {
+
+				return true;
+			}
+
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return ((int)_ctCollectionId * 11) + _primaryKey.hashCode();
+		}
+
+		private final long _ctCollectionId;
+		private final Serializable _primaryKey;
+
+	}
 
 	private Object[] _getArguments(
 		DefaultASTNodeListener defaultASTNodeListener) {

@@ -65,6 +65,14 @@ public class EntityCacheUtil {
 	}
 
 	public static void putResult(
+		Class<?> clazz, Serializable primaryKey, BaseModel<?> baseModel,
+		boolean quiet, boolean updateFinderCache) {
+
+		_entityCache.putResult(
+			clazz, primaryKey, baseModel, quiet, updateFinderCache);
+	}
+
+	public static void putResult(
 		Class<?> clazz, Serializable primaryKey, Serializable result) {
 
 		_entityCache.putResult(clazz, primaryKey, result);

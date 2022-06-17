@@ -45,6 +45,10 @@ public interface EntityCache {
 		boolean updateFinderCache);
 
 	public void putResult(
+		Class<?> clazz, Serializable primaryKey, BaseModel<?> baseModel,
+		boolean quiet, boolean updateFinderCache);
+
+	public void putResult(
 		Class<?> clazz, Serializable primaryKey, Serializable result);
 
 	public void removeCache(String className);
