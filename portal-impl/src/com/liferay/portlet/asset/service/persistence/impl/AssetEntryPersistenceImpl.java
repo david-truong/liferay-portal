@@ -5119,6 +5119,9 @@ public class AssetEntryPersistenceImpl
 	@Override
 	public void cacheResult(AssetEntry assetEntry) {
 		if (assetEntry.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetEntryImpl.class, new CTPrimaryKey(assetEntry), assetEntry);
+
 			return;
 		}
 
@@ -5416,8 +5419,15 @@ public class AssetEntryPersistenceImpl
 			return assetEntry;
 		}
 
-		EntityCacheUtil.putResult(
-			AssetEntryImpl.class, assetEntryModelImpl, false, true);
+		if (assetEntryModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetEntryImpl.class, new CTPrimaryKey(assetEntryModelImpl),
+				assetEntryModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				AssetEntryImpl.class, assetEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(assetEntryModelImpl);
 
@@ -5481,25 +5491,34 @@ public class AssetEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetEntry assetEntry = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			AssetEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetEntry assetEntry = (AssetEntry)serializable;
 
-			assetEntry = (AssetEntry)session.get(
-				AssetEntryImpl.class, primaryKey);
+		if (assetEntry == null) {
+			Session session = null;
 
-			if (assetEntry != null) {
-				cacheResult(assetEntry);
+			try {
+				session = openSession();
+
+				assetEntry = (AssetEntry)session.get(
+					AssetEntryImpl.class, primaryKey);
+
+				if (assetEntry != null) {
+					cacheResult(assetEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetEntry;

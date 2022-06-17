@@ -2065,6 +2065,10 @@ public class SocialActivityLimitPersistenceImpl
 	@Override
 	public void cacheResult(SocialActivityLimit socialActivityLimit) {
 		if (socialActivityLimit.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityLimitImpl.class,
+				new CTPrimaryKey(socialActivityLimit), socialActivityLimit);
+
 			return;
 		}
 
@@ -2350,9 +2354,17 @@ public class SocialActivityLimitPersistenceImpl
 			return socialActivityLimit;
 		}
 
-		EntityCacheUtil.putResult(
-			SocialActivityLimitImpl.class, socialActivityLimitModelImpl, false,
-			true);
+		if (socialActivityLimitModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityLimitImpl.class,
+				new CTPrimaryKey(socialActivityLimitModelImpl),
+				socialActivityLimitModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				SocialActivityLimitImpl.class, socialActivityLimitModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(socialActivityLimitModelImpl);
 
@@ -2418,25 +2430,35 @@ public class SocialActivityLimitPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SocialActivityLimit socialActivityLimit = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			SocialActivityLimitImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SocialActivityLimit socialActivityLimit =
+			(SocialActivityLimit)serializable;
 
-			socialActivityLimit = (SocialActivityLimit)session.get(
-				SocialActivityLimitImpl.class, primaryKey);
+		if (socialActivityLimit == null) {
+			Session session = null;
 
-			if (socialActivityLimit != null) {
-				cacheResult(socialActivityLimit);
+			try {
+				session = openSession();
+
+				socialActivityLimit = (SocialActivityLimit)session.get(
+					SocialActivityLimitImpl.class, primaryKey);
+
+				if (socialActivityLimit != null) {
+					cacheResult(socialActivityLimit);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return socialActivityLimit;

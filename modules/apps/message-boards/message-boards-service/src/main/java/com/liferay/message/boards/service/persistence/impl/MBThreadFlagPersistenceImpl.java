@@ -2778,6 +2778,10 @@ public class MBThreadFlagPersistenceImpl
 	@Override
 	public void cacheResult(MBThreadFlag mbThreadFlag) {
 		if (mbThreadFlag.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBThreadFlagImpl.class, new CTPrimaryKey(mbThreadFlag),
+				mbThreadFlag);
+
 			return;
 		}
 
@@ -3086,8 +3090,15 @@ public class MBThreadFlagPersistenceImpl
 			return mbThreadFlag;
 		}
 
-		entityCache.putResult(
-			MBThreadFlagImpl.class, mbThreadFlagModelImpl, false, true);
+		if (mbThreadFlagModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBThreadFlagImpl.class, new CTPrimaryKey(mbThreadFlagModelImpl),
+				mbThreadFlagModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				MBThreadFlagImpl.class, mbThreadFlagModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(mbThreadFlagModelImpl);
 
@@ -3151,25 +3162,34 @@ public class MBThreadFlagPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		MBThreadFlag mbThreadFlag = null;
+		Serializable serializable = entityCache.getResult(
+			MBThreadFlagImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		MBThreadFlag mbThreadFlag = (MBThreadFlag)serializable;
 
-			mbThreadFlag = (MBThreadFlag)session.get(
-				MBThreadFlagImpl.class, primaryKey);
+		if (mbThreadFlag == null) {
+			Session session = null;
 
-			if (mbThreadFlag != null) {
-				cacheResult(mbThreadFlag);
+			try {
+				session = openSession();
+
+				mbThreadFlag = (MBThreadFlag)session.get(
+					MBThreadFlagImpl.class, primaryKey);
+
+				if (mbThreadFlag != null) {
+					cacheResult(mbThreadFlag);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return mbThreadFlag;

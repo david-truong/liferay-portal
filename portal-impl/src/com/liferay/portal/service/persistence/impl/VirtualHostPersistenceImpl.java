@@ -1187,6 +1187,10 @@ public class VirtualHostPersistenceImpl
 	@Override
 	public void cacheResult(VirtualHost virtualHost) {
 		if (virtualHost.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				VirtualHostImpl.class, new CTPrimaryKey(virtualHost),
+				virtualHost);
+
 			return;
 		}
 
@@ -1462,8 +1466,15 @@ public class VirtualHostPersistenceImpl
 			return virtualHost;
 		}
 
-		EntityCacheUtil.putResult(
-			VirtualHostImpl.class, virtualHostModelImpl, false, true);
+		if (virtualHostModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				VirtualHostImpl.class, new CTPrimaryKey(virtualHostModelImpl),
+				virtualHostModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				VirtualHostImpl.class, virtualHostModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(virtualHostModelImpl);
 
@@ -1527,25 +1538,34 @@ public class VirtualHostPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		VirtualHost virtualHost = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			VirtualHostImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		VirtualHost virtualHost = (VirtualHost)serializable;
 
-			virtualHost = (VirtualHost)session.get(
-				VirtualHostImpl.class, primaryKey);
+		if (virtualHost == null) {
+			Session session = null;
 
-			if (virtualHost != null) {
-				cacheResult(virtualHost);
+			try {
+				session = openSession();
+
+				virtualHost = (VirtualHost)session.get(
+					VirtualHostImpl.class, primaryKey);
+
+				if (virtualHost != null) {
+					cacheResult(virtualHost);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return virtualHost;

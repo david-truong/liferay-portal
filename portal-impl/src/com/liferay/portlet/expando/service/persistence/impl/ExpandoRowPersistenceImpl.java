@@ -1359,6 +1359,9 @@ public class ExpandoRowPersistenceImpl
 	@Override
 	public void cacheResult(ExpandoRow expandoRow) {
 		if (expandoRow.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ExpandoRowImpl.class, new CTPrimaryKey(expandoRow), expandoRow);
+
 			return;
 		}
 
@@ -1629,8 +1632,15 @@ public class ExpandoRowPersistenceImpl
 			return expandoRow;
 		}
 
-		EntityCacheUtil.putResult(
-			ExpandoRowImpl.class, expandoRowModelImpl, false, true);
+		if (expandoRowModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ExpandoRowImpl.class, new CTPrimaryKey(expandoRowModelImpl),
+				expandoRowModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				ExpandoRowImpl.class, expandoRowModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(expandoRowModelImpl);
 
@@ -1692,25 +1702,34 @@ public class ExpandoRowPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		ExpandoRow expandoRow = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			ExpandoRowImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		ExpandoRow expandoRow = (ExpandoRow)serializable;
 
-			expandoRow = (ExpandoRow)session.get(
-				ExpandoRowImpl.class, primaryKey);
+		if (expandoRow == null) {
+			Session session = null;
 
-			if (expandoRow != null) {
-				cacheResult(expandoRow);
+			try {
+				session = openSession();
+
+				expandoRow = (ExpandoRow)session.get(
+					ExpandoRowImpl.class, primaryKey);
+
+				if (expandoRow != null) {
+					cacheResult(expandoRow);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return expandoRow;

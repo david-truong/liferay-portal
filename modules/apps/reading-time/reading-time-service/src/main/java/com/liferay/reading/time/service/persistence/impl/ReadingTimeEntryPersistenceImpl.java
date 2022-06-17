@@ -1798,6 +1798,10 @@ public class ReadingTimeEntryPersistenceImpl
 	@Override
 	public void cacheResult(ReadingTimeEntry readingTimeEntry) {
 		if (readingTimeEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				ReadingTimeEntryImpl.class, new CTPrimaryKey(readingTimeEntry),
+				readingTimeEntry);
+
 			return;
 		}
 
@@ -2119,8 +2123,17 @@ public class ReadingTimeEntryPersistenceImpl
 			return readingTimeEntry;
 		}
 
-		entityCache.putResult(
-			ReadingTimeEntryImpl.class, readingTimeEntryModelImpl, false, true);
+		if (readingTimeEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				ReadingTimeEntryImpl.class,
+				new CTPrimaryKey(readingTimeEntryModelImpl),
+				readingTimeEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				ReadingTimeEntryImpl.class, readingTimeEntryModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(readingTimeEntryModelImpl);
 
@@ -2184,25 +2197,34 @@ public class ReadingTimeEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		ReadingTimeEntry readingTimeEntry = null;
+		Serializable serializable = entityCache.getResult(
+			ReadingTimeEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		ReadingTimeEntry readingTimeEntry = (ReadingTimeEntry)serializable;
 
-			readingTimeEntry = (ReadingTimeEntry)session.get(
-				ReadingTimeEntryImpl.class, primaryKey);
+		if (readingTimeEntry == null) {
+			Session session = null;
 
-			if (readingTimeEntry != null) {
-				cacheResult(readingTimeEntry);
+			try {
+				session = openSession();
+
+				readingTimeEntry = (ReadingTimeEntry)session.get(
+					ReadingTimeEntryImpl.class, primaryKey);
+
+				if (readingTimeEntry != null) {
+					cacheResult(readingTimeEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return readingTimeEntry;

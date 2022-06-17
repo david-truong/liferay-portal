@@ -2737,6 +2737,10 @@ public class DDLRecordVersionPersistenceImpl
 	@Override
 	public void cacheResult(DDLRecordVersion ddlRecordVersion) {
 		if (ddlRecordVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordVersionImpl.class, new CTPrimaryKey(ddlRecordVersion),
+				ddlRecordVersion);
+
 			return;
 		}
 
@@ -3020,8 +3024,17 @@ public class DDLRecordVersionPersistenceImpl
 			return ddlRecordVersion;
 		}
 
-		entityCache.putResult(
-			DDLRecordVersionImpl.class, ddlRecordVersionModelImpl, false, true);
+		if (ddlRecordVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordVersionImpl.class,
+				new CTPrimaryKey(ddlRecordVersionModelImpl),
+				ddlRecordVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDLRecordVersionImpl.class, ddlRecordVersionModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(ddlRecordVersionModelImpl);
 
@@ -3085,25 +3098,34 @@ public class DDLRecordVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDLRecordVersion ddlRecordVersion = null;
+		Serializable serializable = entityCache.getResult(
+			DDLRecordVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDLRecordVersion ddlRecordVersion = (DDLRecordVersion)serializable;
 
-			ddlRecordVersion = (DDLRecordVersion)session.get(
-				DDLRecordVersionImpl.class, primaryKey);
+		if (ddlRecordVersion == null) {
+			Session session = null;
 
-			if (ddlRecordVersion != null) {
-				cacheResult(ddlRecordVersion);
+			try {
+				session = openSession();
+
+				ddlRecordVersion = (DDLRecordVersion)session.get(
+					DDLRecordVersionImpl.class, primaryKey);
+
+				if (ddlRecordVersion != null) {
+					cacheResult(ddlRecordVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddlRecordVersion;

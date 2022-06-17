@@ -2335,6 +2335,9 @@ public class RepositoryPersistenceImpl
 	@Override
 	public void cacheResult(Repository repository) {
 		if (repository.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RepositoryImpl.class, new CTPrimaryKey(repository), repository);
+
 			return;
 		}
 
@@ -2645,8 +2648,15 @@ public class RepositoryPersistenceImpl
 			return repository;
 		}
 
-		EntityCacheUtil.putResult(
-			RepositoryImpl.class, repositoryModelImpl, false, true);
+		if (repositoryModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RepositoryImpl.class, new CTPrimaryKey(repositoryModelImpl),
+				repositoryModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				RepositoryImpl.class, repositoryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(repositoryModelImpl);
 
@@ -2710,25 +2720,34 @@ public class RepositoryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Repository repository = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			RepositoryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Repository repository = (Repository)serializable;
 
-			repository = (Repository)session.get(
-				RepositoryImpl.class, primaryKey);
+		if (repository == null) {
+			Session session = null;
 
-			if (repository != null) {
-				cacheResult(repository);
+			try {
+				session = openSession();
+
+				repository = (Repository)session.get(
+					RepositoryImpl.class, primaryKey);
+
+				if (repository != null) {
+					cacheResult(repository);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return repository;

@@ -1393,6 +1393,10 @@ public class SegmentsEntryRolePersistenceImpl
 	@Override
 	public void cacheResult(SegmentsEntryRole segmentsEntryRole) {
 		if (segmentsEntryRole.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsEntryRoleImpl.class,
+				new CTPrimaryKey(segmentsEntryRole), segmentsEntryRole);
+
 			return;
 		}
 
@@ -1691,9 +1695,17 @@ public class SegmentsEntryRolePersistenceImpl
 			return segmentsEntryRole;
 		}
 
-		entityCache.putResult(
-			SegmentsEntryRoleImpl.class, segmentsEntryRoleModelImpl, false,
-			true);
+		if (segmentsEntryRoleModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsEntryRoleImpl.class,
+				new CTPrimaryKey(segmentsEntryRoleModelImpl),
+				segmentsEntryRoleModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SegmentsEntryRoleImpl.class, segmentsEntryRoleModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(segmentsEntryRoleModelImpl);
 
@@ -1757,25 +1769,34 @@ public class SegmentsEntryRolePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SegmentsEntryRole segmentsEntryRole = null;
+		Serializable serializable = entityCache.getResult(
+			SegmentsEntryRoleImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SegmentsEntryRole segmentsEntryRole = (SegmentsEntryRole)serializable;
 
-			segmentsEntryRole = (SegmentsEntryRole)session.get(
-				SegmentsEntryRoleImpl.class, primaryKey);
+		if (segmentsEntryRole == null) {
+			Session session = null;
 
-			if (segmentsEntryRole != null) {
-				cacheResult(segmentsEntryRole);
+			try {
+				session = openSession();
+
+				segmentsEntryRole = (SegmentsEntryRole)session.get(
+					SegmentsEntryRoleImpl.class, primaryKey);
+
+				if (segmentsEntryRole != null) {
+					cacheResult(segmentsEntryRole);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return segmentsEntryRole;

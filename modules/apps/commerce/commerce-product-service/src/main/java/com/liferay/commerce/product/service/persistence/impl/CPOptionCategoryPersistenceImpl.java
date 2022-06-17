@@ -3306,6 +3306,10 @@ public class CPOptionCategoryPersistenceImpl
 	@Override
 	public void cacheResult(CPOptionCategory cpOptionCategory) {
 		if (cpOptionCategory.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPOptionCategoryImpl.class, new CTPrimaryKey(cpOptionCategory),
+				cpOptionCategory);
+
 			return;
 		}
 
@@ -3609,8 +3613,17 @@ public class CPOptionCategoryPersistenceImpl
 			return cpOptionCategory;
 		}
 
-		entityCache.putResult(
-			CPOptionCategoryImpl.class, cpOptionCategoryModelImpl, false, true);
+		if (cpOptionCategoryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPOptionCategoryImpl.class,
+				new CTPrimaryKey(cpOptionCategoryModelImpl),
+				cpOptionCategoryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPOptionCategoryImpl.class, cpOptionCategoryModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(cpOptionCategoryModelImpl);
 
@@ -3674,25 +3687,34 @@ public class CPOptionCategoryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPOptionCategory cpOptionCategory = null;
+		Serializable serializable = entityCache.getResult(
+			CPOptionCategoryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPOptionCategory cpOptionCategory = (CPOptionCategory)serializable;
 
-			cpOptionCategory = (CPOptionCategory)session.get(
-				CPOptionCategoryImpl.class, primaryKey);
+		if (cpOptionCategory == null) {
+			Session session = null;
 
-			if (cpOptionCategory != null) {
-				cacheResult(cpOptionCategory);
+			try {
+				session = openSession();
+
+				cpOptionCategory = (CPOptionCategory)session.get(
+					CPOptionCategoryImpl.class, primaryKey);
+
+				if (cpOptionCategory != null) {
+					cacheResult(cpOptionCategory);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpOptionCategory;

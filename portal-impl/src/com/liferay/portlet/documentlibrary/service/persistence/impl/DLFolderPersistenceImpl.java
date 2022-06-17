@@ -14130,6 +14130,9 @@ public class DLFolderPersistenceImpl
 	@Override
 	public void cacheResult(DLFolder dlFolder) {
 		if (dlFolder.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFolderImpl.class, new CTPrimaryKey(dlFolder), dlFolder);
+
 			return;
 		}
 
@@ -14452,8 +14455,15 @@ public class DLFolderPersistenceImpl
 			return dlFolder;
 		}
 
-		EntityCacheUtil.putResult(
-			DLFolderImpl.class, dlFolderModelImpl, false, true);
+		if (dlFolderModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFolderImpl.class, new CTPrimaryKey(dlFolderModelImpl),
+				dlFolderModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				DLFolderImpl.class, dlFolderModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(dlFolderModelImpl);
 
@@ -14517,24 +14527,34 @@ public class DLFolderPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLFolder dlFolder = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			DLFolderImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLFolder dlFolder = (DLFolder)serializable;
 
-			dlFolder = (DLFolder)session.get(DLFolderImpl.class, primaryKey);
+		if (dlFolder == null) {
+			Session session = null;
 
-			if (dlFolder != null) {
-				cacheResult(dlFolder);
+			try {
+				session = openSession();
+
+				dlFolder = (DLFolder)session.get(
+					DLFolderImpl.class, primaryKey);
+
+				if (dlFolder != null) {
+					cacheResult(dlFolder);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlFolder;

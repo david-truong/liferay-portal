@@ -9936,6 +9936,10 @@ public class SegmentsEntryPersistenceImpl
 	@Override
 	public void cacheResult(SegmentsEntry segmentsEntry) {
 		if (segmentsEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsEntryImpl.class, new CTPrimaryKey(segmentsEntry),
+				segmentsEntry);
+
 			return;
 		}
 
@@ -10248,8 +10252,16 @@ public class SegmentsEntryPersistenceImpl
 			return segmentsEntry;
 		}
 
-		entityCache.putResult(
-			SegmentsEntryImpl.class, segmentsEntryModelImpl, false, true);
+		if (segmentsEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsEntryImpl.class,
+				new CTPrimaryKey(segmentsEntryModelImpl),
+				segmentsEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SegmentsEntryImpl.class, segmentsEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(segmentsEntryModelImpl);
 
@@ -10313,25 +10325,34 @@ public class SegmentsEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SegmentsEntry segmentsEntry = null;
+		Serializable serializable = entityCache.getResult(
+			SegmentsEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SegmentsEntry segmentsEntry = (SegmentsEntry)serializable;
 
-			segmentsEntry = (SegmentsEntry)session.get(
-				SegmentsEntryImpl.class, primaryKey);
+		if (segmentsEntry == null) {
+			Session session = null;
 
-			if (segmentsEntry != null) {
-				cacheResult(segmentsEntry);
+			try {
+				session = openSession();
+
+				segmentsEntry = (SegmentsEntry)session.get(
+					SegmentsEntryImpl.class, primaryKey);
+
+				if (segmentsEntry != null) {
+					cacheResult(segmentsEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return segmentsEntry;

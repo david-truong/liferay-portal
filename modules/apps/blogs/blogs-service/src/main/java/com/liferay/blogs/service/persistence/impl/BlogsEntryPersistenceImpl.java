@@ -21667,6 +21667,9 @@ public class BlogsEntryPersistenceImpl
 	@Override
 	public void cacheResult(BlogsEntry blogsEntry) {
 		if (blogsEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				BlogsEntryImpl.class, new CTPrimaryKey(blogsEntry), blogsEntry);
+
 			return;
 		}
 
@@ -22027,8 +22030,15 @@ public class BlogsEntryPersistenceImpl
 			return blogsEntry;
 		}
 
-		entityCache.putResult(
-			BlogsEntryImpl.class, blogsEntryModelImpl, false, true);
+		if (blogsEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				BlogsEntryImpl.class, new CTPrimaryKey(blogsEntryModelImpl),
+				blogsEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				BlogsEntryImpl.class, blogsEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(blogsEntryModelImpl);
 
@@ -22092,25 +22102,34 @@ public class BlogsEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		BlogsEntry blogsEntry = null;
+		Serializable serializable = entityCache.getResult(
+			BlogsEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		BlogsEntry blogsEntry = (BlogsEntry)serializable;
 
-			blogsEntry = (BlogsEntry)session.get(
-				BlogsEntryImpl.class, primaryKey);
+		if (blogsEntry == null) {
+			Session session = null;
 
-			if (blogsEntry != null) {
-				cacheResult(blogsEntry);
+			try {
+				session = openSession();
+
+				blogsEntry = (BlogsEntry)session.get(
+					BlogsEntryImpl.class, primaryKey);
+
+				if (blogsEntry != null) {
+					cacheResult(blogsEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return blogsEntry;

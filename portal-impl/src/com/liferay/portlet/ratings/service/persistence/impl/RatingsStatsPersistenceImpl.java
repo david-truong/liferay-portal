@@ -706,6 +706,10 @@ public class RatingsStatsPersistenceImpl
 	@Override
 	public void cacheResult(RatingsStats ratingsStats) {
 		if (ratingsStats.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RatingsStatsImpl.class, new CTPrimaryKey(ratingsStats),
+				ratingsStats);
+
 			return;
 		}
 
@@ -991,8 +995,15 @@ public class RatingsStatsPersistenceImpl
 			return ratingsStats;
 		}
 
-		EntityCacheUtil.putResult(
-			RatingsStatsImpl.class, ratingsStatsModelImpl, false, true);
+		if (ratingsStatsModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RatingsStatsImpl.class, new CTPrimaryKey(ratingsStatsModelImpl),
+				ratingsStatsModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				RatingsStatsImpl.class, ratingsStatsModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ratingsStatsModelImpl);
 
@@ -1056,25 +1067,34 @@ public class RatingsStatsPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		RatingsStats ratingsStats = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			RatingsStatsImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		RatingsStats ratingsStats = (RatingsStats)serializable;
 
-			ratingsStats = (RatingsStats)session.get(
-				RatingsStatsImpl.class, primaryKey);
+		if (ratingsStats == null) {
+			Session session = null;
 
-			if (ratingsStats != null) {
-				cacheResult(ratingsStats);
+			try {
+				session = openSession();
+
+				ratingsStats = (RatingsStats)session.get(
+					RatingsStatsImpl.class, primaryKey);
+
+				if (ratingsStats != null) {
+					cacheResult(ratingsStats);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ratingsStats;

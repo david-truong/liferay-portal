@@ -2501,6 +2501,9 @@ public class TrashEntryPersistenceImpl
 	@Override
 	public void cacheResult(TrashEntry trashEntry) {
 		if (trashEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				TrashEntryImpl.class, new CTPrimaryKey(trashEntry), trashEntry);
+
 			return;
 		}
 
@@ -2770,8 +2773,15 @@ public class TrashEntryPersistenceImpl
 			return trashEntry;
 		}
 
-		entityCache.putResult(
-			TrashEntryImpl.class, trashEntryModelImpl, false, true);
+		if (trashEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				TrashEntryImpl.class, new CTPrimaryKey(trashEntryModelImpl),
+				trashEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				TrashEntryImpl.class, trashEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(trashEntryModelImpl);
 
@@ -2835,25 +2845,34 @@ public class TrashEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		TrashEntry trashEntry = null;
+		Serializable serializable = entityCache.getResult(
+			TrashEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		TrashEntry trashEntry = (TrashEntry)serializable;
 
-			trashEntry = (TrashEntry)session.get(
-				TrashEntryImpl.class, primaryKey);
+		if (trashEntry == null) {
+			Session session = null;
 
-			if (trashEntry != null) {
-				cacheResult(trashEntry);
+			try {
+				session = openSession();
+
+				trashEntry = (TrashEntry)session.get(
+					TrashEntryImpl.class, primaryKey);
+
+				if (trashEntry != null) {
+					cacheResult(trashEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return trashEntry;

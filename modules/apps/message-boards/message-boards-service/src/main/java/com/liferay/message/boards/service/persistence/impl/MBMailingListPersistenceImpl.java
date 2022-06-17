@@ -2278,6 +2278,10 @@ public class MBMailingListPersistenceImpl
 	@Override
 	public void cacheResult(MBMailingList mbMailingList) {
 		if (mbMailingList.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBMailingListImpl.class, new CTPrimaryKey(mbMailingList),
+				mbMailingList);
+
 			return;
 		}
 
@@ -2590,8 +2594,16 @@ public class MBMailingListPersistenceImpl
 			return mbMailingList;
 		}
 
-		entityCache.putResult(
-			MBMailingListImpl.class, mbMailingListModelImpl, false, true);
+		if (mbMailingListModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBMailingListImpl.class,
+				new CTPrimaryKey(mbMailingListModelImpl),
+				mbMailingListModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				MBMailingListImpl.class, mbMailingListModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(mbMailingListModelImpl);
 
@@ -2655,25 +2667,34 @@ public class MBMailingListPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		MBMailingList mbMailingList = null;
+		Serializable serializable = entityCache.getResult(
+			MBMailingListImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		MBMailingList mbMailingList = (MBMailingList)serializable;
 
-			mbMailingList = (MBMailingList)session.get(
-				MBMailingListImpl.class, primaryKey);
+		if (mbMailingList == null) {
+			Session session = null;
 
-			if (mbMailingList != null) {
-				cacheResult(mbMailingList);
+			try {
+				session = openSession();
+
+				mbMailingList = (MBMailingList)session.get(
+					MBMailingListImpl.class, primaryKey);
+
+				if (mbMailingList != null) {
+					cacheResult(mbMailingList);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return mbMailingList;

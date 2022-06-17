@@ -5132,6 +5132,11 @@ public class CPDefinitionOptionValueRelPersistenceImpl
 		CPDefinitionOptionValueRel cpDefinitionOptionValueRel) {
 
 		if (cpDefinitionOptionValueRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionOptionValueRelImpl.class,
+				new CTPrimaryKey(cpDefinitionOptionValueRel),
+				cpDefinitionOptionValueRel);
+
 			return;
 		}
 
@@ -5485,9 +5490,17 @@ public class CPDefinitionOptionValueRelPersistenceImpl
 			return cpDefinitionOptionValueRel;
 		}
 
-		entityCache.putResult(
-			CPDefinitionOptionValueRelImpl.class,
-			cpDefinitionOptionValueRelModelImpl, false, true);
+		if (cpDefinitionOptionValueRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionOptionValueRelImpl.class,
+				new CTPrimaryKey(cpDefinitionOptionValueRelModelImpl),
+				cpDefinitionOptionValueRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPDefinitionOptionValueRelImpl.class,
+				cpDefinitionOptionValueRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cpDefinitionOptionValueRelModelImpl);
 
@@ -5557,26 +5570,36 @@ public class CPDefinitionOptionValueRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPDefinitionOptionValueRel cpDefinitionOptionValueRel = null;
+		Serializable serializable = entityCache.getResult(
+			CPDefinitionOptionValueRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPDefinitionOptionValueRel cpDefinitionOptionValueRel =
+			(CPDefinitionOptionValueRel)serializable;
 
-			cpDefinitionOptionValueRel =
-				(CPDefinitionOptionValueRel)session.get(
-					CPDefinitionOptionValueRelImpl.class, primaryKey);
+		if (cpDefinitionOptionValueRel == null) {
+			Session session = null;
 
-			if (cpDefinitionOptionValueRel != null) {
-				cacheResult(cpDefinitionOptionValueRel);
+			try {
+				session = openSession();
+
+				cpDefinitionOptionValueRel =
+					(CPDefinitionOptionValueRel)session.get(
+						CPDefinitionOptionValueRelImpl.class, primaryKey);
+
+				if (cpDefinitionOptionValueRel != null) {
+					cacheResult(cpDefinitionOptionValueRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpDefinitionOptionValueRel;

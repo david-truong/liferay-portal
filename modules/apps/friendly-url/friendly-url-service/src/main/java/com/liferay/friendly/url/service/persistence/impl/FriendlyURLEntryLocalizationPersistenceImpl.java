@@ -1935,6 +1935,11 @@ public class FriendlyURLEntryLocalizationPersistenceImpl
 		FriendlyURLEntryLocalization friendlyURLEntryLocalization) {
 
 		if (friendlyURLEntryLocalization.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FriendlyURLEntryLocalizationImpl.class,
+				new CTPrimaryKey(friendlyURLEntryLocalization),
+				friendlyURLEntryLocalization);
+
 			return;
 		}
 
@@ -2264,9 +2269,17 @@ public class FriendlyURLEntryLocalizationPersistenceImpl
 			return friendlyURLEntryLocalization;
 		}
 
-		entityCache.putResult(
-			FriendlyURLEntryLocalizationImpl.class,
-			friendlyURLEntryLocalizationModelImpl, false, true);
+		if (friendlyURLEntryLocalizationModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FriendlyURLEntryLocalizationImpl.class,
+				new CTPrimaryKey(friendlyURLEntryLocalizationModelImpl),
+				friendlyURLEntryLocalizationModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FriendlyURLEntryLocalizationImpl.class,
+				friendlyURLEntryLocalizationModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(friendlyURLEntryLocalizationModelImpl);
 
@@ -2337,26 +2350,37 @@ public class FriendlyURLEntryLocalizationPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FriendlyURLEntryLocalization friendlyURLEntryLocalization = null;
+		Serializable serializable = entityCache.getResult(
+			FriendlyURLEntryLocalizationImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FriendlyURLEntryLocalization friendlyURLEntryLocalization =
+			(FriendlyURLEntryLocalization)serializable;
 
-			friendlyURLEntryLocalization =
-				(FriendlyURLEntryLocalization)session.get(
-					FriendlyURLEntryLocalizationImpl.class, primaryKey);
+		if (friendlyURLEntryLocalization == null) {
+			Session session = null;
 
-			if (friendlyURLEntryLocalization != null) {
-				cacheResult(friendlyURLEntryLocalization);
+			try {
+				session = openSession();
+
+				friendlyURLEntryLocalization =
+					(FriendlyURLEntryLocalization)session.get(
+						FriendlyURLEntryLocalizationImpl.class, primaryKey);
+
+				if (friendlyURLEntryLocalization != null) {
+					cacheResult(friendlyURLEntryLocalization);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return friendlyURLEntryLocalization;

@@ -4248,6 +4248,10 @@ public class CPSpecificationOptionPersistenceImpl
 	@Override
 	public void cacheResult(CPSpecificationOption cpSpecificationOption) {
 		if (cpSpecificationOption.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPSpecificationOptionImpl.class,
+				new CTPrimaryKey(cpSpecificationOption), cpSpecificationOption);
+
 			return;
 		}
 
@@ -4568,9 +4572,17 @@ public class CPSpecificationOptionPersistenceImpl
 			return cpSpecificationOption;
 		}
 
-		entityCache.putResult(
-			CPSpecificationOptionImpl.class, cpSpecificationOptionModelImpl,
-			false, true);
+		if (cpSpecificationOptionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPSpecificationOptionImpl.class,
+				new CTPrimaryKey(cpSpecificationOptionModelImpl),
+				cpSpecificationOptionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPSpecificationOptionImpl.class, cpSpecificationOptionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(cpSpecificationOptionModelImpl);
 
@@ -4635,25 +4647,35 @@ public class CPSpecificationOptionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPSpecificationOption cpSpecificationOption = null;
+		Serializable serializable = entityCache.getResult(
+			CPSpecificationOptionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPSpecificationOption cpSpecificationOption =
+			(CPSpecificationOption)serializable;
 
-			cpSpecificationOption = (CPSpecificationOption)session.get(
-				CPSpecificationOptionImpl.class, primaryKey);
+		if (cpSpecificationOption == null) {
+			Session session = null;
 
-			if (cpSpecificationOption != null) {
-				cacheResult(cpSpecificationOption);
+			try {
+				session = openSession();
+
+				cpSpecificationOption = (CPSpecificationOption)session.get(
+					CPSpecificationOptionImpl.class, primaryKey);
+
+				if (cpSpecificationOption != null) {
+					cacheResult(cpSpecificationOption);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpSpecificationOption;

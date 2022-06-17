@@ -1746,6 +1746,10 @@ public class LayoutSEOSitePersistenceImpl
 	@Override
 	public void cacheResult(LayoutSEOSite layoutSEOSite) {
 		if (layoutSEOSite.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutSEOSiteImpl.class, new CTPrimaryKey(layoutSEOSite),
+				layoutSEOSite);
+
 			return;
 		}
 
@@ -2052,8 +2056,16 @@ public class LayoutSEOSitePersistenceImpl
 			return layoutSEOSite;
 		}
 
-		entityCache.putResult(
-			LayoutSEOSiteImpl.class, layoutSEOSiteModelImpl, false, true);
+		if (layoutSEOSiteModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutSEOSiteImpl.class,
+				new CTPrimaryKey(layoutSEOSiteModelImpl),
+				layoutSEOSiteModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				LayoutSEOSiteImpl.class, layoutSEOSiteModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(layoutSEOSiteModelImpl);
 
@@ -2117,25 +2129,34 @@ public class LayoutSEOSitePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		LayoutSEOSite layoutSEOSite = null;
+		Serializable serializable = entityCache.getResult(
+			LayoutSEOSiteImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		LayoutSEOSite layoutSEOSite = (LayoutSEOSite)serializable;
 
-			layoutSEOSite = (LayoutSEOSite)session.get(
-				LayoutSEOSiteImpl.class, primaryKey);
+		if (layoutSEOSite == null) {
+			Session session = null;
 
-			if (layoutSEOSite != null) {
-				cacheResult(layoutSEOSite);
+			try {
+				session = openSession();
+
+				layoutSEOSite = (LayoutSEOSite)session.get(
+					LayoutSEOSiteImpl.class, primaryKey);
+
+				if (layoutSEOSite != null) {
+					cacheResult(layoutSEOSite);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return layoutSEOSite;

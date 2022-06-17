@@ -3770,6 +3770,10 @@ public class DDMFormInstanceRecordPersistenceImpl
 	@Override
 	public void cacheResult(DDMFormInstanceRecord ddmFormInstanceRecord) {
 		if (ddmFormInstanceRecord.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceRecordImpl.class,
+				new CTPrimaryKey(ddmFormInstanceRecord), ddmFormInstanceRecord);
+
 			return;
 		}
 
@@ -4090,9 +4094,17 @@ public class DDMFormInstanceRecordPersistenceImpl
 			return ddmFormInstanceRecord;
 		}
 
-		entityCache.putResult(
-			DDMFormInstanceRecordImpl.class, ddmFormInstanceRecordModelImpl,
-			false, true);
+		if (ddmFormInstanceRecordModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceRecordImpl.class,
+				new CTPrimaryKey(ddmFormInstanceRecordModelImpl),
+				ddmFormInstanceRecordModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMFormInstanceRecordImpl.class, ddmFormInstanceRecordModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(ddmFormInstanceRecordModelImpl);
 
@@ -4157,25 +4169,35 @@ public class DDMFormInstanceRecordPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMFormInstanceRecord ddmFormInstanceRecord = null;
+		Serializable serializable = entityCache.getResult(
+			DDMFormInstanceRecordImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMFormInstanceRecord ddmFormInstanceRecord =
+			(DDMFormInstanceRecord)serializable;
 
-			ddmFormInstanceRecord = (DDMFormInstanceRecord)session.get(
-				DDMFormInstanceRecordImpl.class, primaryKey);
+		if (ddmFormInstanceRecord == null) {
+			Session session = null;
 
-			if (ddmFormInstanceRecord != null) {
-				cacheResult(ddmFormInstanceRecord);
+			try {
+				session = openSession();
+
+				ddmFormInstanceRecord = (DDMFormInstanceRecord)session.get(
+					DDMFormInstanceRecordImpl.class, primaryKey);
+
+				if (ddmFormInstanceRecord != null) {
+					cacheResult(ddmFormInstanceRecord);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmFormInstanceRecord;

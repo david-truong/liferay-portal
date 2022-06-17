@@ -3507,6 +3507,9 @@ public class CPOptionPersistenceImpl
 	@Override
 	public void cacheResult(CPOption cpOption) {
 		if (cpOption.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPOptionImpl.class, new CTPrimaryKey(cpOption), cpOption);
+
 			return;
 		}
 
@@ -3811,8 +3814,15 @@ public class CPOptionPersistenceImpl
 			return cpOption;
 		}
 
-		entityCache.putResult(
-			CPOptionImpl.class, cpOptionModelImpl, false, true);
+		if (cpOptionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPOptionImpl.class, new CTPrimaryKey(cpOptionModelImpl),
+				cpOptionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPOptionImpl.class, cpOptionModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cpOptionModelImpl);
 
@@ -3876,24 +3886,34 @@ public class CPOptionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPOption cpOption = null;
+		Serializable serializable = entityCache.getResult(
+			CPOptionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPOption cpOption = (CPOption)serializable;
 
-			cpOption = (CPOption)session.get(CPOptionImpl.class, primaryKey);
+		if (cpOption == null) {
+			Session session = null;
 
-			if (cpOption != null) {
-				cacheResult(cpOption);
+			try {
+				session = openSession();
+
+				cpOption = (CPOption)session.get(
+					CPOptionImpl.class, primaryKey);
+
+				if (cpOption != null) {
+					cacheResult(cpOption);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpOption;

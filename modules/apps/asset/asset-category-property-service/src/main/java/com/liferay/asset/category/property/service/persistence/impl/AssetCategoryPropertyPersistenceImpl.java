@@ -2035,6 +2035,10 @@ public class AssetCategoryPropertyPersistenceImpl
 	@Override
 	public void cacheResult(AssetCategoryProperty assetCategoryProperty) {
 		if (assetCategoryProperty.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetCategoryPropertyImpl.class,
+				new CTPrimaryKey(assetCategoryProperty), assetCategoryProperty);
+
 			return;
 		}
 
@@ -2347,9 +2351,17 @@ public class AssetCategoryPropertyPersistenceImpl
 			return assetCategoryProperty;
 		}
 
-		entityCache.putResult(
-			AssetCategoryPropertyImpl.class, assetCategoryPropertyModelImpl,
-			false, true);
+		if (assetCategoryPropertyModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetCategoryPropertyImpl.class,
+				new CTPrimaryKey(assetCategoryPropertyModelImpl),
+				assetCategoryPropertyModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				AssetCategoryPropertyImpl.class, assetCategoryPropertyModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(assetCategoryPropertyModelImpl);
 
@@ -2414,25 +2426,35 @@ public class AssetCategoryPropertyPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetCategoryProperty assetCategoryProperty = null;
+		Serializable serializable = entityCache.getResult(
+			AssetCategoryPropertyImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetCategoryProperty assetCategoryProperty =
+			(AssetCategoryProperty)serializable;
 
-			assetCategoryProperty = (AssetCategoryProperty)session.get(
-				AssetCategoryPropertyImpl.class, primaryKey);
+		if (assetCategoryProperty == null) {
+			Session session = null;
 
-			if (assetCategoryProperty != null) {
-				cacheResult(assetCategoryProperty);
+			try {
+				session = openSession();
+
+				assetCategoryProperty = (AssetCategoryProperty)session.get(
+					AssetCategoryPropertyImpl.class, primaryKey);
+
+				if (assetCategoryProperty != null) {
+					cacheResult(assetCategoryProperty);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetCategoryProperty;

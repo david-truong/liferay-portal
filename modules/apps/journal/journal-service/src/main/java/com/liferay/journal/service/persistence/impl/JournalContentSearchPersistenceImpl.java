@@ -5239,6 +5239,10 @@ public class JournalContentSearchPersistenceImpl
 	@Override
 	public void cacheResult(JournalContentSearch journalContentSearch) {
 		if (journalContentSearch.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalContentSearchImpl.class,
+				new CTPrimaryKey(journalContentSearch), journalContentSearch);
+
 			return;
 		}
 
@@ -5527,9 +5531,17 @@ public class JournalContentSearchPersistenceImpl
 			return journalContentSearch;
 		}
 
-		entityCache.putResult(
-			JournalContentSearchImpl.class, journalContentSearchModelImpl,
-			false, true);
+		if (journalContentSearchModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalContentSearchImpl.class,
+				new CTPrimaryKey(journalContentSearchModelImpl),
+				journalContentSearchModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				JournalContentSearchImpl.class, journalContentSearchModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(journalContentSearchModelImpl);
 
@@ -5594,25 +5606,35 @@ public class JournalContentSearchPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		JournalContentSearch journalContentSearch = null;
+		Serializable serializable = entityCache.getResult(
+			JournalContentSearchImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		JournalContentSearch journalContentSearch =
+			(JournalContentSearch)serializable;
 
-			journalContentSearch = (JournalContentSearch)session.get(
-				JournalContentSearchImpl.class, primaryKey);
+		if (journalContentSearch == null) {
+			Session session = null;
 
-			if (journalContentSearch != null) {
-				cacheResult(journalContentSearch);
+			try {
+				session = openSession();
+
+				journalContentSearch = (JournalContentSearch)session.get(
+					JournalContentSearchImpl.class, primaryKey);
+
+				if (journalContentSearch != null) {
+					cacheResult(journalContentSearch);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return journalContentSearch;

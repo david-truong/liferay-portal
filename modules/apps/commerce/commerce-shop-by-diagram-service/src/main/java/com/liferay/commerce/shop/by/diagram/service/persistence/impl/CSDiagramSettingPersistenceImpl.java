@@ -1492,6 +1492,10 @@ public class CSDiagramSettingPersistenceImpl
 	@Override
 	public void cacheResult(CSDiagramSetting csDiagramSetting) {
 		if (csDiagramSetting.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CSDiagramSettingImpl.class, new CTPrimaryKey(csDiagramSetting),
+				csDiagramSetting);
+
 			return;
 		}
 
@@ -1793,8 +1797,17 @@ public class CSDiagramSettingPersistenceImpl
 			return csDiagramSetting;
 		}
 
-		entityCache.putResult(
-			CSDiagramSettingImpl.class, csDiagramSettingModelImpl, false, true);
+		if (csDiagramSettingModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CSDiagramSettingImpl.class,
+				new CTPrimaryKey(csDiagramSettingModelImpl),
+				csDiagramSettingModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CSDiagramSettingImpl.class, csDiagramSettingModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(csDiagramSettingModelImpl);
 
@@ -1858,25 +1871,34 @@ public class CSDiagramSettingPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CSDiagramSetting csDiagramSetting = null;
+		Serializable serializable = entityCache.getResult(
+			CSDiagramSettingImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CSDiagramSetting csDiagramSetting = (CSDiagramSetting)serializable;
 
-			csDiagramSetting = (CSDiagramSetting)session.get(
-				CSDiagramSettingImpl.class, primaryKey);
+		if (csDiagramSetting == null) {
+			Session session = null;
 
-			if (csDiagramSetting != null) {
-				cacheResult(csDiagramSetting);
+			try {
+				session = openSession();
+
+				csDiagramSetting = (CSDiagramSetting)session.get(
+					CSDiagramSettingImpl.class, primaryKey);
+
+				if (csDiagramSetting != null) {
+					cacheResult(csDiagramSetting);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return csDiagramSetting;

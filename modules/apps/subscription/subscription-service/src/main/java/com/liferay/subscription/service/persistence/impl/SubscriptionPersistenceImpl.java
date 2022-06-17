@@ -3452,6 +3452,10 @@ public class SubscriptionPersistenceImpl
 	@Override
 	public void cacheResult(Subscription subscription) {
 		if (subscription.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SubscriptionImpl.class, new CTPrimaryKey(subscription),
+				subscription);
+
 			return;
 		}
 
@@ -3742,8 +3746,15 @@ public class SubscriptionPersistenceImpl
 			return subscription;
 		}
 
-		entityCache.putResult(
-			SubscriptionImpl.class, subscriptionModelImpl, false, true);
+		if (subscriptionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SubscriptionImpl.class, new CTPrimaryKey(subscriptionModelImpl),
+				subscriptionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SubscriptionImpl.class, subscriptionModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(subscriptionModelImpl);
 
@@ -3807,25 +3818,34 @@ public class SubscriptionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Subscription subscription = null;
+		Serializable serializable = entityCache.getResult(
+			SubscriptionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Subscription subscription = (Subscription)serializable;
 
-			subscription = (Subscription)session.get(
-				SubscriptionImpl.class, primaryKey);
+		if (subscription == null) {
+			Session session = null;
 
-			if (subscription != null) {
-				cacheResult(subscription);
+			try {
+				session = openSession();
+
+				subscription = (Subscription)session.get(
+					SubscriptionImpl.class, primaryKey);
+
+				if (subscription != null) {
+					cacheResult(subscription);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return subscription;

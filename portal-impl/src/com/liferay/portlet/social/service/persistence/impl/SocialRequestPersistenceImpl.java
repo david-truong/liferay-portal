@@ -6392,6 +6392,10 @@ public class SocialRequestPersistenceImpl
 	@Override
 	public void cacheResult(SocialRequest socialRequest) {
 		if (socialRequest.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialRequestImpl.class, new CTPrimaryKey(socialRequest),
+				socialRequest);
+
 			return;
 		}
 
@@ -6686,8 +6690,16 @@ public class SocialRequestPersistenceImpl
 			return socialRequest;
 		}
 
-		EntityCacheUtil.putResult(
-			SocialRequestImpl.class, socialRequestModelImpl, false, true);
+		if (socialRequestModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialRequestImpl.class,
+				new CTPrimaryKey(socialRequestModelImpl),
+				socialRequestModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				SocialRequestImpl.class, socialRequestModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(socialRequestModelImpl);
 
@@ -6751,25 +6763,34 @@ public class SocialRequestPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SocialRequest socialRequest = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			SocialRequestImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SocialRequest socialRequest = (SocialRequest)serializable;
 
-			socialRequest = (SocialRequest)session.get(
-				SocialRequestImpl.class, primaryKey);
+		if (socialRequest == null) {
+			Session session = null;
 
-			if (socialRequest != null) {
-				cacheResult(socialRequest);
+			try {
+				session = openSession();
+
+				socialRequest = (SocialRequest)session.get(
+					SocialRequestImpl.class, primaryKey);
+
+				if (socialRequest != null) {
+					cacheResult(socialRequest);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return socialRequest;

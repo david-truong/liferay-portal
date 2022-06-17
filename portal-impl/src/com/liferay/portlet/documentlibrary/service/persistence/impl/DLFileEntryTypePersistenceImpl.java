@@ -3395,6 +3395,10 @@ public class DLFileEntryTypePersistenceImpl
 	@Override
 	public void cacheResult(DLFileEntryType dlFileEntryType) {
 		if (dlFileEntryType.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileEntryTypeImpl.class, new CTPrimaryKey(dlFileEntryType),
+				dlFileEntryType);
+
 			return;
 		}
 
@@ -3738,8 +3742,17 @@ public class DLFileEntryTypePersistenceImpl
 			return dlFileEntryType;
 		}
 
-		EntityCacheUtil.putResult(
-			DLFileEntryTypeImpl.class, dlFileEntryTypeModelImpl, false, true);
+		if (dlFileEntryTypeModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileEntryTypeImpl.class,
+				new CTPrimaryKey(dlFileEntryTypeModelImpl),
+				dlFileEntryTypeModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				DLFileEntryTypeImpl.class, dlFileEntryTypeModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(dlFileEntryTypeModelImpl);
 
@@ -3803,25 +3816,34 @@ public class DLFileEntryTypePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLFileEntryType dlFileEntryType = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			DLFileEntryTypeImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLFileEntryType dlFileEntryType = (DLFileEntryType)serializable;
 
-			dlFileEntryType = (DLFileEntryType)session.get(
-				DLFileEntryTypeImpl.class, primaryKey);
+		if (dlFileEntryType == null) {
+			Session session = null;
 
-			if (dlFileEntryType != null) {
-				cacheResult(dlFileEntryType);
+			try {
+				session = openSession();
+
+				dlFileEntryType = (DLFileEntryType)session.get(
+					DLFileEntryTypeImpl.class, primaryKey);
+
+				if (dlFileEntryType != null) {
+					cacheResult(dlFileEntryType);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlFileEntryType;

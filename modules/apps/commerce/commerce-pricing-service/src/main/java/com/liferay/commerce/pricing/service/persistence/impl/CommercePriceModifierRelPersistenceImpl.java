@@ -2052,6 +2052,11 @@ public class CommercePriceModifierRelPersistenceImpl
 	@Override
 	public void cacheResult(CommercePriceModifierRel commercePriceModifierRel) {
 		if (commercePriceModifierRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceModifierRelImpl.class,
+				new CTPrimaryKey(commercePriceModifierRel),
+				commercePriceModifierRel);
+
 			return;
 		}
 
@@ -2371,9 +2376,17 @@ public class CommercePriceModifierRelPersistenceImpl
 			return commercePriceModifierRel;
 		}
 
-		entityCache.putResult(
-			CommercePriceModifierRelImpl.class,
-			commercePriceModifierRelModelImpl, false, true);
+		if (commercePriceModifierRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceModifierRelImpl.class,
+				new CTPrimaryKey(commercePriceModifierRelModelImpl),
+				commercePriceModifierRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommercePriceModifierRelImpl.class,
+				commercePriceModifierRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(commercePriceModifierRelModelImpl);
 
@@ -2441,25 +2454,36 @@ public class CommercePriceModifierRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommercePriceModifierRel commercePriceModifierRel = null;
+		Serializable serializable = entityCache.getResult(
+			CommercePriceModifierRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommercePriceModifierRel commercePriceModifierRel =
+			(CommercePriceModifierRel)serializable;
 
-			commercePriceModifierRel = (CommercePriceModifierRel)session.get(
-				CommercePriceModifierRelImpl.class, primaryKey);
+		if (commercePriceModifierRel == null) {
+			Session session = null;
 
-			if (commercePriceModifierRel != null) {
-				cacheResult(commercePriceModifierRel);
+			try {
+				session = openSession();
+
+				commercePriceModifierRel =
+					(CommercePriceModifierRel)session.get(
+						CommercePriceModifierRelImpl.class, primaryKey);
+
+				if (commercePriceModifierRel != null) {
+					cacheResult(commercePriceModifierRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commercePriceModifierRel;

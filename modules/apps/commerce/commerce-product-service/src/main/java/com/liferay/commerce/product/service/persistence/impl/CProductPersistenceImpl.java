@@ -2282,6 +2282,9 @@ public class CProductPersistenceImpl
 	@Override
 	public void cacheResult(CProduct cProduct) {
 		if (cProduct.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CProductImpl.class, new CTPrimaryKey(cProduct), cProduct);
+
 			return;
 		}
 
@@ -2586,8 +2589,15 @@ public class CProductPersistenceImpl
 			return cProduct;
 		}
 
-		entityCache.putResult(
-			CProductImpl.class, cProductModelImpl, false, true);
+		if (cProductModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CProductImpl.class, new CTPrimaryKey(cProductModelImpl),
+				cProductModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CProductImpl.class, cProductModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cProductModelImpl);
 
@@ -2651,24 +2661,34 @@ public class CProductPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CProduct cProduct = null;
+		Serializable serializable = entityCache.getResult(
+			CProductImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CProduct cProduct = (CProduct)serializable;
 
-			cProduct = (CProduct)session.get(CProductImpl.class, primaryKey);
+		if (cProduct == null) {
+			Session session = null;
 
-			if (cProduct != null) {
-				cacheResult(cProduct);
+			try {
+				session = openSession();
+
+				cProduct = (CProduct)session.get(
+					CProductImpl.class, primaryKey);
+
+				if (cProduct != null) {
+					cacheResult(cProduct);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cProduct;

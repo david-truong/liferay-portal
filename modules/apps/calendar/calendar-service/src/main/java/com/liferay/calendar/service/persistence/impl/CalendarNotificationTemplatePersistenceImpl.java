@@ -2463,6 +2463,11 @@ public class CalendarNotificationTemplatePersistenceImpl
 		CalendarNotificationTemplate calendarNotificationTemplate) {
 
 		if (calendarNotificationTemplate.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarNotificationTemplateImpl.class,
+				new CTPrimaryKey(calendarNotificationTemplate),
+				calendarNotificationTemplate);
+
 			return;
 		}
 
@@ -2824,9 +2829,17 @@ public class CalendarNotificationTemplatePersistenceImpl
 			return calendarNotificationTemplate;
 		}
 
-		entityCache.putResult(
-			CalendarNotificationTemplateImpl.class,
-			calendarNotificationTemplateModelImpl, false, true);
+		if (calendarNotificationTemplateModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarNotificationTemplateImpl.class,
+				new CTPrimaryKey(calendarNotificationTemplateModelImpl),
+				calendarNotificationTemplateModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CalendarNotificationTemplateImpl.class,
+				calendarNotificationTemplateModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(calendarNotificationTemplateModelImpl);
 
@@ -2897,26 +2910,37 @@ public class CalendarNotificationTemplatePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CalendarNotificationTemplate calendarNotificationTemplate = null;
+		Serializable serializable = entityCache.getResult(
+			CalendarNotificationTemplateImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CalendarNotificationTemplate calendarNotificationTemplate =
+			(CalendarNotificationTemplate)serializable;
 
-			calendarNotificationTemplate =
-				(CalendarNotificationTemplate)session.get(
-					CalendarNotificationTemplateImpl.class, primaryKey);
+		if (calendarNotificationTemplate == null) {
+			Session session = null;
 
-			if (calendarNotificationTemplate != null) {
-				cacheResult(calendarNotificationTemplate);
+			try {
+				session = openSession();
+
+				calendarNotificationTemplate =
+					(CalendarNotificationTemplate)session.get(
+						CalendarNotificationTemplateImpl.class, primaryKey);
+
+				if (calendarNotificationTemplate != null) {
+					cacheResult(calendarNotificationTemplate);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return calendarNotificationTemplate;

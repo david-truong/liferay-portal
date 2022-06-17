@@ -5771,6 +5771,10 @@ public class DLFileVersionPersistenceImpl
 	@Override
 	public void cacheResult(DLFileVersion dlFileVersion) {
 		if (dlFileVersion.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileVersionImpl.class, new CTPrimaryKey(dlFileVersion),
+				dlFileVersion);
+
 			return;
 		}
 
@@ -6085,8 +6089,16 @@ public class DLFileVersionPersistenceImpl
 			return dlFileVersion;
 		}
 
-		EntityCacheUtil.putResult(
-			DLFileVersionImpl.class, dlFileVersionModelImpl, false, true);
+		if (dlFileVersionModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileVersionImpl.class,
+				new CTPrimaryKey(dlFileVersionModelImpl),
+				dlFileVersionModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				DLFileVersionImpl.class, dlFileVersionModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(dlFileVersionModelImpl);
 
@@ -6150,25 +6162,34 @@ public class DLFileVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLFileVersion dlFileVersion = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			DLFileVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLFileVersion dlFileVersion = (DLFileVersion)serializable;
 
-			dlFileVersion = (DLFileVersion)session.get(
-				DLFileVersionImpl.class, primaryKey);
+		if (dlFileVersion == null) {
+			Session session = null;
 
-			if (dlFileVersion != null) {
-				cacheResult(dlFileVersion);
+			try {
+				session = openSession();
+
+				dlFileVersion = (DLFileVersion)session.get(
+					DLFileVersionImpl.class, primaryKey);
+
+				if (dlFileVersion != null) {
+					cacheResult(dlFileVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlFileVersion;

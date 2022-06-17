@@ -1443,6 +1443,11 @@ public class AssetEntryAssetCategoryRelPersistenceImpl
 		AssetEntryAssetCategoryRel assetEntryAssetCategoryRel) {
 
 		if (assetEntryAssetCategoryRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetEntryAssetCategoryRelImpl.class,
+				new CTPrimaryKey(assetEntryAssetCategoryRel),
+				assetEntryAssetCategoryRel);
+
 			return;
 		}
 
@@ -1741,9 +1746,17 @@ public class AssetEntryAssetCategoryRelPersistenceImpl
 			return assetEntryAssetCategoryRel;
 		}
 
-		entityCache.putResult(
-			AssetEntryAssetCategoryRelImpl.class,
-			assetEntryAssetCategoryRelModelImpl, false, true);
+		if (assetEntryAssetCategoryRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetEntryAssetCategoryRelImpl.class,
+				new CTPrimaryKey(assetEntryAssetCategoryRelModelImpl),
+				assetEntryAssetCategoryRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				AssetEntryAssetCategoryRelImpl.class,
+				assetEntryAssetCategoryRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(assetEntryAssetCategoryRelModelImpl);
 
@@ -1813,26 +1826,36 @@ public class AssetEntryAssetCategoryRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetEntryAssetCategoryRel assetEntryAssetCategoryRel = null;
+		Serializable serializable = entityCache.getResult(
+			AssetEntryAssetCategoryRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetEntryAssetCategoryRel assetEntryAssetCategoryRel =
+			(AssetEntryAssetCategoryRel)serializable;
 
-			assetEntryAssetCategoryRel =
-				(AssetEntryAssetCategoryRel)session.get(
-					AssetEntryAssetCategoryRelImpl.class, primaryKey);
+		if (assetEntryAssetCategoryRel == null) {
+			Session session = null;
 
-			if (assetEntryAssetCategoryRel != null) {
-				cacheResult(assetEntryAssetCategoryRel);
+			try {
+				session = openSession();
+
+				assetEntryAssetCategoryRel =
+					(AssetEntryAssetCategoryRel)session.get(
+						AssetEntryAssetCategoryRelImpl.class, primaryKey);
+
+				if (assetEntryAssetCategoryRel != null) {
+					cacheResult(assetEntryAssetCategoryRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetEntryAssetCategoryRel;

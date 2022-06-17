@@ -10724,6 +10724,10 @@ public class SegmentsExperiencePersistenceImpl
 	@Override
 	public void cacheResult(SegmentsExperience segmentsExperience) {
 		if (segmentsExperience.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsExperienceImpl.class,
+				new CTPrimaryKey(segmentsExperience), segmentsExperience);
+
 			return;
 		}
 
@@ -11076,9 +11080,17 @@ public class SegmentsExperiencePersistenceImpl
 			return segmentsExperience;
 		}
 
-		entityCache.putResult(
-			SegmentsExperienceImpl.class, segmentsExperienceModelImpl, false,
-			true);
+		if (segmentsExperienceModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsExperienceImpl.class,
+				new CTPrimaryKey(segmentsExperienceModelImpl),
+				segmentsExperienceModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SegmentsExperienceImpl.class, segmentsExperienceModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(segmentsExperienceModelImpl);
 
@@ -11142,25 +11154,35 @@ public class SegmentsExperiencePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SegmentsExperience segmentsExperience = null;
+		Serializable serializable = entityCache.getResult(
+			SegmentsExperienceImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SegmentsExperience segmentsExperience =
+			(SegmentsExperience)serializable;
 
-			segmentsExperience = (SegmentsExperience)session.get(
-				SegmentsExperienceImpl.class, primaryKey);
+		if (segmentsExperience == null) {
+			Session session = null;
 
-			if (segmentsExperience != null) {
-				cacheResult(segmentsExperience);
+			try {
+				session = openSession();
+
+				segmentsExperience = (SegmentsExperience)session.get(
+					SegmentsExperienceImpl.class, primaryKey);
+
+				if (segmentsExperience != null) {
+					cacheResult(segmentsExperience);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return segmentsExperience;

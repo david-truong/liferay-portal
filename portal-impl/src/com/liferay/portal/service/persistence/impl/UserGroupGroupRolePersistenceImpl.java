@@ -3027,6 +3027,10 @@ public class UserGroupGroupRolePersistenceImpl
 	@Override
 	public void cacheResult(UserGroupGroupRole userGroupGroupRole) {
 		if (userGroupGroupRole.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				UserGroupGroupRoleImpl.class,
+				new CTPrimaryKey(userGroupGroupRole), userGroupGroupRole);
+
 			return;
 		}
 
@@ -3305,9 +3309,17 @@ public class UserGroupGroupRolePersistenceImpl
 			return userGroupGroupRole;
 		}
 
-		EntityCacheUtil.putResult(
-			UserGroupGroupRoleImpl.class, userGroupGroupRoleModelImpl, false,
-			true);
+		if (userGroupGroupRoleModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				UserGroupGroupRoleImpl.class,
+				new CTPrimaryKey(userGroupGroupRoleModelImpl),
+				userGroupGroupRoleModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				UserGroupGroupRoleImpl.class, userGroupGroupRoleModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(userGroupGroupRoleModelImpl);
 
@@ -3373,25 +3385,35 @@ public class UserGroupGroupRolePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		UserGroupGroupRole userGroupGroupRole = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			UserGroupGroupRoleImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		UserGroupGroupRole userGroupGroupRole =
+			(UserGroupGroupRole)serializable;
 
-			userGroupGroupRole = (UserGroupGroupRole)session.get(
-				UserGroupGroupRoleImpl.class, primaryKey);
+		if (userGroupGroupRole == null) {
+			Session session = null;
 
-			if (userGroupGroupRole != null) {
-				cacheResult(userGroupGroupRole);
+			try {
+				session = openSession();
+
+				userGroupGroupRole = (UserGroupGroupRole)session.get(
+					UserGroupGroupRoleImpl.class, primaryKey);
+
+				if (userGroupGroupRole != null) {
+					cacheResult(userGroupGroupRole);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return userGroupGroupRole;

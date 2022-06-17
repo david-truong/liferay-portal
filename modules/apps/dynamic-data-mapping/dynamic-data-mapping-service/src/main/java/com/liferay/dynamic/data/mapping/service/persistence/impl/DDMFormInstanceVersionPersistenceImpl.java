@@ -1485,6 +1485,11 @@ public class DDMFormInstanceVersionPersistenceImpl
 	@Override
 	public void cacheResult(DDMFormInstanceVersion ddmFormInstanceVersion) {
 		if (ddmFormInstanceVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceVersionImpl.class,
+				new CTPrimaryKey(ddmFormInstanceVersion),
+				ddmFormInstanceVersion);
+
 			return;
 		}
 
@@ -1787,9 +1792,17 @@ public class DDMFormInstanceVersionPersistenceImpl
 			return ddmFormInstanceVersion;
 		}
 
-		entityCache.putResult(
-			DDMFormInstanceVersionImpl.class, ddmFormInstanceVersionModelImpl,
-			false, true);
+		if (ddmFormInstanceVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceVersionImpl.class,
+				new CTPrimaryKey(ddmFormInstanceVersionModelImpl),
+				ddmFormInstanceVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMFormInstanceVersionImpl.class,
+				ddmFormInstanceVersionModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmFormInstanceVersionModelImpl);
 
@@ -1856,25 +1869,35 @@ public class DDMFormInstanceVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMFormInstanceVersion ddmFormInstanceVersion = null;
+		Serializable serializable = entityCache.getResult(
+			DDMFormInstanceVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMFormInstanceVersion ddmFormInstanceVersion =
+			(DDMFormInstanceVersion)serializable;
 
-			ddmFormInstanceVersion = (DDMFormInstanceVersion)session.get(
-				DDMFormInstanceVersionImpl.class, primaryKey);
+		if (ddmFormInstanceVersion == null) {
+			Session session = null;
 
-			if (ddmFormInstanceVersion != null) {
-				cacheResult(ddmFormInstanceVersion);
+			try {
+				session = openSession();
+
+				ddmFormInstanceVersion = (DDMFormInstanceVersion)session.get(
+					DDMFormInstanceVersionImpl.class, primaryKey);
+
+				if (ddmFormInstanceVersion != null) {
+					cacheResult(ddmFormInstanceVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmFormInstanceVersion;

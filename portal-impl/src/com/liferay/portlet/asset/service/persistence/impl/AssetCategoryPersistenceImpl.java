@@ -12156,6 +12156,10 @@ public class AssetCategoryPersistenceImpl
 	@Override
 	public void cacheResult(AssetCategory assetCategory) {
 		if (assetCategory.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetCategoryImpl.class, new CTPrimaryKey(assetCategory),
+				assetCategory);
+
 			return;
 		}
 
@@ -12496,8 +12500,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		EntityCacheUtil.putResult(
-			AssetCategoryImpl.class, assetCategoryModelImpl, false, true);
+		if (assetCategoryModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetCategoryImpl.class,
+				new CTPrimaryKey(assetCategoryModelImpl),
+				assetCategoryModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				AssetCategoryImpl.class, assetCategoryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(assetCategoryModelImpl);
 
@@ -12561,25 +12573,34 @@ public class AssetCategoryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetCategory assetCategory = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			AssetCategoryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetCategory assetCategory = (AssetCategory)serializable;
 
-			assetCategory = (AssetCategory)session.get(
-				AssetCategoryImpl.class, primaryKey);
+		if (assetCategory == null) {
+			Session session = null;
 
-			if (assetCategory != null) {
-				cacheResult(assetCategory);
+			try {
+				session = openSession();
+
+				assetCategory = (AssetCategory)session.get(
+					AssetCategoryImpl.class, primaryKey);
+
+				if (assetCategory != null) {
+					cacheResult(assetCategory);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetCategory;

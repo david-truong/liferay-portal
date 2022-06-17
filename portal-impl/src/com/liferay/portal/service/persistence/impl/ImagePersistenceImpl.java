@@ -605,6 +605,9 @@ public class ImagePersistenceImpl
 	@Override
 	public void cacheResult(Image image) {
 		if (image.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ImageImpl.class, new CTPrimaryKey(image), image);
+
 			return;
 		}
 
@@ -850,7 +853,13 @@ public class ImagePersistenceImpl
 			return image;
 		}
 
-		EntityCacheUtil.putResult(ImageImpl.class, image, false, true);
+		if (image.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ImageImpl.class, new CTPrimaryKey(image), image, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(ImageImpl.class, image, false, true);
+		}
 
 		if (isNew) {
 			image.setNew(false);
@@ -910,24 +919,33 @@ public class ImagePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Image image = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			ImageImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Image image = (Image)serializable;
 
-			image = (Image)session.get(ImageImpl.class, primaryKey);
+		if (image == null) {
+			Session session = null;
 
-			if (image != null) {
-				cacheResult(image);
+			try {
+				session = openSession();
+
+				image = (Image)session.get(ImageImpl.class, primaryKey);
+
+				if (image != null) {
+					cacheResult(image);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return image;

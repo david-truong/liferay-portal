@@ -2765,6 +2765,11 @@ public class ClientExtensionEntryRelPersistenceImpl
 	@Override
 	public void cacheResult(ClientExtensionEntryRel clientExtensionEntryRel) {
 		if (clientExtensionEntryRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				ClientExtensionEntryRelImpl.class,
+				new CTPrimaryKey(clientExtensionEntryRel),
+				clientExtensionEntryRel);
+
 			return;
 		}
 
@@ -3095,9 +3100,17 @@ public class ClientExtensionEntryRelPersistenceImpl
 			return clientExtensionEntryRel;
 		}
 
-		entityCache.putResult(
-			ClientExtensionEntryRelImpl.class, clientExtensionEntryRelModelImpl,
-			false, true);
+		if (clientExtensionEntryRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				ClientExtensionEntryRelImpl.class,
+				new CTPrimaryKey(clientExtensionEntryRelModelImpl),
+				clientExtensionEntryRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				ClientExtensionEntryRelImpl.class,
+				clientExtensionEntryRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(clientExtensionEntryRelModelImpl);
 
@@ -3165,25 +3178,35 @@ public class ClientExtensionEntryRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		ClientExtensionEntryRel clientExtensionEntryRel = null;
+		Serializable serializable = entityCache.getResult(
+			ClientExtensionEntryRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		ClientExtensionEntryRel clientExtensionEntryRel =
+			(ClientExtensionEntryRel)serializable;
 
-			clientExtensionEntryRel = (ClientExtensionEntryRel)session.get(
-				ClientExtensionEntryRelImpl.class, primaryKey);
+		if (clientExtensionEntryRel == null) {
+			Session session = null;
 
-			if (clientExtensionEntryRel != null) {
-				cacheResult(clientExtensionEntryRel);
+			try {
+				session = openSession();
+
+				clientExtensionEntryRel = (ClientExtensionEntryRel)session.get(
+					ClientExtensionEntryRelImpl.class, primaryKey);
+
+				if (clientExtensionEntryRel != null) {
+					cacheResult(clientExtensionEntryRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return clientExtensionEntryRel;

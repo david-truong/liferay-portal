@@ -4061,6 +4061,10 @@ public class CPDefinitionLinkPersistenceImpl
 	@Override
 	public void cacheResult(CPDefinitionLink cpDefinitionLink) {
 		if (cpDefinitionLink.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionLinkImpl.class, new CTPrimaryKey(cpDefinitionLink),
+				cpDefinitionLink);
+
 			return;
 		}
 
@@ -4382,8 +4386,17 @@ public class CPDefinitionLinkPersistenceImpl
 			return cpDefinitionLink;
 		}
 
-		entityCache.putResult(
-			CPDefinitionLinkImpl.class, cpDefinitionLinkModelImpl, false, true);
+		if (cpDefinitionLinkModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionLinkImpl.class,
+				new CTPrimaryKey(cpDefinitionLinkModelImpl),
+				cpDefinitionLinkModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPDefinitionLinkImpl.class, cpDefinitionLinkModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(cpDefinitionLinkModelImpl);
 
@@ -4447,25 +4460,34 @@ public class CPDefinitionLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPDefinitionLink cpDefinitionLink = null;
+		Serializable serializable = entityCache.getResult(
+			CPDefinitionLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPDefinitionLink cpDefinitionLink = (CPDefinitionLink)serializable;
 
-			cpDefinitionLink = (CPDefinitionLink)session.get(
-				CPDefinitionLinkImpl.class, primaryKey);
+		if (cpDefinitionLink == null) {
+			Session session = null;
 
-			if (cpDefinitionLink != null) {
-				cacheResult(cpDefinitionLink);
+			try {
+				session = openSession();
+
+				cpDefinitionLink = (CPDefinitionLink)session.get(
+					CPDefinitionLinkImpl.class, primaryKey);
+
+				if (cpDefinitionLink != null) {
+					cacheResult(cpDefinitionLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpDefinitionLink;

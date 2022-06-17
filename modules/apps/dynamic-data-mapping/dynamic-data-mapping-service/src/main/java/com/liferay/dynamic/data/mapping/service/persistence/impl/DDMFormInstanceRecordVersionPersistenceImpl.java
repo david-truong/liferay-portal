@@ -3391,6 +3391,11 @@ public class DDMFormInstanceRecordVersionPersistenceImpl
 		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion) {
 
 		if (ddmFormInstanceRecordVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceRecordVersionImpl.class,
+				new CTPrimaryKey(ddmFormInstanceRecordVersion),
+				ddmFormInstanceRecordVersion);
+
 			return;
 		}
 
@@ -3708,9 +3713,17 @@ public class DDMFormInstanceRecordVersionPersistenceImpl
 			return ddmFormInstanceRecordVersion;
 		}
 
-		entityCache.putResult(
-			DDMFormInstanceRecordVersionImpl.class,
-			ddmFormInstanceRecordVersionModelImpl, false, true);
+		if (ddmFormInstanceRecordVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceRecordVersionImpl.class,
+				new CTPrimaryKey(ddmFormInstanceRecordVersionModelImpl),
+				ddmFormInstanceRecordVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMFormInstanceRecordVersionImpl.class,
+				ddmFormInstanceRecordVersionModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmFormInstanceRecordVersionModelImpl);
 
@@ -3781,26 +3794,37 @@ public class DDMFormInstanceRecordVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion = null;
+		Serializable serializable = entityCache.getResult(
+			DDMFormInstanceRecordVersionImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion =
+			(DDMFormInstanceRecordVersion)serializable;
 
-			ddmFormInstanceRecordVersion =
-				(DDMFormInstanceRecordVersion)session.get(
-					DDMFormInstanceRecordVersionImpl.class, primaryKey);
+		if (ddmFormInstanceRecordVersion == null) {
+			Session session = null;
 
-			if (ddmFormInstanceRecordVersion != null) {
-				cacheResult(ddmFormInstanceRecordVersion);
+			try {
+				session = openSession();
+
+				ddmFormInstanceRecordVersion =
+					(DDMFormInstanceRecordVersion)session.get(
+						DDMFormInstanceRecordVersionImpl.class, primaryKey);
+
+				if (ddmFormInstanceRecordVersion != null) {
+					cacheResult(ddmFormInstanceRecordVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmFormInstanceRecordVersion;

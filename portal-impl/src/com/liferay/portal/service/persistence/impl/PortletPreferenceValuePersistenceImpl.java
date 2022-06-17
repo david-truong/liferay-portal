@@ -2232,6 +2232,11 @@ public class PortletPreferenceValuePersistenceImpl
 	@Override
 	public void cacheResult(PortletPreferenceValue portletPreferenceValue) {
 		if (portletPreferenceValue.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				PortletPreferenceValueImpl.class,
+				new CTPrimaryKey(portletPreferenceValue),
+				portletPreferenceValue);
+
 			return;
 		}
 
@@ -2522,9 +2527,17 @@ public class PortletPreferenceValuePersistenceImpl
 			return portletPreferenceValue;
 		}
 
-		EntityCacheUtil.putResult(
-			PortletPreferenceValueImpl.class, portletPreferenceValueModelImpl,
-			false, true);
+		if (portletPreferenceValueModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				PortletPreferenceValueImpl.class,
+				new CTPrimaryKey(portletPreferenceValueModelImpl),
+				portletPreferenceValueModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				PortletPreferenceValueImpl.class,
+				portletPreferenceValueModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(portletPreferenceValueModelImpl);
 
@@ -2592,25 +2605,35 @@ public class PortletPreferenceValuePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		PortletPreferenceValue portletPreferenceValue = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			PortletPreferenceValueImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		PortletPreferenceValue portletPreferenceValue =
+			(PortletPreferenceValue)serializable;
 
-			portletPreferenceValue = (PortletPreferenceValue)session.get(
-				PortletPreferenceValueImpl.class, primaryKey);
+		if (portletPreferenceValue == null) {
+			Session session = null;
 
-			if (portletPreferenceValue != null) {
-				cacheResult(portletPreferenceValue);
+			try {
+				session = openSession();
+
+				portletPreferenceValue = (PortletPreferenceValue)session.get(
+					PortletPreferenceValueImpl.class, primaryKey);
+
+				if (portletPreferenceValue != null) {
+					cacheResult(portletPreferenceValue);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return portletPreferenceValue;

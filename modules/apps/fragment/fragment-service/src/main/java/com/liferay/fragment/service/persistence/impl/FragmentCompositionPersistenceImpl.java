@@ -5353,6 +5353,10 @@ public class FragmentCompositionPersistenceImpl
 	@Override
 	public void cacheResult(FragmentComposition fragmentComposition) {
 		if (fragmentComposition.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentCompositionImpl.class,
+				new CTPrimaryKey(fragmentComposition), fragmentComposition);
+
 			return;
 		}
 
@@ -5679,9 +5683,17 @@ public class FragmentCompositionPersistenceImpl
 			return fragmentComposition;
 		}
 
-		entityCache.putResult(
-			FragmentCompositionImpl.class, fragmentCompositionModelImpl, false,
-			true);
+		if (fragmentCompositionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentCompositionImpl.class,
+				new CTPrimaryKey(fragmentCompositionModelImpl),
+				fragmentCompositionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FragmentCompositionImpl.class, fragmentCompositionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(fragmentCompositionModelImpl);
 
@@ -5745,25 +5757,35 @@ public class FragmentCompositionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FragmentComposition fragmentComposition = null;
+		Serializable serializable = entityCache.getResult(
+			FragmentCompositionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FragmentComposition fragmentComposition =
+			(FragmentComposition)serializable;
 
-			fragmentComposition = (FragmentComposition)session.get(
-				FragmentCompositionImpl.class, primaryKey);
+		if (fragmentComposition == null) {
+			Session session = null;
 
-			if (fragmentComposition != null) {
-				cacheResult(fragmentComposition);
+			try {
+				session = openSession();
+
+				fragmentComposition = (FragmentComposition)session.get(
+					FragmentCompositionImpl.class, primaryKey);
+
+				if (fragmentComposition != null) {
+					cacheResult(fragmentComposition);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return fragmentComposition;

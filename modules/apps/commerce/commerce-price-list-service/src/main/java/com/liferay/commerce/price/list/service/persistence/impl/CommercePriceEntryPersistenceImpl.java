@@ -5591,6 +5591,10 @@ public class CommercePriceEntryPersistenceImpl
 	@Override
 	public void cacheResult(CommercePriceEntry commercePriceEntry) {
 		if (commercePriceEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceEntryImpl.class,
+				new CTPrimaryKey(commercePriceEntry), commercePriceEntry);
+
 			return;
 		}
 
@@ -5906,9 +5910,17 @@ public class CommercePriceEntryPersistenceImpl
 			return commercePriceEntry;
 		}
 
-		entityCache.putResult(
-			CommercePriceEntryImpl.class, commercePriceEntryModelImpl, false,
-			true);
+		if (commercePriceEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceEntryImpl.class,
+				new CTPrimaryKey(commercePriceEntryModelImpl),
+				commercePriceEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommercePriceEntryImpl.class, commercePriceEntryModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(commercePriceEntryModelImpl);
 
@@ -5972,25 +5984,35 @@ public class CommercePriceEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommercePriceEntry commercePriceEntry = null;
+		Serializable serializable = entityCache.getResult(
+			CommercePriceEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommercePriceEntry commercePriceEntry =
+			(CommercePriceEntry)serializable;
 
-			commercePriceEntry = (CommercePriceEntry)session.get(
-				CommercePriceEntryImpl.class, primaryKey);
+		if (commercePriceEntry == null) {
+			Session session = null;
 
-			if (commercePriceEntry != null) {
-				cacheResult(commercePriceEntry);
+			try {
+				session = openSession();
+
+				commercePriceEntry = (CommercePriceEntry)session.get(
+					CommercePriceEntryImpl.class, primaryKey);
+
+				if (commercePriceEntry != null) {
+					cacheResult(commercePriceEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commercePriceEntry;

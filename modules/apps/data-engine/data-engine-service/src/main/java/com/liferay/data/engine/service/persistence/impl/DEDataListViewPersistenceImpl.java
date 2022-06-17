@@ -2657,6 +2657,10 @@ public class DEDataListViewPersistenceImpl
 	@Override
 	public void cacheResult(DEDataListView deDataListView) {
 		if (deDataListView.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DEDataListViewImpl.class, new CTPrimaryKey(deDataListView),
+				deDataListView);
+
 			return;
 		}
 
@@ -2957,8 +2961,16 @@ public class DEDataListViewPersistenceImpl
 			return deDataListView;
 		}
 
-		entityCache.putResult(
-			DEDataListViewImpl.class, deDataListViewModelImpl, false, true);
+		if (deDataListViewModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DEDataListViewImpl.class,
+				new CTPrimaryKey(deDataListViewModelImpl),
+				deDataListViewModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DEDataListViewImpl.class, deDataListViewModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(deDataListViewModelImpl);
 
@@ -3022,25 +3034,34 @@ public class DEDataListViewPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DEDataListView deDataListView = null;
+		Serializable serializable = entityCache.getResult(
+			DEDataListViewImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DEDataListView deDataListView = (DEDataListView)serializable;
 
-			deDataListView = (DEDataListView)session.get(
-				DEDataListViewImpl.class, primaryKey);
+		if (deDataListView == null) {
+			Session session = null;
 
-			if (deDataListView != null) {
-				cacheResult(deDataListView);
+			try {
+				session = openSession();
+
+				deDataListView = (DEDataListView)session.get(
+					DEDataListViewImpl.class, primaryKey);
+
+				if (deDataListView != null) {
+					cacheResult(deDataListView);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return deDataListView;

@@ -3158,6 +3158,9 @@ public class TeamPersistenceImpl
 	@Override
 	public void cacheResult(Team team) {
 		if (team.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				TeamImpl.class, new CTPrimaryKey(team), team);
+
 			return;
 		}
 
@@ -3453,7 +3456,15 @@ public class TeamPersistenceImpl
 			return team;
 		}
 
-		EntityCacheUtil.putResult(TeamImpl.class, teamModelImpl, false, true);
+		if (teamModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				TeamImpl.class, new CTPrimaryKey(teamModelImpl), teamModelImpl,
+				false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				TeamImpl.class, teamModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(teamModelImpl);
 
@@ -3515,24 +3526,33 @@ public class TeamPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Team team = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			TeamImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Team team = (Team)serializable;
 
-			team = (Team)session.get(TeamImpl.class, primaryKey);
+		if (team == null) {
+			Session session = null;
 
-			if (team != null) {
-				cacheResult(team);
+			try {
+				session = openSession();
+
+				team = (Team)session.get(TeamImpl.class, primaryKey);
+
+				if (team != null) {
+					cacheResult(team);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return team;

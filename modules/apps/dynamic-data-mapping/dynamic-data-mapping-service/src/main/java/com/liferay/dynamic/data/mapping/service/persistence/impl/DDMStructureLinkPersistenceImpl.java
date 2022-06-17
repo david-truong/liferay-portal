@@ -1451,6 +1451,10 @@ public class DDMStructureLinkPersistenceImpl
 	@Override
 	public void cacheResult(DDMStructureLink ddmStructureLink) {
 		if (ddmStructureLink.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureLinkImpl.class, new CTPrimaryKey(ddmStructureLink),
+				ddmStructureLink);
+
 			return;
 		}
 
@@ -1721,8 +1725,17 @@ public class DDMStructureLinkPersistenceImpl
 			return ddmStructureLink;
 		}
 
-		entityCache.putResult(
-			DDMStructureLinkImpl.class, ddmStructureLinkModelImpl, false, true);
+		if (ddmStructureLinkModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureLinkImpl.class,
+				new CTPrimaryKey(ddmStructureLinkModelImpl),
+				ddmStructureLinkModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMStructureLinkImpl.class, ddmStructureLinkModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(ddmStructureLinkModelImpl);
 
@@ -1786,25 +1799,34 @@ public class DDMStructureLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMStructureLink ddmStructureLink = null;
+		Serializable serializable = entityCache.getResult(
+			DDMStructureLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMStructureLink ddmStructureLink = (DDMStructureLink)serializable;
 
-			ddmStructureLink = (DDMStructureLink)session.get(
-				DDMStructureLinkImpl.class, primaryKey);
+		if (ddmStructureLink == null) {
+			Session session = null;
 
-			if (ddmStructureLink != null) {
-				cacheResult(ddmStructureLink);
+			try {
+				session = openSession();
+
+				ddmStructureLink = (DDMStructureLink)session.get(
+					DDMStructureLinkImpl.class, primaryKey);
+
+				if (ddmStructureLink != null) {
+					cacheResult(ddmStructureLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmStructureLink;

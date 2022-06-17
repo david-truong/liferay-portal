@@ -3732,6 +3732,10 @@ public class CPMeasurementUnitPersistenceImpl
 	@Override
 	public void cacheResult(CPMeasurementUnit cpMeasurementUnit) {
 		if (cpMeasurementUnit.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPMeasurementUnitImpl.class,
+				new CTPrimaryKey(cpMeasurementUnit), cpMeasurementUnit);
+
 			return;
 		}
 
@@ -4077,9 +4081,17 @@ public class CPMeasurementUnitPersistenceImpl
 			return cpMeasurementUnit;
 		}
 
-		entityCache.putResult(
-			CPMeasurementUnitImpl.class, cpMeasurementUnitModelImpl, false,
-			true);
+		if (cpMeasurementUnitModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPMeasurementUnitImpl.class,
+				new CTPrimaryKey(cpMeasurementUnitModelImpl),
+				cpMeasurementUnitModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPMeasurementUnitImpl.class, cpMeasurementUnitModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(cpMeasurementUnitModelImpl);
 
@@ -4143,25 +4155,34 @@ public class CPMeasurementUnitPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPMeasurementUnit cpMeasurementUnit = null;
+		Serializable serializable = entityCache.getResult(
+			CPMeasurementUnitImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPMeasurementUnit cpMeasurementUnit = (CPMeasurementUnit)serializable;
 
-			cpMeasurementUnit = (CPMeasurementUnit)session.get(
-				CPMeasurementUnitImpl.class, primaryKey);
+		if (cpMeasurementUnit == null) {
+			Session session = null;
 
-			if (cpMeasurementUnit != null) {
-				cacheResult(cpMeasurementUnit);
+			try {
+				session = openSession();
+
+				cpMeasurementUnit = (CPMeasurementUnit)session.get(
+					CPMeasurementUnitImpl.class, primaryKey);
+
+				if (cpMeasurementUnit != null) {
+					cacheResult(cpMeasurementUnit);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpMeasurementUnit;

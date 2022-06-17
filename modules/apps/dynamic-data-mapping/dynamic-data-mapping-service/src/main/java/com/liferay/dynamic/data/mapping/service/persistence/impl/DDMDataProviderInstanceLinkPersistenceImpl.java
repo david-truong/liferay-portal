@@ -1437,6 +1437,11 @@ public class DDMDataProviderInstanceLinkPersistenceImpl
 		DDMDataProviderInstanceLink ddmDataProviderInstanceLink) {
 
 		if (ddmDataProviderInstanceLink.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMDataProviderInstanceLinkImpl.class,
+				new CTPrimaryKey(ddmDataProviderInstanceLink),
+				ddmDataProviderInstanceLink);
+
 			return;
 		}
 
@@ -1736,9 +1741,17 @@ public class DDMDataProviderInstanceLinkPersistenceImpl
 			return ddmDataProviderInstanceLink;
 		}
 
-		entityCache.putResult(
-			DDMDataProviderInstanceLinkImpl.class,
-			ddmDataProviderInstanceLinkModelImpl, false, true);
+		if (ddmDataProviderInstanceLinkModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMDataProviderInstanceLinkImpl.class,
+				new CTPrimaryKey(ddmDataProviderInstanceLinkModelImpl),
+				ddmDataProviderInstanceLinkModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMDataProviderInstanceLinkImpl.class,
+				ddmDataProviderInstanceLinkModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmDataProviderInstanceLinkModelImpl);
 
@@ -1808,26 +1821,37 @@ public class DDMDataProviderInstanceLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMDataProviderInstanceLink ddmDataProviderInstanceLink = null;
+		Serializable serializable = entityCache.getResult(
+			DDMDataProviderInstanceLinkImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMDataProviderInstanceLink ddmDataProviderInstanceLink =
+			(DDMDataProviderInstanceLink)serializable;
 
-			ddmDataProviderInstanceLink =
-				(DDMDataProviderInstanceLink)session.get(
-					DDMDataProviderInstanceLinkImpl.class, primaryKey);
+		if (ddmDataProviderInstanceLink == null) {
+			Session session = null;
 
-			if (ddmDataProviderInstanceLink != null) {
-				cacheResult(ddmDataProviderInstanceLink);
+			try {
+				session = openSession();
+
+				ddmDataProviderInstanceLink =
+					(DDMDataProviderInstanceLink)session.get(
+						DDMDataProviderInstanceLinkImpl.class, primaryKey);
+
+				if (ddmDataProviderInstanceLink != null) {
+					cacheResult(ddmDataProviderInstanceLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmDataProviderInstanceLink;

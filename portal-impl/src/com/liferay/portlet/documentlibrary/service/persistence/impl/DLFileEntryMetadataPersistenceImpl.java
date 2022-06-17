@@ -2557,6 +2557,10 @@ public class DLFileEntryMetadataPersistenceImpl
 	@Override
 	public void cacheResult(DLFileEntryMetadata dlFileEntryMetadata) {
 		if (dlFileEntryMetadata.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileEntryMetadataImpl.class,
+				new CTPrimaryKey(dlFileEntryMetadata), dlFileEntryMetadata);
+
 			return;
 		}
 
@@ -2843,9 +2847,17 @@ public class DLFileEntryMetadataPersistenceImpl
 			return dlFileEntryMetadata;
 		}
 
-		EntityCacheUtil.putResult(
-			DLFileEntryMetadataImpl.class, dlFileEntryMetadataModelImpl, false,
-			true);
+		if (dlFileEntryMetadataModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileEntryMetadataImpl.class,
+				new CTPrimaryKey(dlFileEntryMetadataModelImpl),
+				dlFileEntryMetadataModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				DLFileEntryMetadataImpl.class, dlFileEntryMetadataModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(dlFileEntryMetadataModelImpl);
 
@@ -2911,25 +2923,35 @@ public class DLFileEntryMetadataPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLFileEntryMetadata dlFileEntryMetadata = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			DLFileEntryMetadataImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLFileEntryMetadata dlFileEntryMetadata =
+			(DLFileEntryMetadata)serializable;
 
-			dlFileEntryMetadata = (DLFileEntryMetadata)session.get(
-				DLFileEntryMetadataImpl.class, primaryKey);
+		if (dlFileEntryMetadata == null) {
+			Session session = null;
 
-			if (dlFileEntryMetadata != null) {
-				cacheResult(dlFileEntryMetadata);
+			try {
+				session = openSession();
+
+				dlFileEntryMetadata = (DLFileEntryMetadata)session.get(
+					DLFileEntryMetadataImpl.class, primaryKey);
+
+				if (dlFileEntryMetadata != null) {
+					cacheResult(dlFileEntryMetadata);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlFileEntryMetadata;

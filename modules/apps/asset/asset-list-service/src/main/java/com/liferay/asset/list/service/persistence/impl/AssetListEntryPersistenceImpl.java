@@ -13547,6 +13547,10 @@ public class AssetListEntryPersistenceImpl
 	@Override
 	public void cacheResult(AssetListEntry assetListEntry) {
 		if (assetListEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetListEntryImpl.class, new CTPrimaryKey(assetListEntry),
+				assetListEntry);
+
 			return;
 		}
 
@@ -13881,8 +13885,16 @@ public class AssetListEntryPersistenceImpl
 			return assetListEntry;
 		}
 
-		entityCache.putResult(
-			AssetListEntryImpl.class, assetListEntryModelImpl, false, true);
+		if (assetListEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetListEntryImpl.class,
+				new CTPrimaryKey(assetListEntryModelImpl),
+				assetListEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				AssetListEntryImpl.class, assetListEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(assetListEntryModelImpl);
 
@@ -13946,25 +13958,34 @@ public class AssetListEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetListEntry assetListEntry = null;
+		Serializable serializable = entityCache.getResult(
+			AssetListEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetListEntry assetListEntry = (AssetListEntry)serializable;
 
-			assetListEntry = (AssetListEntry)session.get(
-				AssetListEntryImpl.class, primaryKey);
+		if (assetListEntry == null) {
+			Session session = null;
 
-			if (assetListEntry != null) {
-				cacheResult(assetListEntry);
+			try {
+				session = openSession();
+
+				assetListEntry = (AssetListEntry)session.get(
+					AssetListEntryImpl.class, primaryKey);
+
+				if (assetListEntry != null) {
+					cacheResult(assetListEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetListEntry;

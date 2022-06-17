@@ -6634,6 +6634,10 @@ public class ResourcePermissionPersistenceImpl
 	@Override
 	public void cacheResult(ResourcePermission resourcePermission) {
 		if (resourcePermission.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ResourcePermissionImpl.class,
+				new CTPrimaryKey(resourcePermission), resourcePermission);
+
 			return;
 		}
 
@@ -6915,9 +6919,17 @@ public class ResourcePermissionPersistenceImpl
 			return resourcePermission;
 		}
 
-		EntityCacheUtil.putResult(
-			ResourcePermissionImpl.class, resourcePermissionModelImpl, false,
-			true);
+		if (resourcePermissionModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ResourcePermissionImpl.class,
+				new CTPrimaryKey(resourcePermissionModelImpl),
+				resourcePermissionModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				ResourcePermissionImpl.class, resourcePermissionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(resourcePermissionModelImpl);
 
@@ -6983,25 +6995,35 @@ public class ResourcePermissionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		ResourcePermission resourcePermission = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			ResourcePermissionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		ResourcePermission resourcePermission =
+			(ResourcePermission)serializable;
 
-			resourcePermission = (ResourcePermission)session.get(
-				ResourcePermissionImpl.class, primaryKey);
+		if (resourcePermission == null) {
+			Session session = null;
 
-			if (resourcePermission != null) {
-				cacheResult(resourcePermission);
+			try {
+				session = openSession();
+
+				resourcePermission = (ResourcePermission)session.get(
+					ResourcePermissionImpl.class, primaryKey);
+
+				if (resourcePermission != null) {
+					cacheResult(resourcePermission);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return resourcePermission;

@@ -4336,6 +4336,10 @@ public class DDMStructureLayoutPersistenceImpl
 	@Override
 	public void cacheResult(DDMStructureLayout ddmStructureLayout) {
 		if (ddmStructureLayout.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureLayoutImpl.class,
+				new CTPrimaryKey(ddmStructureLayout), ddmStructureLayout);
+
 			return;
 		}
 
@@ -4690,9 +4694,17 @@ public class DDMStructureLayoutPersistenceImpl
 			return ddmStructureLayout;
 		}
 
-		entityCache.putResult(
-			DDMStructureLayoutImpl.class, ddmStructureLayoutModelImpl, false,
-			true);
+		if (ddmStructureLayoutModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureLayoutImpl.class,
+				new CTPrimaryKey(ddmStructureLayoutModelImpl),
+				ddmStructureLayoutModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMStructureLayoutImpl.class, ddmStructureLayoutModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(ddmStructureLayoutModelImpl);
 
@@ -4756,25 +4768,35 @@ public class DDMStructureLayoutPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMStructureLayout ddmStructureLayout = null;
+		Serializable serializable = entityCache.getResult(
+			DDMStructureLayoutImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMStructureLayout ddmStructureLayout =
+			(DDMStructureLayout)serializable;
 
-			ddmStructureLayout = (DDMStructureLayout)session.get(
-				DDMStructureLayoutImpl.class, primaryKey);
+		if (ddmStructureLayout == null) {
+			Session session = null;
 
-			if (ddmStructureLayout != null) {
-				cacheResult(ddmStructureLayout);
+			try {
+				session = openSession();
+
+				ddmStructureLayout = (DDMStructureLayout)session.get(
+					DDMStructureLayoutImpl.class, primaryKey);
+
+				if (ddmStructureLayout != null) {
+					cacheResult(ddmStructureLayout);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmStructureLayout;

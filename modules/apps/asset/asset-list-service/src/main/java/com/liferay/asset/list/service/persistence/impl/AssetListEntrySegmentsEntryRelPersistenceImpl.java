@@ -3771,6 +3771,11 @@ public class AssetListEntrySegmentsEntryRelPersistenceImpl
 		AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel) {
 
 		if (assetListEntrySegmentsEntryRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetListEntrySegmentsEntryRelImpl.class,
+				new CTPrimaryKey(assetListEntrySegmentsEntryRel),
+				assetListEntrySegmentsEntryRel);
+
 			return;
 		}
 
@@ -4129,9 +4134,17 @@ public class AssetListEntrySegmentsEntryRelPersistenceImpl
 			return assetListEntrySegmentsEntryRel;
 		}
 
-		entityCache.putResult(
-			AssetListEntrySegmentsEntryRelImpl.class,
-			assetListEntrySegmentsEntryRelModelImpl, false, true);
+		if (assetListEntrySegmentsEntryRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetListEntrySegmentsEntryRelImpl.class,
+				new CTPrimaryKey(assetListEntrySegmentsEntryRelModelImpl),
+				assetListEntrySegmentsEntryRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				AssetListEntrySegmentsEntryRelImpl.class,
+				assetListEntrySegmentsEntryRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(assetListEntrySegmentsEntryRelModelImpl);
 
@@ -4202,26 +4215,37 @@ public class AssetListEntrySegmentsEntryRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel = null;
+		Serializable serializable = entityCache.getResult(
+			AssetListEntrySegmentsEntryRelImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel =
+			(AssetListEntrySegmentsEntryRel)serializable;
 
-			assetListEntrySegmentsEntryRel =
-				(AssetListEntrySegmentsEntryRel)session.get(
-					AssetListEntrySegmentsEntryRelImpl.class, primaryKey);
+		if (assetListEntrySegmentsEntryRel == null) {
+			Session session = null;
 
-			if (assetListEntrySegmentsEntryRel != null) {
-				cacheResult(assetListEntrySegmentsEntryRel);
+			try {
+				session = openSession();
+
+				assetListEntrySegmentsEntryRel =
+					(AssetListEntrySegmentsEntryRel)session.get(
+						AssetListEntrySegmentsEntryRelImpl.class, primaryKey);
+
+				if (assetListEntrySegmentsEntryRel != null) {
+					cacheResult(assetListEntrySegmentsEntryRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetListEntrySegmentsEntryRel;

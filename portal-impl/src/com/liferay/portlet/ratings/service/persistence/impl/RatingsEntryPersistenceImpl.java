@@ -3045,6 +3045,10 @@ public class RatingsEntryPersistenceImpl
 	@Override
 	public void cacheResult(RatingsEntry ratingsEntry) {
 		if (ratingsEntry.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RatingsEntryImpl.class, new CTPrimaryKey(ratingsEntry),
+				ratingsEntry);
+
 			return;
 		}
 
@@ -3343,8 +3347,15 @@ public class RatingsEntryPersistenceImpl
 			return ratingsEntry;
 		}
 
-		EntityCacheUtil.putResult(
-			RatingsEntryImpl.class, ratingsEntryModelImpl, false, true);
+		if (ratingsEntryModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RatingsEntryImpl.class, new CTPrimaryKey(ratingsEntryModelImpl),
+				ratingsEntryModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				RatingsEntryImpl.class, ratingsEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ratingsEntryModelImpl);
 
@@ -3408,25 +3419,34 @@ public class RatingsEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		RatingsEntry ratingsEntry = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			RatingsEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		RatingsEntry ratingsEntry = (RatingsEntry)serializable;
 
-			ratingsEntry = (RatingsEntry)session.get(
-				RatingsEntryImpl.class, primaryKey);
+		if (ratingsEntry == null) {
+			Session session = null;
 
-			if (ratingsEntry != null) {
-				cacheResult(ratingsEntry);
+			try {
+				session = openSession();
+
+				ratingsEntry = (RatingsEntry)session.get(
+					RatingsEntryImpl.class, primaryKey);
+
+				if (ratingsEntry != null) {
+					cacheResult(ratingsEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ratingsEntry;

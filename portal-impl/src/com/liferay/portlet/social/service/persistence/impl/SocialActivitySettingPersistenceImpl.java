@@ -2683,6 +2683,10 @@ public class SocialActivitySettingPersistenceImpl
 	@Override
 	public void cacheResult(SocialActivitySetting socialActivitySetting) {
 		if (socialActivitySetting.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivitySettingImpl.class,
+				new CTPrimaryKey(socialActivitySetting), socialActivitySetting);
+
 			return;
 		}
 
@@ -2973,9 +2977,17 @@ public class SocialActivitySettingPersistenceImpl
 			return socialActivitySetting;
 		}
 
-		EntityCacheUtil.putResult(
-			SocialActivitySettingImpl.class, socialActivitySettingModelImpl,
-			false, true);
+		if (socialActivitySettingModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivitySettingImpl.class,
+				new CTPrimaryKey(socialActivitySettingModelImpl),
+				socialActivitySettingModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				SocialActivitySettingImpl.class, socialActivitySettingModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(socialActivitySettingModelImpl);
 
@@ -3042,25 +3054,35 @@ public class SocialActivitySettingPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SocialActivitySetting socialActivitySetting = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			SocialActivitySettingImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SocialActivitySetting socialActivitySetting =
+			(SocialActivitySetting)serializable;
 
-			socialActivitySetting = (SocialActivitySetting)session.get(
-				SocialActivitySettingImpl.class, primaryKey);
+		if (socialActivitySetting == null) {
+			Session session = null;
 
-			if (socialActivitySetting != null) {
-				cacheResult(socialActivitySetting);
+			try {
+				session = openSession();
+
+				socialActivitySetting = (SocialActivitySetting)session.get(
+					SocialActivitySettingImpl.class, primaryKey);
+
+				if (socialActivitySetting != null) {
+					cacheResult(socialActivitySetting);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return socialActivitySetting;

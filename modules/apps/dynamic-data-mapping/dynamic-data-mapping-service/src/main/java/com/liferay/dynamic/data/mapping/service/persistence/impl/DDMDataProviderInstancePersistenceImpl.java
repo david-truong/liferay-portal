@@ -3462,6 +3462,11 @@ public class DDMDataProviderInstancePersistenceImpl
 	@Override
 	public void cacheResult(DDMDataProviderInstance ddmDataProviderInstance) {
 		if (ddmDataProviderInstance.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMDataProviderInstanceImpl.class,
+				new CTPrimaryKey(ddmDataProviderInstance),
+				ddmDataProviderInstance);
+
 			return;
 		}
 
@@ -3785,9 +3790,17 @@ public class DDMDataProviderInstancePersistenceImpl
 			return ddmDataProviderInstance;
 		}
 
-		entityCache.putResult(
-			DDMDataProviderInstanceImpl.class, ddmDataProviderInstanceModelImpl,
-			false, true);
+		if (ddmDataProviderInstanceModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMDataProviderInstanceImpl.class,
+				new CTPrimaryKey(ddmDataProviderInstanceModelImpl),
+				ddmDataProviderInstanceModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMDataProviderInstanceImpl.class,
+				ddmDataProviderInstanceModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmDataProviderInstanceModelImpl);
 
@@ -3854,25 +3867,35 @@ public class DDMDataProviderInstancePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMDataProviderInstance ddmDataProviderInstance = null;
+		Serializable serializable = entityCache.getResult(
+			DDMDataProviderInstanceImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMDataProviderInstance ddmDataProviderInstance =
+			(DDMDataProviderInstance)serializable;
 
-			ddmDataProviderInstance = (DDMDataProviderInstance)session.get(
-				DDMDataProviderInstanceImpl.class, primaryKey);
+		if (ddmDataProviderInstance == null) {
+			Session session = null;
 
-			if (ddmDataProviderInstance != null) {
-				cacheResult(ddmDataProviderInstance);
+			try {
+				session = openSession();
+
+				ddmDataProviderInstance = (DDMDataProviderInstance)session.get(
+					DDMDataProviderInstanceImpl.class, primaryKey);
+
+				if (ddmDataProviderInstance != null) {
+					cacheResult(ddmDataProviderInstance);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmDataProviderInstance;

@@ -4739,6 +4739,10 @@ public class CPDefinitionOptionRelPersistenceImpl
 	@Override
 	public void cacheResult(CPDefinitionOptionRel cpDefinitionOptionRel) {
 		if (cpDefinitionOptionRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionOptionRelImpl.class,
+				new CTPrimaryKey(cpDefinitionOptionRel), cpDefinitionOptionRel);
+
 			return;
 		}
 
@@ -5093,9 +5097,17 @@ public class CPDefinitionOptionRelPersistenceImpl
 			return cpDefinitionOptionRel;
 		}
 
-		entityCache.putResult(
-			CPDefinitionOptionRelImpl.class, cpDefinitionOptionRelModelImpl,
-			false, true);
+		if (cpDefinitionOptionRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionOptionRelImpl.class,
+				new CTPrimaryKey(cpDefinitionOptionRelModelImpl),
+				cpDefinitionOptionRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPDefinitionOptionRelImpl.class, cpDefinitionOptionRelModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(cpDefinitionOptionRelModelImpl);
 
@@ -5160,25 +5172,35 @@ public class CPDefinitionOptionRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPDefinitionOptionRel cpDefinitionOptionRel = null;
+		Serializable serializable = entityCache.getResult(
+			CPDefinitionOptionRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPDefinitionOptionRel cpDefinitionOptionRel =
+			(CPDefinitionOptionRel)serializable;
 
-			cpDefinitionOptionRel = (CPDefinitionOptionRel)session.get(
-				CPDefinitionOptionRelImpl.class, primaryKey);
+		if (cpDefinitionOptionRel == null) {
+			Session session = null;
 
-			if (cpDefinitionOptionRel != null) {
-				cacheResult(cpDefinitionOptionRel);
+			try {
+				session = openSession();
+
+				cpDefinitionOptionRel = (CPDefinitionOptionRel)session.get(
+					CPDefinitionOptionRelImpl.class, primaryKey);
+
+				if (cpDefinitionOptionRel != null) {
+					cacheResult(cpDefinitionOptionRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpDefinitionOptionRel;

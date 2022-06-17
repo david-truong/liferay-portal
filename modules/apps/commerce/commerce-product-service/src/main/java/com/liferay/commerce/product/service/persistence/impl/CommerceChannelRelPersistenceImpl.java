@@ -1457,6 +1457,10 @@ public class CommerceChannelRelPersistenceImpl
 	@Override
 	public void cacheResult(CommerceChannelRel commerceChannelRel) {
 		if (commerceChannelRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceChannelRelImpl.class,
+				new CTPrimaryKey(commerceChannelRel), commerceChannelRel);
+
 			return;
 		}
 
@@ -1759,9 +1763,17 @@ public class CommerceChannelRelPersistenceImpl
 			return commerceChannelRel;
 		}
 
-		entityCache.putResult(
-			CommerceChannelRelImpl.class, commerceChannelRelModelImpl, false,
-			true);
+		if (commerceChannelRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceChannelRelImpl.class,
+				new CTPrimaryKey(commerceChannelRelModelImpl),
+				commerceChannelRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommerceChannelRelImpl.class, commerceChannelRelModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(commerceChannelRelModelImpl);
 
@@ -1825,25 +1837,35 @@ public class CommerceChannelRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommerceChannelRel commerceChannelRel = null;
+		Serializable serializable = entityCache.getResult(
+			CommerceChannelRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommerceChannelRel commerceChannelRel =
+			(CommerceChannelRel)serializable;
 
-			commerceChannelRel = (CommerceChannelRel)session.get(
-				CommerceChannelRelImpl.class, primaryKey);
+		if (commerceChannelRel == null) {
+			Session session = null;
 
-			if (commerceChannelRel != null) {
-				cacheResult(commerceChannelRel);
+			try {
+				session = openSession();
+
+				commerceChannelRel = (CommerceChannelRel)session.get(
+					CommerceChannelRelImpl.class, primaryKey);
+
+				if (commerceChannelRel != null) {
+					cacheResult(commerceChannelRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commerceChannelRel;

@@ -33972,6 +33972,10 @@ public class JournalArticlePersistenceImpl
 	@Override
 	public void cacheResult(JournalArticle journalArticle) {
 		if (journalArticle.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalArticleImpl.class, new CTPrimaryKey(journalArticle),
+				journalArticle);
+
 			return;
 		}
 
@@ -34341,8 +34345,16 @@ public class JournalArticlePersistenceImpl
 			return journalArticle;
 		}
 
-		entityCache.putResult(
-			JournalArticleImpl.class, journalArticleModelImpl, false, true);
+		if (journalArticleModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalArticleImpl.class,
+				new CTPrimaryKey(journalArticleModelImpl),
+				journalArticleModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				JournalArticleImpl.class, journalArticleModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(journalArticleModelImpl);
 
@@ -34406,25 +34418,34 @@ public class JournalArticlePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		JournalArticle journalArticle = null;
+		Serializable serializable = entityCache.getResult(
+			JournalArticleImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		JournalArticle journalArticle = (JournalArticle)serializable;
 
-			journalArticle = (JournalArticle)session.get(
-				JournalArticleImpl.class, primaryKey);
+		if (journalArticle == null) {
+			Session session = null;
 
-			if (journalArticle != null) {
-				cacheResult(journalArticle);
+			try {
+				session = openSession();
+
+				journalArticle = (JournalArticle)session.get(
+					JournalArticleImpl.class, primaryKey);
+
+				if (journalArticle != null) {
+					cacheResult(journalArticle);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return journalArticle;

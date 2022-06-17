@@ -2310,6 +2310,10 @@ public class RepositoryEntryPersistenceImpl
 	@Override
 	public void cacheResult(RepositoryEntry repositoryEntry) {
 		if (repositoryEntry.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RepositoryEntryImpl.class, new CTPrimaryKey(repositoryEntry),
+				repositoryEntry);
+
 			return;
 		}
 
@@ -2631,8 +2635,17 @@ public class RepositoryEntryPersistenceImpl
 			return repositoryEntry;
 		}
 
-		EntityCacheUtil.putResult(
-			RepositoryEntryImpl.class, repositoryEntryModelImpl, false, true);
+		if (repositoryEntryModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RepositoryEntryImpl.class,
+				new CTPrimaryKey(repositoryEntryModelImpl),
+				repositoryEntryModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				RepositoryEntryImpl.class, repositoryEntryModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(repositoryEntryModelImpl);
 
@@ -2696,25 +2709,34 @@ public class RepositoryEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		RepositoryEntry repositoryEntry = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			RepositoryEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		RepositoryEntry repositoryEntry = (RepositoryEntry)serializable;
 
-			repositoryEntry = (RepositoryEntry)session.get(
-				RepositoryEntryImpl.class, primaryKey);
+		if (repositoryEntry == null) {
+			Session session = null;
 
-			if (repositoryEntry != null) {
-				cacheResult(repositoryEntry);
+			try {
+				session = openSession();
+
+				repositoryEntry = (RepositoryEntry)session.get(
+					RepositoryEntryImpl.class, primaryKey);
+
+				if (repositoryEntry != null) {
+					cacheResult(repositoryEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return repositoryEntry;

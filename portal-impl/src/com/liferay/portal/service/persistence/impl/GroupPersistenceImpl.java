@@ -13181,6 +13181,9 @@ public class GroupPersistenceImpl
 	@Override
 	public void cacheResult(Group group) {
 		if (group.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				GroupImpl.class, new CTPrimaryKey(group), group);
+
 			return;
 		}
 
@@ -13550,7 +13553,15 @@ public class GroupPersistenceImpl
 			return group;
 		}
 
-		EntityCacheUtil.putResult(GroupImpl.class, groupModelImpl, false, true);
+		if (groupModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				GroupImpl.class, new CTPrimaryKey(groupModelImpl),
+				groupModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				GroupImpl.class, groupModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(groupModelImpl);
 
@@ -13612,24 +13623,33 @@ public class GroupPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Group group = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			GroupImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Group group = (Group)serializable;
 
-			group = (Group)session.get(GroupImpl.class, primaryKey);
+		if (group == null) {
+			Session session = null;
 
-			if (group != null) {
-				cacheResult(group);
+			try {
+				session = openSession();
+
+				group = (Group)session.get(GroupImpl.class, primaryKey);
+
+				if (group != null) {
+					cacheResult(group);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return group;

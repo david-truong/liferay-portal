@@ -3936,6 +3936,10 @@ public class DDLRecordSetPersistenceImpl
 	@Override
 	public void cacheResult(DDLRecordSet ddlRecordSet) {
 		if (ddlRecordSet.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordSetImpl.class, new CTPrimaryKey(ddlRecordSet),
+				ddlRecordSet);
+
 			return;
 		}
 
@@ -4256,8 +4260,15 @@ public class DDLRecordSetPersistenceImpl
 			return ddlRecordSet;
 		}
 
-		entityCache.putResult(
-			DDLRecordSetImpl.class, ddlRecordSetModelImpl, false, true);
+		if (ddlRecordSetModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordSetImpl.class, new CTPrimaryKey(ddlRecordSetModelImpl),
+				ddlRecordSetModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDLRecordSetImpl.class, ddlRecordSetModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddlRecordSetModelImpl);
 
@@ -4321,25 +4332,34 @@ public class DDLRecordSetPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDLRecordSet ddlRecordSet = null;
+		Serializable serializable = entityCache.getResult(
+			DDLRecordSetImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDLRecordSet ddlRecordSet = (DDLRecordSet)serializable;
 
-			ddlRecordSet = (DDLRecordSet)session.get(
-				DDLRecordSetImpl.class, primaryKey);
+		if (ddlRecordSet == null) {
+			Session session = null;
 
-			if (ddlRecordSet != null) {
-				cacheResult(ddlRecordSet);
+			try {
+				session = openSession();
+
+				ddlRecordSet = (DDLRecordSet)session.get(
+					DDLRecordSetImpl.class, primaryKey);
+
+				if (ddlRecordSet != null) {
+					cacheResult(ddlRecordSet);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddlRecordSet;

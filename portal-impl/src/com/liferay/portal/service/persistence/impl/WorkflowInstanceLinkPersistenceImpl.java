@@ -1347,6 +1347,10 @@ public class WorkflowInstanceLinkPersistenceImpl
 	@Override
 	public void cacheResult(WorkflowInstanceLink workflowInstanceLink) {
 		if (workflowInstanceLink.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				WorkflowInstanceLinkImpl.class,
+				new CTPrimaryKey(workflowInstanceLink), workflowInstanceLink);
+
 			return;
 		}
 
@@ -1632,9 +1636,17 @@ public class WorkflowInstanceLinkPersistenceImpl
 			return workflowInstanceLink;
 		}
 
-		EntityCacheUtil.putResult(
-			WorkflowInstanceLinkImpl.class, workflowInstanceLinkModelImpl,
-			false, true);
+		if (workflowInstanceLinkModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				WorkflowInstanceLinkImpl.class,
+				new CTPrimaryKey(workflowInstanceLinkModelImpl),
+				workflowInstanceLinkModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				WorkflowInstanceLinkImpl.class, workflowInstanceLinkModelImpl,
+				false, true);
+		}
 
 		if (isNew) {
 			workflowInstanceLink.setNew(false);
@@ -1699,25 +1711,35 @@ public class WorkflowInstanceLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		WorkflowInstanceLink workflowInstanceLink = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			WorkflowInstanceLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		WorkflowInstanceLink workflowInstanceLink =
+			(WorkflowInstanceLink)serializable;
 
-			workflowInstanceLink = (WorkflowInstanceLink)session.get(
-				WorkflowInstanceLinkImpl.class, primaryKey);
+		if (workflowInstanceLink == null) {
+			Session session = null;
 
-			if (workflowInstanceLink != null) {
-				cacheResult(workflowInstanceLink);
+			try {
+				session = openSession();
+
+				workflowInstanceLink = (WorkflowInstanceLink)session.get(
+					WorkflowInstanceLinkImpl.class, primaryKey);
+
+				if (workflowInstanceLink != null) {
+					cacheResult(workflowInstanceLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return workflowInstanceLink;

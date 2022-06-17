@@ -5324,6 +5324,10 @@ public class LayoutFriendlyURLPersistenceImpl
 	@Override
 	public void cacheResult(LayoutFriendlyURL layoutFriendlyURL) {
 		if (layoutFriendlyURL.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				LayoutFriendlyURLImpl.class,
+				new CTPrimaryKey(layoutFriendlyURL), layoutFriendlyURL);
+
 			return;
 		}
 
@@ -5671,9 +5675,17 @@ public class LayoutFriendlyURLPersistenceImpl
 			return layoutFriendlyURL;
 		}
 
-		EntityCacheUtil.putResult(
-			LayoutFriendlyURLImpl.class, layoutFriendlyURLModelImpl, false,
-			true);
+		if (layoutFriendlyURLModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				LayoutFriendlyURLImpl.class,
+				new CTPrimaryKey(layoutFriendlyURLModelImpl),
+				layoutFriendlyURLModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				LayoutFriendlyURLImpl.class, layoutFriendlyURLModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(layoutFriendlyURLModelImpl);
 
@@ -5737,25 +5749,34 @@ public class LayoutFriendlyURLPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		LayoutFriendlyURL layoutFriendlyURL = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			LayoutFriendlyURLImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		LayoutFriendlyURL layoutFriendlyURL = (LayoutFriendlyURL)serializable;
 
-			layoutFriendlyURL = (LayoutFriendlyURL)session.get(
-				LayoutFriendlyURLImpl.class, primaryKey);
+		if (layoutFriendlyURL == null) {
+			Session session = null;
 
-			if (layoutFriendlyURL != null) {
-				cacheResult(layoutFriendlyURL);
+			try {
+				session = openSession();
+
+				layoutFriendlyURL = (LayoutFriendlyURL)session.get(
+					LayoutFriendlyURLImpl.class, primaryKey);
+
+				if (layoutFriendlyURL != null) {
+					cacheResult(layoutFriendlyURL);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return layoutFriendlyURL;

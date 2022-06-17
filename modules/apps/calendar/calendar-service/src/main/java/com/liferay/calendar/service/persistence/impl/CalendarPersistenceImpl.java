@@ -3505,6 +3505,9 @@ public class CalendarPersistenceImpl
 	@Override
 	public void cacheResult(Calendar calendar) {
 		if (calendar.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarImpl.class, new CTPrimaryKey(calendar), calendar);
+
 			return;
 		}
 
@@ -3789,8 +3792,15 @@ public class CalendarPersistenceImpl
 			return calendar;
 		}
 
-		entityCache.putResult(
-			CalendarImpl.class, calendarModelImpl, false, true);
+		if (calendarModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarImpl.class, new CTPrimaryKey(calendarModelImpl),
+				calendarModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CalendarImpl.class, calendarModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(calendarModelImpl);
 
@@ -3854,24 +3864,34 @@ public class CalendarPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Calendar calendar = null;
+		Serializable serializable = entityCache.getResult(
+			CalendarImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Calendar calendar = (Calendar)serializable;
 
-			calendar = (Calendar)session.get(CalendarImpl.class, primaryKey);
+		if (calendar == null) {
+			Session session = null;
 
-			if (calendar != null) {
-				cacheResult(calendar);
+			try {
+				session = openSession();
+
+				calendar = (Calendar)session.get(
+					CalendarImpl.class, primaryKey);
+
+				if (calendar != null) {
+					cacheResult(calendar);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return calendar;

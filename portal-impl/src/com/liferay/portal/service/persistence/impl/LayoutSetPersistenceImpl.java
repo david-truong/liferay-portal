@@ -2283,6 +2283,9 @@ public class LayoutSetPersistenceImpl
 	@Override
 	public void cacheResult(LayoutSet layoutSet) {
 		if (layoutSet.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				LayoutSetImpl.class, new CTPrimaryKey(layoutSet), layoutSet);
+
 			return;
 		}
 
@@ -2588,8 +2591,15 @@ public class LayoutSetPersistenceImpl
 			return layoutSet;
 		}
 
-		EntityCacheUtil.putResult(
-			LayoutSetImpl.class, layoutSetModelImpl, false, true);
+		if (layoutSetModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				LayoutSetImpl.class, new CTPrimaryKey(layoutSetModelImpl),
+				layoutSetModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				LayoutSetImpl.class, layoutSetModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(layoutSetModelImpl);
 
@@ -2653,24 +2663,34 @@ public class LayoutSetPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		LayoutSet layoutSet = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			LayoutSetImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		LayoutSet layoutSet = (LayoutSet)serializable;
 
-			layoutSet = (LayoutSet)session.get(LayoutSetImpl.class, primaryKey);
+		if (layoutSet == null) {
+			Session session = null;
 
-			if (layoutSet != null) {
-				cacheResult(layoutSet);
+			try {
+				session = openSession();
+
+				layoutSet = (LayoutSet)session.get(
+					LayoutSetImpl.class, primaryKey);
+
+				if (layoutSet != null) {
+					cacheResult(layoutSet);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return layoutSet;

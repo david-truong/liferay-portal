@@ -1812,6 +1812,11 @@ public class JournalArticleLocalizationPersistenceImpl
 		JournalArticleLocalization journalArticleLocalization) {
 
 		if (journalArticleLocalization.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalArticleLocalizationImpl.class,
+				new CTPrimaryKey(journalArticleLocalization),
+				journalArticleLocalization);
+
 			return;
 		}
 
@@ -2166,9 +2171,17 @@ public class JournalArticleLocalizationPersistenceImpl
 			return journalArticleLocalization;
 		}
 
-		entityCache.putResult(
-			JournalArticleLocalizationImpl.class,
-			journalArticleLocalizationModelImpl, false, true);
+		if (journalArticleLocalizationModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalArticleLocalizationImpl.class,
+				new CTPrimaryKey(journalArticleLocalizationModelImpl),
+				journalArticleLocalizationModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				JournalArticleLocalizationImpl.class,
+				journalArticleLocalizationModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(journalArticleLocalizationModelImpl);
 
@@ -2238,26 +2251,36 @@ public class JournalArticleLocalizationPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		JournalArticleLocalization journalArticleLocalization = null;
+		Serializable serializable = entityCache.getResult(
+			JournalArticleLocalizationImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		JournalArticleLocalization journalArticleLocalization =
+			(JournalArticleLocalization)serializable;
 
-			journalArticleLocalization =
-				(JournalArticleLocalization)session.get(
-					JournalArticleLocalizationImpl.class, primaryKey);
+		if (journalArticleLocalization == null) {
+			Session session = null;
 
-			if (journalArticleLocalization != null) {
-				cacheResult(journalArticleLocalization);
+			try {
+				session = openSession();
+
+				journalArticleLocalization =
+					(JournalArticleLocalization)session.get(
+						JournalArticleLocalizationImpl.class, primaryKey);
+
+				if (journalArticleLocalization != null) {
+					cacheResult(journalArticleLocalization);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return journalArticleLocalization;

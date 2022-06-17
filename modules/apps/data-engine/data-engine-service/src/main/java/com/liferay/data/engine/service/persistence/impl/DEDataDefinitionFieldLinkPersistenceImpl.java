@@ -5622,6 +5622,11 @@ public class DEDataDefinitionFieldLinkPersistenceImpl
 		DEDataDefinitionFieldLink deDataDefinitionFieldLink) {
 
 		if (deDataDefinitionFieldLink.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DEDataDefinitionFieldLinkImpl.class,
+				new CTPrimaryKey(deDataDefinitionFieldLink),
+				deDataDefinitionFieldLink);
+
 			return;
 		}
 
@@ -5973,9 +5978,17 @@ public class DEDataDefinitionFieldLinkPersistenceImpl
 			return deDataDefinitionFieldLink;
 		}
 
-		entityCache.putResult(
-			DEDataDefinitionFieldLinkImpl.class,
-			deDataDefinitionFieldLinkModelImpl, false, true);
+		if (deDataDefinitionFieldLinkModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DEDataDefinitionFieldLinkImpl.class,
+				new CTPrimaryKey(deDataDefinitionFieldLinkModelImpl),
+				deDataDefinitionFieldLinkModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DEDataDefinitionFieldLinkImpl.class,
+				deDataDefinitionFieldLinkModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(deDataDefinitionFieldLinkModelImpl);
 
@@ -6045,25 +6058,36 @@ public class DEDataDefinitionFieldLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DEDataDefinitionFieldLink deDataDefinitionFieldLink = null;
+		Serializable serializable = entityCache.getResult(
+			DEDataDefinitionFieldLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DEDataDefinitionFieldLink deDataDefinitionFieldLink =
+			(DEDataDefinitionFieldLink)serializable;
 
-			deDataDefinitionFieldLink = (DEDataDefinitionFieldLink)session.get(
-				DEDataDefinitionFieldLinkImpl.class, primaryKey);
+		if (deDataDefinitionFieldLink == null) {
+			Session session = null;
 
-			if (deDataDefinitionFieldLink != null) {
-				cacheResult(deDataDefinitionFieldLink);
+			try {
+				session = openSession();
+
+				deDataDefinitionFieldLink =
+					(DEDataDefinitionFieldLink)session.get(
+						DEDataDefinitionFieldLinkImpl.class, primaryKey);
+
+				if (deDataDefinitionFieldLink != null) {
+					cacheResult(deDataDefinitionFieldLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return deDataDefinitionFieldLink;

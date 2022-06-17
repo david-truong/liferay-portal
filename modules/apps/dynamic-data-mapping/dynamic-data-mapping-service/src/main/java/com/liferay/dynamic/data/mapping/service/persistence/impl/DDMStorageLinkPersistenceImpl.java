@@ -2799,6 +2799,10 @@ public class DDMStorageLinkPersistenceImpl
 	@Override
 	public void cacheResult(DDMStorageLink ddmStorageLink) {
 		if (ddmStorageLink.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStorageLinkImpl.class, new CTPrimaryKey(ddmStorageLink),
+				ddmStorageLink);
+
 			return;
 		}
 
@@ -3068,8 +3072,16 @@ public class DDMStorageLinkPersistenceImpl
 			return ddmStorageLink;
 		}
 
-		entityCache.putResult(
-			DDMStorageLinkImpl.class, ddmStorageLinkModelImpl, false, true);
+		if (ddmStorageLinkModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStorageLinkImpl.class,
+				new CTPrimaryKey(ddmStorageLinkModelImpl),
+				ddmStorageLinkModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMStorageLinkImpl.class, ddmStorageLinkModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmStorageLinkModelImpl);
 
@@ -3133,25 +3145,34 @@ public class DDMStorageLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMStorageLink ddmStorageLink = null;
+		Serializable serializable = entityCache.getResult(
+			DDMStorageLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMStorageLink ddmStorageLink = (DDMStorageLink)serializable;
 
-			ddmStorageLink = (DDMStorageLink)session.get(
-				DDMStorageLinkImpl.class, primaryKey);
+		if (ddmStorageLink == null) {
+			Session session = null;
 
-			if (ddmStorageLink != null) {
-				cacheResult(ddmStorageLink);
+			try {
+				session = openSession();
+
+				ddmStorageLink = (DDMStorageLink)session.get(
+					DDMStorageLinkImpl.class, primaryKey);
+
+				if (ddmStorageLink != null) {
+					cacheResult(ddmStorageLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmStorageLink;

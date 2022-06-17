@@ -2558,6 +2558,10 @@ public class SocialActivityCounterPersistenceImpl
 	@Override
 	public void cacheResult(SocialActivityCounter socialActivityCounter) {
 		if (socialActivityCounter.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityCounterImpl.class,
+				new CTPrimaryKey(socialActivityCounter), socialActivityCounter);
+
 			return;
 		}
 
@@ -2880,9 +2884,17 @@ public class SocialActivityCounterPersistenceImpl
 			return socialActivityCounter;
 		}
 
-		EntityCacheUtil.putResult(
-			SocialActivityCounterImpl.class, socialActivityCounterModelImpl,
-			false, true);
+		if (socialActivityCounterModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityCounterImpl.class,
+				new CTPrimaryKey(socialActivityCounterModelImpl),
+				socialActivityCounterModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				SocialActivityCounterImpl.class, socialActivityCounterModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(socialActivityCounterModelImpl);
 
@@ -2949,25 +2961,35 @@ public class SocialActivityCounterPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SocialActivityCounter socialActivityCounter = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			SocialActivityCounterImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SocialActivityCounter socialActivityCounter =
+			(SocialActivityCounter)serializable;
 
-			socialActivityCounter = (SocialActivityCounter)session.get(
-				SocialActivityCounterImpl.class, primaryKey);
+		if (socialActivityCounter == null) {
+			Session session = null;
 
-			if (socialActivityCounter != null) {
-				cacheResult(socialActivityCounter);
+			try {
+				session = openSession();
+
+				socialActivityCounter = (SocialActivityCounter)session.get(
+					SocialActivityCounterImpl.class, primaryKey);
+
+				if (socialActivityCounter != null) {
+					cacheResult(socialActivityCounter);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return socialActivityCounter;

@@ -7222,6 +7222,10 @@ public class SiteNavigationMenuPersistenceImpl
 	@Override
 	public void cacheResult(SiteNavigationMenu siteNavigationMenu) {
 		if (siteNavigationMenu.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SiteNavigationMenuImpl.class,
+				new CTPrimaryKey(siteNavigationMenu), siteNavigationMenu);
+
 			return;
 		}
 
@@ -7547,9 +7551,17 @@ public class SiteNavigationMenuPersistenceImpl
 			return siteNavigationMenu;
 		}
 
-		entityCache.putResult(
-			SiteNavigationMenuImpl.class, siteNavigationMenuModelImpl, false,
-			true);
+		if (siteNavigationMenuModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SiteNavigationMenuImpl.class,
+				new CTPrimaryKey(siteNavigationMenuModelImpl),
+				siteNavigationMenuModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SiteNavigationMenuImpl.class, siteNavigationMenuModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(siteNavigationMenuModelImpl);
 
@@ -7613,25 +7625,35 @@ public class SiteNavigationMenuPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SiteNavigationMenu siteNavigationMenu = null;
+		Serializable serializable = entityCache.getResult(
+			SiteNavigationMenuImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SiteNavigationMenu siteNavigationMenu =
+			(SiteNavigationMenu)serializable;
 
-			siteNavigationMenu = (SiteNavigationMenu)session.get(
-				SiteNavigationMenuImpl.class, primaryKey);
+		if (siteNavigationMenu == null) {
+			Session session = null;
 
-			if (siteNavigationMenu != null) {
-				cacheResult(siteNavigationMenu);
+			try {
+				session = openSession();
+
+				siteNavigationMenu = (SiteNavigationMenu)session.get(
+					SiteNavigationMenuImpl.class, primaryKey);
+
+				if (siteNavigationMenu != null) {
+					cacheResult(siteNavigationMenu);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return siteNavigationMenu;

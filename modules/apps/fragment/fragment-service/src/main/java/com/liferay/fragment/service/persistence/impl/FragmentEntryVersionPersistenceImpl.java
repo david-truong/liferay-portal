@@ -15058,6 +15058,10 @@ public class FragmentEntryVersionPersistenceImpl
 	@Override
 	public void cacheResult(FragmentEntryVersion fragmentEntryVersion) {
 		if (fragmentEntryVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentEntryVersionImpl.class,
+				new CTPrimaryKey(fragmentEntryVersion), fragmentEntryVersion);
+
 			return;
 		}
 
@@ -15408,9 +15412,17 @@ public class FragmentEntryVersionPersistenceImpl
 			return fragmentEntryVersion;
 		}
 
-		entityCache.putResult(
-			FragmentEntryVersionImpl.class, fragmentEntryVersionModelImpl,
-			false, true);
+		if (fragmentEntryVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentEntryVersionImpl.class,
+				new CTPrimaryKey(fragmentEntryVersionModelImpl),
+				fragmentEntryVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FragmentEntryVersionImpl.class, fragmentEntryVersionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(fragmentEntryVersionModelImpl);
 
@@ -15475,25 +15487,35 @@ public class FragmentEntryVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FragmentEntryVersion fragmentEntryVersion = null;
+		Serializable serializable = entityCache.getResult(
+			FragmentEntryVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FragmentEntryVersion fragmentEntryVersion =
+			(FragmentEntryVersion)serializable;
 
-			fragmentEntryVersion = (FragmentEntryVersion)session.get(
-				FragmentEntryVersionImpl.class, primaryKey);
+		if (fragmentEntryVersion == null) {
+			Session session = null;
 
-			if (fragmentEntryVersion != null) {
-				cacheResult(fragmentEntryVersion);
+			try {
+				session = openSession();
+
+				fragmentEntryVersion = (FragmentEntryVersion)session.get(
+					FragmentEntryVersionImpl.class, primaryKey);
+
+				if (fragmentEntryVersion != null) {
+					cacheResult(fragmentEntryVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return fragmentEntryVersion;

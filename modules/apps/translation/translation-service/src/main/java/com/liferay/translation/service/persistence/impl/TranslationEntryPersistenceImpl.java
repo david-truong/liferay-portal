@@ -2384,6 +2384,10 @@ public class TranslationEntryPersistenceImpl
 	@Override
 	public void cacheResult(TranslationEntry translationEntry) {
 		if (translationEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				TranslationEntryImpl.class, new CTPrimaryKey(translationEntry),
+				translationEntry);
+
 			return;
 		}
 
@@ -2705,8 +2709,17 @@ public class TranslationEntryPersistenceImpl
 			return translationEntry;
 		}
 
-		entityCache.putResult(
-			TranslationEntryImpl.class, translationEntryModelImpl, false, true);
+		if (translationEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				TranslationEntryImpl.class,
+				new CTPrimaryKey(translationEntryModelImpl),
+				translationEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				TranslationEntryImpl.class, translationEntryModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(translationEntryModelImpl);
 
@@ -2770,25 +2783,34 @@ public class TranslationEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		TranslationEntry translationEntry = null;
+		Serializable serializable = entityCache.getResult(
+			TranslationEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		TranslationEntry translationEntry = (TranslationEntry)serializable;
 
-			translationEntry = (TranslationEntry)session.get(
-				TranslationEntryImpl.class, primaryKey);
+		if (translationEntry == null) {
+			Session session = null;
 
-			if (translationEntry != null) {
-				cacheResult(translationEntry);
+			try {
+				session = openSession();
+
+				translationEntry = (TranslationEntry)session.get(
+					TranslationEntryImpl.class, primaryKey);
+
+				if (translationEntry != null) {
+					cacheResult(translationEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return translationEntry;

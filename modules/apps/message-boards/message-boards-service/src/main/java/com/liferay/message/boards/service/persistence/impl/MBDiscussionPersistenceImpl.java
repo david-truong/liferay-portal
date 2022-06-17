@@ -1975,6 +1975,10 @@ public class MBDiscussionPersistenceImpl
 	@Override
 	public void cacheResult(MBDiscussion mbDiscussion) {
 		if (mbDiscussion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBDiscussionImpl.class, new CTPrimaryKey(mbDiscussion),
+				mbDiscussion);
+
 			return;
 		}
 
@@ -2296,8 +2300,15 @@ public class MBDiscussionPersistenceImpl
 			return mbDiscussion;
 		}
 
-		entityCache.putResult(
-			MBDiscussionImpl.class, mbDiscussionModelImpl, false, true);
+		if (mbDiscussionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBDiscussionImpl.class, new CTPrimaryKey(mbDiscussionModelImpl),
+				mbDiscussionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				MBDiscussionImpl.class, mbDiscussionModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(mbDiscussionModelImpl);
 
@@ -2361,25 +2372,34 @@ public class MBDiscussionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		MBDiscussion mbDiscussion = null;
+		Serializable serializable = entityCache.getResult(
+			MBDiscussionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		MBDiscussion mbDiscussion = (MBDiscussion)serializable;
 
-			mbDiscussion = (MBDiscussion)session.get(
-				MBDiscussionImpl.class, primaryKey);
+		if (mbDiscussion == null) {
+			Session session = null;
 
-			if (mbDiscussion != null) {
-				cacheResult(mbDiscussion);
+			try {
+				session = openSession();
+
+				mbDiscussion = (MBDiscussion)session.get(
+					MBDiscussionImpl.class, primaryKey);
+
+				if (mbDiscussion != null) {
+					cacheResult(mbDiscussion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return mbDiscussion;

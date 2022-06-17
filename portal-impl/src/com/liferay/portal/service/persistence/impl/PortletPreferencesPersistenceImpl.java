@@ -5741,6 +5741,10 @@ public class PortletPreferencesPersistenceImpl
 	@Override
 	public void cacheResult(PortletPreferences portletPreferences) {
 		if (portletPreferences.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				PortletPreferencesImpl.class,
+				new CTPrimaryKey(portletPreferences), portletPreferences);
+
 			return;
 		}
 
@@ -6021,9 +6025,17 @@ public class PortletPreferencesPersistenceImpl
 			return portletPreferences;
 		}
 
-		EntityCacheUtil.putResult(
-			PortletPreferencesImpl.class, portletPreferencesModelImpl, false,
-			true);
+		if (portletPreferencesModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				PortletPreferencesImpl.class,
+				new CTPrimaryKey(portletPreferencesModelImpl),
+				portletPreferencesModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				PortletPreferencesImpl.class, portletPreferencesModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(portletPreferencesModelImpl);
 
@@ -6089,25 +6101,35 @@ public class PortletPreferencesPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		PortletPreferences portletPreferences = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			PortletPreferencesImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		PortletPreferences portletPreferences =
+			(PortletPreferences)serializable;
 
-			portletPreferences = (PortletPreferences)session.get(
-				PortletPreferencesImpl.class, primaryKey);
+		if (portletPreferences == null) {
+			Session session = null;
 
-			if (portletPreferences != null) {
-				cacheResult(portletPreferences);
+			try {
+				session = openSession();
+
+				portletPreferences = (PortletPreferences)session.get(
+					PortletPreferencesImpl.class, primaryKey);
+
+				if (portletPreferences != null) {
+					cacheResult(portletPreferences);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return portletPreferences;

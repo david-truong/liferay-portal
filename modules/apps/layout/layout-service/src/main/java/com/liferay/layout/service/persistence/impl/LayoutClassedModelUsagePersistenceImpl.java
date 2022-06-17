@@ -4834,6 +4834,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 	@Override
 	public void cacheResult(LayoutClassedModelUsage layoutClassedModelUsage) {
 		if (layoutClassedModelUsage.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutClassedModelUsageImpl.class,
+				new CTPrimaryKey(layoutClassedModelUsage),
+				layoutClassedModelUsage);
+
 			return;
 		}
 
@@ -5182,9 +5187,17 @@ public class LayoutClassedModelUsagePersistenceImpl
 			return layoutClassedModelUsage;
 		}
 
-		entityCache.putResult(
-			LayoutClassedModelUsageImpl.class, layoutClassedModelUsageModelImpl,
-			false, true);
+		if (layoutClassedModelUsageModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutClassedModelUsageImpl.class,
+				new CTPrimaryKey(layoutClassedModelUsageModelImpl),
+				layoutClassedModelUsageModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				LayoutClassedModelUsageImpl.class,
+				layoutClassedModelUsageModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(layoutClassedModelUsageModelImpl);
 
@@ -5252,25 +5265,35 @@ public class LayoutClassedModelUsagePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		LayoutClassedModelUsage layoutClassedModelUsage = null;
+		Serializable serializable = entityCache.getResult(
+			LayoutClassedModelUsageImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		LayoutClassedModelUsage layoutClassedModelUsage =
+			(LayoutClassedModelUsage)serializable;
 
-			layoutClassedModelUsage = (LayoutClassedModelUsage)session.get(
-				LayoutClassedModelUsageImpl.class, primaryKey);
+		if (layoutClassedModelUsage == null) {
+			Session session = null;
 
-			if (layoutClassedModelUsage != null) {
-				cacheResult(layoutClassedModelUsage);
+			try {
+				session = openSession();
+
+				layoutClassedModelUsage = (LayoutClassedModelUsage)session.get(
+					LayoutClassedModelUsageImpl.class, primaryKey);
+
+				if (layoutClassedModelUsage != null) {
+					cacheResult(layoutClassedModelUsage);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return layoutClassedModelUsage;

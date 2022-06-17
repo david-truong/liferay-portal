@@ -2000,6 +2000,9 @@ public class DDMFieldPersistenceImpl
 	@Override
 	public void cacheResult(DDMField ddmField) {
 		if (ddmField.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFieldImpl.class, new CTPrimaryKey(ddmField), ddmField);
+
 			return;
 		}
 
@@ -2251,8 +2254,15 @@ public class DDMFieldPersistenceImpl
 			return ddmField;
 		}
 
-		entityCache.putResult(
-			DDMFieldImpl.class, ddmFieldModelImpl, false, true);
+		if (ddmFieldModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFieldImpl.class, new CTPrimaryKey(ddmFieldModelImpl),
+				ddmFieldModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMFieldImpl.class, ddmFieldModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmFieldModelImpl);
 
@@ -2314,24 +2324,34 @@ public class DDMFieldPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMField ddmField = null;
+		Serializable serializable = entityCache.getResult(
+			DDMFieldImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMField ddmField = (DDMField)serializable;
 
-			ddmField = (DDMField)session.get(DDMFieldImpl.class, primaryKey);
+		if (ddmField == null) {
+			Session session = null;
 
-			if (ddmField != null) {
-				cacheResult(ddmField);
+			try {
+				session = openSession();
+
+				ddmField = (DDMField)session.get(
+					DDMFieldImpl.class, primaryKey);
+
+				if (ddmField != null) {
+					cacheResult(ddmField);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmField;

@@ -5494,6 +5494,10 @@ public class AssetListEntryUsagePersistenceImpl
 	@Override
 	public void cacheResult(AssetListEntryUsage assetListEntryUsage) {
 		if (assetListEntryUsage.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetListEntryUsageImpl.class,
+				new CTPrimaryKey(assetListEntryUsage), assetListEntryUsage);
+
 			return;
 		}
 
@@ -5829,9 +5833,17 @@ public class AssetListEntryUsagePersistenceImpl
 			return assetListEntryUsage;
 		}
 
-		entityCache.putResult(
-			AssetListEntryUsageImpl.class, assetListEntryUsageModelImpl, false,
-			true);
+		if (assetListEntryUsageModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetListEntryUsageImpl.class,
+				new CTPrimaryKey(assetListEntryUsageModelImpl),
+				assetListEntryUsageModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				AssetListEntryUsageImpl.class, assetListEntryUsageModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(assetListEntryUsageModelImpl);
 
@@ -5895,25 +5907,35 @@ public class AssetListEntryUsagePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetListEntryUsage assetListEntryUsage = null;
+		Serializable serializable = entityCache.getResult(
+			AssetListEntryUsageImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetListEntryUsage assetListEntryUsage =
+			(AssetListEntryUsage)serializable;
 
-			assetListEntryUsage = (AssetListEntryUsage)session.get(
-				AssetListEntryUsageImpl.class, primaryKey);
+		if (assetListEntryUsage == null) {
+			Session session = null;
 
-			if (assetListEntryUsage != null) {
-				cacheResult(assetListEntryUsage);
+			try {
+				session = openSession();
+
+				assetListEntryUsage = (AssetListEntryUsage)session.get(
+					AssetListEntryUsageImpl.class, primaryKey);
+
+				if (assetListEntryUsage != null) {
+					cacheResult(assetListEntryUsage);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetListEntryUsage;

@@ -4003,6 +4003,10 @@ public class CPDisplayLayoutPersistenceImpl
 	@Override
 	public void cacheResult(CPDisplayLayout cpDisplayLayout) {
 		if (cpDisplayLayout.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDisplayLayoutImpl.class, new CTPrimaryKey(cpDisplayLayout),
+				cpDisplayLayout);
+
 			return;
 		}
 
@@ -4324,8 +4328,17 @@ public class CPDisplayLayoutPersistenceImpl
 			return cpDisplayLayout;
 		}
 
-		entityCache.putResult(
-			CPDisplayLayoutImpl.class, cpDisplayLayoutModelImpl, false, true);
+		if (cpDisplayLayoutModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDisplayLayoutImpl.class,
+				new CTPrimaryKey(cpDisplayLayoutModelImpl),
+				cpDisplayLayoutModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPDisplayLayoutImpl.class, cpDisplayLayoutModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(cpDisplayLayoutModelImpl);
 
@@ -4389,25 +4402,34 @@ public class CPDisplayLayoutPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPDisplayLayout cpDisplayLayout = null;
+		Serializable serializable = entityCache.getResult(
+			CPDisplayLayoutImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPDisplayLayout cpDisplayLayout = (CPDisplayLayout)serializable;
 
-			cpDisplayLayout = (CPDisplayLayout)session.get(
-				CPDisplayLayoutImpl.class, primaryKey);
+		if (cpDisplayLayout == null) {
+			Session session = null;
 
-			if (cpDisplayLayout != null) {
-				cacheResult(cpDisplayLayout);
+			try {
+				session = openSession();
+
+				cpDisplayLayout = (CPDisplayLayout)session.get(
+					CPDisplayLayoutImpl.class, primaryKey);
+
+				if (cpDisplayLayout != null) {
+					cacheResult(cpDisplayLayout);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpDisplayLayout;

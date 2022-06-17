@@ -2072,6 +2072,11 @@ public class CommercePriceListChannelRelPersistenceImpl
 		CommercePriceListChannelRel commercePriceListChannelRel) {
 
 		if (commercePriceListChannelRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceListChannelRelImpl.class,
+				new CTPrimaryKey(commercePriceListChannelRel),
+				commercePriceListChannelRel);
+
 			return;
 		}
 
@@ -2411,9 +2416,17 @@ public class CommercePriceListChannelRelPersistenceImpl
 			return commercePriceListChannelRel;
 		}
 
-		entityCache.putResult(
-			CommercePriceListChannelRelImpl.class,
-			commercePriceListChannelRelModelImpl, false, true);
+		if (commercePriceListChannelRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceListChannelRelImpl.class,
+				new CTPrimaryKey(commercePriceListChannelRelModelImpl),
+				commercePriceListChannelRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommercePriceListChannelRelImpl.class,
+				commercePriceListChannelRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(commercePriceListChannelRelModelImpl);
 
@@ -2483,26 +2496,37 @@ public class CommercePriceListChannelRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommercePriceListChannelRel commercePriceListChannelRel = null;
+		Serializable serializable = entityCache.getResult(
+			CommercePriceListChannelRelImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommercePriceListChannelRel commercePriceListChannelRel =
+			(CommercePriceListChannelRel)serializable;
 
-			commercePriceListChannelRel =
-				(CommercePriceListChannelRel)session.get(
-					CommercePriceListChannelRelImpl.class, primaryKey);
+		if (commercePriceListChannelRel == null) {
+			Session session = null;
 
-			if (commercePriceListChannelRel != null) {
-				cacheResult(commercePriceListChannelRel);
+			try {
+				session = openSession();
+
+				commercePriceListChannelRel =
+					(CommercePriceListChannelRel)session.get(
+						CommercePriceListChannelRelImpl.class, primaryKey);
+
+				if (commercePriceListChannelRel != null) {
+					cacheResult(commercePriceListChannelRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commercePriceListChannelRel;

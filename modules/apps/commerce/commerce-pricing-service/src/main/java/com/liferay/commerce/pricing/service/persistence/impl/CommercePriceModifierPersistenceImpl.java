@@ -6437,6 +6437,10 @@ public class CommercePriceModifierPersistenceImpl
 	@Override
 	public void cacheResult(CommercePriceModifier commercePriceModifier) {
 		if (commercePriceModifier.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceModifierImpl.class,
+				new CTPrimaryKey(commercePriceModifier), commercePriceModifier);
+
 			return;
 		}
 
@@ -6781,9 +6785,17 @@ public class CommercePriceModifierPersistenceImpl
 			return commercePriceModifier;
 		}
 
-		entityCache.putResult(
-			CommercePriceModifierImpl.class, commercePriceModifierModelImpl,
-			false, true);
+		if (commercePriceModifierModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceModifierImpl.class,
+				new CTPrimaryKey(commercePriceModifierModelImpl),
+				commercePriceModifierModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommercePriceModifierImpl.class, commercePriceModifierModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(commercePriceModifierModelImpl);
 
@@ -6848,25 +6860,35 @@ public class CommercePriceModifierPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommercePriceModifier commercePriceModifier = null;
+		Serializable serializable = entityCache.getResult(
+			CommercePriceModifierImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommercePriceModifier commercePriceModifier =
+			(CommercePriceModifier)serializable;
 
-			commercePriceModifier = (CommercePriceModifier)session.get(
-				CommercePriceModifierImpl.class, primaryKey);
+		if (commercePriceModifier == null) {
+			Session session = null;
 
-			if (commercePriceModifier != null) {
-				cacheResult(commercePriceModifier);
+			try {
+				session = openSession();
+
+				commercePriceModifier = (CommercePriceModifier)session.get(
+					CommercePriceModifierImpl.class, primaryKey);
+
+				if (commercePriceModifier != null) {
+					cacheResult(commercePriceModifier);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commercePriceModifier;

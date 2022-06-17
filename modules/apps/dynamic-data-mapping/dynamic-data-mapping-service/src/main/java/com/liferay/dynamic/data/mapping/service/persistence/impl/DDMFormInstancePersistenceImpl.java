@@ -2901,6 +2901,10 @@ public class DDMFormInstancePersistenceImpl
 	@Override
 	public void cacheResult(DDMFormInstance ddmFormInstance) {
 		if (ddmFormInstance.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceImpl.class, new CTPrimaryKey(ddmFormInstance),
+				ddmFormInstance);
+
 			return;
 		}
 
@@ -3214,8 +3218,17 @@ public class DDMFormInstancePersistenceImpl
 			return ddmFormInstance;
 		}
 
-		entityCache.putResult(
-			DDMFormInstanceImpl.class, ddmFormInstanceModelImpl, false, true);
+		if (ddmFormInstanceModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFormInstanceImpl.class,
+				new CTPrimaryKey(ddmFormInstanceModelImpl),
+				ddmFormInstanceModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMFormInstanceImpl.class, ddmFormInstanceModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(ddmFormInstanceModelImpl);
 
@@ -3279,25 +3292,34 @@ public class DDMFormInstancePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMFormInstance ddmFormInstance = null;
+		Serializable serializable = entityCache.getResult(
+			DDMFormInstanceImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMFormInstance ddmFormInstance = (DDMFormInstance)serializable;
 
-			ddmFormInstance = (DDMFormInstance)session.get(
-				DDMFormInstanceImpl.class, primaryKey);
+		if (ddmFormInstance == null) {
+			Session session = null;
 
-			if (ddmFormInstance != null) {
-				cacheResult(ddmFormInstance);
+			try {
+				session = openSession();
+
+				ddmFormInstance = (DDMFormInstance)session.get(
+					DDMFormInstanceImpl.class, primaryKey);
+
+				if (ddmFormInstance != null) {
+					cacheResult(ddmFormInstance);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmFormInstance;

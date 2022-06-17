@@ -10330,6 +10330,10 @@ public class DDMStructurePersistenceImpl
 	@Override
 	public void cacheResult(DDMStructure ddmStructure) {
 		if (ddmStructure.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureImpl.class, new CTPrimaryKey(ddmStructure),
+				ddmStructure);
+
 			return;
 		}
 
@@ -10655,8 +10659,15 @@ public class DDMStructurePersistenceImpl
 			return ddmStructure;
 		}
 
-		entityCache.putResult(
-			DDMStructureImpl.class, ddmStructureModelImpl, false, true);
+		if (ddmStructureModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureImpl.class, new CTPrimaryKey(ddmStructureModelImpl),
+				ddmStructureModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMStructureImpl.class, ddmStructureModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmStructureModelImpl);
 
@@ -10720,25 +10731,34 @@ public class DDMStructurePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMStructure ddmStructure = null;
+		Serializable serializable = entityCache.getResult(
+			DDMStructureImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMStructure ddmStructure = (DDMStructure)serializable;
 
-			ddmStructure = (DDMStructure)session.get(
-				DDMStructureImpl.class, primaryKey);
+		if (ddmStructure == null) {
+			Session session = null;
 
-			if (ddmStructure != null) {
-				cacheResult(ddmStructure);
+			try {
+				session = openSession();
+
+				ddmStructure = (DDMStructure)session.get(
+					DDMStructureImpl.class, primaryKey);
+
+				if (ddmStructure != null) {
+					cacheResult(ddmStructure);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmStructure;

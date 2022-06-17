@@ -5952,6 +5952,10 @@ public class SegmentsExperimentPersistenceImpl
 	@Override
 	public void cacheResult(SegmentsExperiment segmentsExperiment) {
 		if (segmentsExperiment.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsExperimentImpl.class,
+				new CTPrimaryKey(segmentsExperiment), segmentsExperiment);
+
 			return;
 		}
 
@@ -6278,9 +6282,17 @@ public class SegmentsExperimentPersistenceImpl
 			return segmentsExperiment;
 		}
 
-		entityCache.putResult(
-			SegmentsExperimentImpl.class, segmentsExperimentModelImpl, false,
-			true);
+		if (segmentsExperimentModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsExperimentImpl.class,
+				new CTPrimaryKey(segmentsExperimentModelImpl),
+				segmentsExperimentModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SegmentsExperimentImpl.class, segmentsExperimentModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(segmentsExperimentModelImpl);
 
@@ -6344,25 +6356,35 @@ public class SegmentsExperimentPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SegmentsExperiment segmentsExperiment = null;
+		Serializable serializable = entityCache.getResult(
+			SegmentsExperimentImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SegmentsExperiment segmentsExperiment =
+			(SegmentsExperiment)serializable;
 
-			segmentsExperiment = (SegmentsExperiment)session.get(
-				SegmentsExperimentImpl.class, primaryKey);
+		if (segmentsExperiment == null) {
+			Session session = null;
 
-			if (segmentsExperiment != null) {
-				cacheResult(segmentsExperiment);
+			try {
+				session = openSession();
+
+				segmentsExperiment = (SegmentsExperiment)session.get(
+					SegmentsExperimentImpl.class, primaryKey);
+
+				if (segmentsExperiment != null) {
+					cacheResult(segmentsExperiment);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return segmentsExperiment;

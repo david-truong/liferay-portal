@@ -25999,6 +25999,11 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	@Override
 	public void cacheResult(LayoutPageTemplateEntry layoutPageTemplateEntry) {
 		if (layoutPageTemplateEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutPageTemplateEntryImpl.class,
+				new CTPrimaryKey(layoutPageTemplateEntry),
+				layoutPageTemplateEntry);
+
 			return;
 		}
 
@@ -26369,9 +26374,17 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			return layoutPageTemplateEntry;
 		}
 
-		entityCache.putResult(
-			LayoutPageTemplateEntryImpl.class, layoutPageTemplateEntryModelImpl,
-			false, true);
+		if (layoutPageTemplateEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutPageTemplateEntryImpl.class,
+				new CTPrimaryKey(layoutPageTemplateEntryModelImpl),
+				layoutPageTemplateEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				LayoutPageTemplateEntryImpl.class,
+				layoutPageTemplateEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(layoutPageTemplateEntryModelImpl);
 
@@ -26439,25 +26452,35 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		LayoutPageTemplateEntry layoutPageTemplateEntry = null;
+		Serializable serializable = entityCache.getResult(
+			LayoutPageTemplateEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			(LayoutPageTemplateEntry)serializable;
 
-			layoutPageTemplateEntry = (LayoutPageTemplateEntry)session.get(
-				LayoutPageTemplateEntryImpl.class, primaryKey);
+		if (layoutPageTemplateEntry == null) {
+			Session session = null;
 
-			if (layoutPageTemplateEntry != null) {
-				cacheResult(layoutPageTemplateEntry);
+			try {
+				session = openSession();
+
+				layoutPageTemplateEntry = (LayoutPageTemplateEntry)session.get(
+					LayoutPageTemplateEntryImpl.class, primaryKey);
+
+				if (layoutPageTemplateEntry != null) {
+					cacheResult(layoutPageTemplateEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return layoutPageTemplateEntry;

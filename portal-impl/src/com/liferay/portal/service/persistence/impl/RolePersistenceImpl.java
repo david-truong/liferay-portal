@@ -9942,6 +9942,9 @@ public class RolePersistenceImpl
 	@Override
 	public void cacheResult(Role role) {
 		if (role.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RoleImpl.class, new CTPrimaryKey(role), role);
+
 			return;
 		}
 
@@ -10258,7 +10261,15 @@ public class RolePersistenceImpl
 			return role;
 		}
 
-		EntityCacheUtil.putResult(RoleImpl.class, roleModelImpl, false, true);
+		if (roleModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				RoleImpl.class, new CTPrimaryKey(roleModelImpl), roleModelImpl,
+				false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				RoleImpl.class, roleModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(roleModelImpl);
 
@@ -10320,24 +10331,33 @@ public class RolePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Role role = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			RoleImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Role role = (Role)serializable;
 
-			role = (Role)session.get(RoleImpl.class, primaryKey);
+		if (role == null) {
+			Session session = null;
 
-			if (role != null) {
-				cacheResult(role);
+			try {
+				session = openSession();
+
+				role = (Role)session.get(RoleImpl.class, primaryKey);
+
+				if (role != null) {
+					cacheResult(role);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return role;

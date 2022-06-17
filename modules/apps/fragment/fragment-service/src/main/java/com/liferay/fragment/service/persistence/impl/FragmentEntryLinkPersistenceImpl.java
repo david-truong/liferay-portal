@@ -9588,6 +9588,10 @@ public class FragmentEntryLinkPersistenceImpl
 	@Override
 	public void cacheResult(FragmentEntryLink fragmentEntryLink) {
 		if (fragmentEntryLink.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentEntryLinkImpl.class,
+				new CTPrimaryKey(fragmentEntryLink), fragmentEntryLink);
+
 			return;
 		}
 
@@ -9895,9 +9899,17 @@ public class FragmentEntryLinkPersistenceImpl
 			return fragmentEntryLink;
 		}
 
-		entityCache.putResult(
-			FragmentEntryLinkImpl.class, fragmentEntryLinkModelImpl, false,
-			true);
+		if (fragmentEntryLinkModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentEntryLinkImpl.class,
+				new CTPrimaryKey(fragmentEntryLinkModelImpl),
+				fragmentEntryLinkModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FragmentEntryLinkImpl.class, fragmentEntryLinkModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(fragmentEntryLinkModelImpl);
 
@@ -9961,25 +9973,34 @@ public class FragmentEntryLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FragmentEntryLink fragmentEntryLink = null;
+		Serializable serializable = entityCache.getResult(
+			FragmentEntryLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FragmentEntryLink fragmentEntryLink = (FragmentEntryLink)serializable;
 
-			fragmentEntryLink = (FragmentEntryLink)session.get(
-				FragmentEntryLinkImpl.class, primaryKey);
+		if (fragmentEntryLink == null) {
+			Session session = null;
 
-			if (fragmentEntryLink != null) {
-				cacheResult(fragmentEntryLink);
+			try {
+				session = openSession();
+
+				fragmentEntryLink = (FragmentEntryLink)session.get(
+					FragmentEntryLinkImpl.class, primaryKey);
+
+				if (fragmentEntryLink != null) {
+					cacheResult(fragmentEntryLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return fragmentEntryLink;

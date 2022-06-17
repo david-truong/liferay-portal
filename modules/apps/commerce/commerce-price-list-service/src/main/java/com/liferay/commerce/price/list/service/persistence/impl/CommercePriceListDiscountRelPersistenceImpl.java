@@ -2072,6 +2072,11 @@ public class CommercePriceListDiscountRelPersistenceImpl
 		CommercePriceListDiscountRel commercePriceListDiscountRel) {
 
 		if (commercePriceListDiscountRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceListDiscountRelImpl.class,
+				new CTPrimaryKey(commercePriceListDiscountRel),
+				commercePriceListDiscountRel);
+
 			return;
 		}
 
@@ -2412,9 +2417,17 @@ public class CommercePriceListDiscountRelPersistenceImpl
 			return commercePriceListDiscountRel;
 		}
 
-		entityCache.putResult(
-			CommercePriceListDiscountRelImpl.class,
-			commercePriceListDiscountRelModelImpl, false, true);
+		if (commercePriceListDiscountRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceListDiscountRelImpl.class,
+				new CTPrimaryKey(commercePriceListDiscountRelModelImpl),
+				commercePriceListDiscountRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommercePriceListDiscountRelImpl.class,
+				commercePriceListDiscountRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(commercePriceListDiscountRelModelImpl);
 
@@ -2485,26 +2498,37 @@ public class CommercePriceListDiscountRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommercePriceListDiscountRel commercePriceListDiscountRel = null;
+		Serializable serializable = entityCache.getResult(
+			CommercePriceListDiscountRelImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommercePriceListDiscountRel commercePriceListDiscountRel =
+			(CommercePriceListDiscountRel)serializable;
 
-			commercePriceListDiscountRel =
-				(CommercePriceListDiscountRel)session.get(
-					CommercePriceListDiscountRelImpl.class, primaryKey);
+		if (commercePriceListDiscountRel == null) {
+			Session session = null;
 
-			if (commercePriceListDiscountRel != null) {
-				cacheResult(commercePriceListDiscountRel);
+			try {
+				session = openSession();
+
+				commercePriceListDiscountRel =
+					(CommercePriceListDiscountRel)session.get(
+						CommercePriceListDiscountRelImpl.class, primaryKey);
+
+				if (commercePriceListDiscountRel != null) {
+					cacheResult(commercePriceListDiscountRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commercePriceListDiscountRel;

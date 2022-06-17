@@ -1513,6 +1513,10 @@ public class CommerceChannelPersistenceImpl
 	@Override
 	public void cacheResult(CommerceChannel commerceChannel) {
 		if (commerceChannel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceChannelImpl.class, new CTPrimaryKey(commerceChannel),
+				commerceChannel);
+
 			return;
 		}
 
@@ -1825,8 +1829,17 @@ public class CommerceChannelPersistenceImpl
 			return commerceChannel;
 		}
 
-		entityCache.putResult(
-			CommerceChannelImpl.class, commerceChannelModelImpl, false, true);
+		if (commerceChannelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceChannelImpl.class,
+				new CTPrimaryKey(commerceChannelModelImpl),
+				commerceChannelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommerceChannelImpl.class, commerceChannelModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(commerceChannelModelImpl);
 
@@ -1890,25 +1903,34 @@ public class CommerceChannelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommerceChannel commerceChannel = null;
+		Serializable serializable = entityCache.getResult(
+			CommerceChannelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommerceChannel commerceChannel = (CommerceChannel)serializable;
 
-			commerceChannel = (CommerceChannel)session.get(
-				CommerceChannelImpl.class, primaryKey);
+		if (commerceChannel == null) {
+			Session session = null;
 
-			if (commerceChannel != null) {
-				cacheResult(commerceChannel);
+			try {
+				session = openSession();
+
+				commerceChannel = (CommerceChannel)session.get(
+					CommerceChannelImpl.class, primaryKey);
+
+				if (commerceChannel != null) {
+					cacheResult(commerceChannel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commerceChannel;

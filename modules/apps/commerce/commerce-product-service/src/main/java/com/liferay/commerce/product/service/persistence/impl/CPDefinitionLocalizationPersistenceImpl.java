@@ -926,6 +926,11 @@ public class CPDefinitionLocalizationPersistenceImpl
 	@Override
 	public void cacheResult(CPDefinitionLocalization cpDefinitionLocalization) {
 		if (cpDefinitionLocalization.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionLocalizationImpl.class,
+				new CTPrimaryKey(cpDefinitionLocalization),
+				cpDefinitionLocalization);
+
 			return;
 		}
 
@@ -1246,9 +1251,17 @@ public class CPDefinitionLocalizationPersistenceImpl
 			return cpDefinitionLocalization;
 		}
 
-		entityCache.putResult(
-			CPDefinitionLocalizationImpl.class,
-			cpDefinitionLocalizationModelImpl, false, true);
+		if (cpDefinitionLocalizationModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionLocalizationImpl.class,
+				new CTPrimaryKey(cpDefinitionLocalizationModelImpl),
+				cpDefinitionLocalizationModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPDefinitionLocalizationImpl.class,
+				cpDefinitionLocalizationModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cpDefinitionLocalizationModelImpl);
 
@@ -1316,25 +1329,36 @@ public class CPDefinitionLocalizationPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPDefinitionLocalization cpDefinitionLocalization = null;
+		Serializable serializable = entityCache.getResult(
+			CPDefinitionLocalizationImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPDefinitionLocalization cpDefinitionLocalization =
+			(CPDefinitionLocalization)serializable;
 
-			cpDefinitionLocalization = (CPDefinitionLocalization)session.get(
-				CPDefinitionLocalizationImpl.class, primaryKey);
+		if (cpDefinitionLocalization == null) {
+			Session session = null;
 
-			if (cpDefinitionLocalization != null) {
-				cacheResult(cpDefinitionLocalization);
+			try {
+				session = openSession();
+
+				cpDefinitionLocalization =
+					(CPDefinitionLocalization)session.get(
+						CPDefinitionLocalizationImpl.class, primaryKey);
+
+				if (cpDefinitionLocalization != null) {
+					cacheResult(cpDefinitionLocalization);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpDefinitionLocalization;

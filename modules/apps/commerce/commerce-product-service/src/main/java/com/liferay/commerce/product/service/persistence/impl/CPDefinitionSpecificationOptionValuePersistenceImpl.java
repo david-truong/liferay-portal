@@ -5301,6 +5301,11 @@ public class CPDefinitionSpecificationOptionValuePersistenceImpl
 			cpDefinitionSpecificationOptionValue) {
 
 		if (cpDefinitionSpecificationOptionValue.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionSpecificationOptionValueImpl.class,
+				new CTPrimaryKey(cpDefinitionSpecificationOptionValue),
+				cpDefinitionSpecificationOptionValue);
+
 			return;
 		}
 
@@ -5683,9 +5688,19 @@ public class CPDefinitionSpecificationOptionValuePersistenceImpl
 			return cpDefinitionSpecificationOptionValue;
 		}
 
-		entityCache.putResult(
-			CPDefinitionSpecificationOptionValueImpl.class,
-			cpDefinitionSpecificationOptionValueModelImpl, false, true);
+		if (cpDefinitionSpecificationOptionValueModelImpl.getCtCollectionId() !=
+				0) {
+
+			entityCache.putResult(
+				CPDefinitionSpecificationOptionValueImpl.class,
+				new CTPrimaryKey(cpDefinitionSpecificationOptionValueModelImpl),
+				cpDefinitionSpecificationOptionValueModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPDefinitionSpecificationOptionValueImpl.class,
+				cpDefinitionSpecificationOptionValueModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cpDefinitionSpecificationOptionValueModelImpl);
 
@@ -5758,27 +5773,39 @@ public class CPDefinitionSpecificationOptionValuePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
+		Serializable serializable = entityCache.getResult(
+			CPDefinitionSpecificationOptionValueImpl.class,
+			new CTPrimaryKey(primaryKey));
+
+		if (serializable == nullModel) {
+			return null;
+		}
+
 		CPDefinitionSpecificationOptionValue
-			cpDefinitionSpecificationOptionValue = null;
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
 			cpDefinitionSpecificationOptionValue =
-				(CPDefinitionSpecificationOptionValue)session.get(
-					CPDefinitionSpecificationOptionValueImpl.class, primaryKey);
+				(CPDefinitionSpecificationOptionValue)serializable;
 
-			if (cpDefinitionSpecificationOptionValue != null) {
-				cacheResult(cpDefinitionSpecificationOptionValue);
+		if (cpDefinitionSpecificationOptionValue == null) {
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				cpDefinitionSpecificationOptionValue =
+					(CPDefinitionSpecificationOptionValue)session.get(
+						CPDefinitionSpecificationOptionValueImpl.class,
+						primaryKey);
+
+				if (cpDefinitionSpecificationOptionValue != null) {
+					cacheResult(cpDefinitionSpecificationOptionValue);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpDefinitionSpecificationOptionValue;

@@ -1671,6 +1671,10 @@ public class DLFileVersionPreviewPersistenceImpl
 	@Override
 	public void cacheResult(DLFileVersionPreview dlFileVersionPreview) {
 		if (dlFileVersionPreview.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DLFileVersionPreviewImpl.class,
+				new CTPrimaryKey(dlFileVersionPreview), dlFileVersionPreview);
+
 			return;
 		}
 
@@ -1971,9 +1975,17 @@ public class DLFileVersionPreviewPersistenceImpl
 			return dlFileVersionPreview;
 		}
 
-		entityCache.putResult(
-			DLFileVersionPreviewImpl.class, dlFileVersionPreviewModelImpl,
-			false, true);
+		if (dlFileVersionPreviewModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DLFileVersionPreviewImpl.class,
+				new CTPrimaryKey(dlFileVersionPreviewModelImpl),
+				dlFileVersionPreviewModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DLFileVersionPreviewImpl.class, dlFileVersionPreviewModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(dlFileVersionPreviewModelImpl);
 
@@ -2038,25 +2050,35 @@ public class DLFileVersionPreviewPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLFileVersionPreview dlFileVersionPreview = null;
+		Serializable serializable = entityCache.getResult(
+			DLFileVersionPreviewImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLFileVersionPreview dlFileVersionPreview =
+			(DLFileVersionPreview)serializable;
 
-			dlFileVersionPreview = (DLFileVersionPreview)session.get(
-				DLFileVersionPreviewImpl.class, primaryKey);
+		if (dlFileVersionPreview == null) {
+			Session session = null;
 
-			if (dlFileVersionPreview != null) {
-				cacheResult(dlFileVersionPreview);
+			try {
+				session = openSession();
+
+				dlFileVersionPreview = (DLFileVersionPreview)session.get(
+					DLFileVersionPreviewImpl.class, primaryKey);
+
+				if (dlFileVersionPreview != null) {
+					cacheResult(dlFileVersionPreview);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlFileVersionPreview;

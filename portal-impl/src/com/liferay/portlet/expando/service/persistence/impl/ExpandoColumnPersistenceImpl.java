@@ -1754,6 +1754,10 @@ public class ExpandoColumnPersistenceImpl
 	@Override
 	public void cacheResult(ExpandoColumn expandoColumn) {
 		if (expandoColumn.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ExpandoColumnImpl.class, new CTPrimaryKey(expandoColumn),
+				expandoColumn);
+
 			return;
 		}
 
@@ -2030,8 +2034,16 @@ public class ExpandoColumnPersistenceImpl
 			return expandoColumn;
 		}
 
-		EntityCacheUtil.putResult(
-			ExpandoColumnImpl.class, expandoColumnModelImpl, false, true);
+		if (expandoColumnModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				ExpandoColumnImpl.class,
+				new CTPrimaryKey(expandoColumnModelImpl),
+				expandoColumnModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				ExpandoColumnImpl.class, expandoColumnModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(expandoColumnModelImpl);
 
@@ -2095,25 +2107,34 @@ public class ExpandoColumnPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		ExpandoColumn expandoColumn = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			ExpandoColumnImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		ExpandoColumn expandoColumn = (ExpandoColumn)serializable;
 
-			expandoColumn = (ExpandoColumn)session.get(
-				ExpandoColumnImpl.class, primaryKey);
+		if (expandoColumn == null) {
+			Session session = null;
 
-			if (expandoColumn != null) {
-				cacheResult(expandoColumn);
+			try {
+				session = openSession();
+
+				expandoColumn = (ExpandoColumn)session.get(
+					ExpandoColumnImpl.class, primaryKey);
+
+				if (expandoColumn != null) {
+					cacheResult(expandoColumn);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return expandoColumn;

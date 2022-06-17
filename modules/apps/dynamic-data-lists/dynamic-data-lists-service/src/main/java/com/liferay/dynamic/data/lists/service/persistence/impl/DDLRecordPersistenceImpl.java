@@ -4297,6 +4297,9 @@ public class DDLRecordPersistenceImpl
 	@Override
 	public void cacheResult(DDLRecord ddlRecord) {
 		if (ddlRecord.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordImpl.class, new CTPrimaryKey(ddlRecord), ddlRecord);
+
 			return;
 		}
 
@@ -4584,8 +4587,15 @@ public class DDLRecordPersistenceImpl
 			return ddlRecord;
 		}
 
-		entityCache.putResult(
-			DDLRecordImpl.class, ddlRecordModelImpl, false, true);
+		if (ddlRecordModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordImpl.class, new CTPrimaryKey(ddlRecordModelImpl),
+				ddlRecordModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDLRecordImpl.class, ddlRecordModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddlRecordModelImpl);
 
@@ -4649,24 +4659,34 @@ public class DDLRecordPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDLRecord ddlRecord = null;
+		Serializable serializable = entityCache.getResult(
+			DDLRecordImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDLRecord ddlRecord = (DDLRecord)serializable;
 
-			ddlRecord = (DDLRecord)session.get(DDLRecordImpl.class, primaryKey);
+		if (ddlRecord == null) {
+			Session session = null;
 
-			if (ddlRecord != null) {
-				cacheResult(ddlRecord);
+			try {
+				session = openSession();
+
+				ddlRecord = (DDLRecord)session.get(
+					DDLRecordImpl.class, primaryKey);
+
+				if (ddlRecord != null) {
+					cacheResult(ddlRecord);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddlRecord;

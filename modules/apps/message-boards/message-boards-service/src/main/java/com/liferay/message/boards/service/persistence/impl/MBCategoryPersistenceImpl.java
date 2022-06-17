@@ -11604,6 +11604,9 @@ public class MBCategoryPersistenceImpl
 	@Override
 	public void cacheResult(MBCategory mbCategory) {
 		if (mbCategory.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBCategoryImpl.class, new CTPrimaryKey(mbCategory), mbCategory);
+
 			return;
 		}
 
@@ -11893,8 +11896,15 @@ public class MBCategoryPersistenceImpl
 			return mbCategory;
 		}
 
-		entityCache.putResult(
-			MBCategoryImpl.class, mbCategoryModelImpl, false, true);
+		if (mbCategoryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBCategoryImpl.class, new CTPrimaryKey(mbCategoryModelImpl),
+				mbCategoryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				MBCategoryImpl.class, mbCategoryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(mbCategoryModelImpl);
 
@@ -11958,25 +11968,34 @@ public class MBCategoryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		MBCategory mbCategory = null;
+		Serializable serializable = entityCache.getResult(
+			MBCategoryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		MBCategory mbCategory = (MBCategory)serializable;
 
-			mbCategory = (MBCategory)session.get(
-				MBCategoryImpl.class, primaryKey);
+		if (mbCategory == null) {
+			Session session = null;
 
-			if (mbCategory != null) {
-				cacheResult(mbCategory);
+			try {
+				session = openSession();
+
+				mbCategory = (MBCategory)session.get(
+					MBCategoryImpl.class, primaryKey);
+
+				if (mbCategory != null) {
+					cacheResult(mbCategory);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return mbCategory;

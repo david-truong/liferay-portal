@@ -7757,6 +7757,10 @@ public class JournalFolderPersistenceImpl
 	@Override
 	public void cacheResult(JournalFolder journalFolder) {
 		if (journalFolder.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalFolderImpl.class, new CTPrimaryKey(journalFolder),
+				journalFolder);
+
 			return;
 		}
 
@@ -8105,8 +8109,16 @@ public class JournalFolderPersistenceImpl
 			return journalFolder;
 		}
 
-		entityCache.putResult(
-			JournalFolderImpl.class, journalFolderModelImpl, false, true);
+		if (journalFolderModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalFolderImpl.class,
+				new CTPrimaryKey(journalFolderModelImpl),
+				journalFolderModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				JournalFolderImpl.class, journalFolderModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(journalFolderModelImpl);
 
@@ -8170,25 +8182,34 @@ public class JournalFolderPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		JournalFolder journalFolder = null;
+		Serializable serializable = entityCache.getResult(
+			JournalFolderImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		JournalFolder journalFolder = (JournalFolder)serializable;
 
-			journalFolder = (JournalFolder)session.get(
-				JournalFolderImpl.class, primaryKey);
+		if (journalFolder == null) {
+			Session session = null;
 
-			if (journalFolder != null) {
-				cacheResult(journalFolder);
+			try {
+				session = openSession();
+
+				journalFolder = (JournalFolder)session.get(
+					JournalFolderImpl.class, primaryKey);
+
+				if (journalFolder != null) {
+					cacheResult(journalFolder);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return journalFolder;

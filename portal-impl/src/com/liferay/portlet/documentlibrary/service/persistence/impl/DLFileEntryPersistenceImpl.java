@@ -14987,6 +14987,10 @@ public class DLFileEntryPersistenceImpl
 	@Override
 	public void cacheResult(DLFileEntry dlFileEntry) {
 		if (dlFileEntry.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileEntryImpl.class, new CTPrimaryKey(dlFileEntry),
+				dlFileEntry);
+
 			return;
 		}
 
@@ -15357,8 +15361,15 @@ public class DLFileEntryPersistenceImpl
 			return dlFileEntry;
 		}
 
-		EntityCacheUtil.putResult(
-			DLFileEntryImpl.class, dlFileEntryModelImpl, false, true);
+		if (dlFileEntryModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileEntryImpl.class, new CTPrimaryKey(dlFileEntryModelImpl),
+				dlFileEntryModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				DLFileEntryImpl.class, dlFileEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(dlFileEntryModelImpl);
 
@@ -15422,25 +15433,34 @@ public class DLFileEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLFileEntry dlFileEntry = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			DLFileEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLFileEntry dlFileEntry = (DLFileEntry)serializable;
 
-			dlFileEntry = (DLFileEntry)session.get(
-				DLFileEntryImpl.class, primaryKey);
+		if (dlFileEntry == null) {
+			Session session = null;
 
-			if (dlFileEntry != null) {
-				cacheResult(dlFileEntry);
+			try {
+				session = openSession();
+
+				dlFileEntry = (DLFileEntry)session.get(
+					DLFileEntryImpl.class, primaryKey);
+
+				if (dlFileEntry != null) {
+					cacheResult(dlFileEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlFileEntry;

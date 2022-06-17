@@ -1798,6 +1798,10 @@ public class LayoutSEOEntryPersistenceImpl
 	@Override
 	public void cacheResult(LayoutSEOEntry layoutSEOEntry) {
 		if (layoutSEOEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutSEOEntryImpl.class, new CTPrimaryKey(layoutSEOEntry),
+				layoutSEOEntry);
+
 			return;
 		}
 
@@ -2117,8 +2121,16 @@ public class LayoutSEOEntryPersistenceImpl
 			return layoutSEOEntry;
 		}
 
-		entityCache.putResult(
-			LayoutSEOEntryImpl.class, layoutSEOEntryModelImpl, false, true);
+		if (layoutSEOEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutSEOEntryImpl.class,
+				new CTPrimaryKey(layoutSEOEntryModelImpl),
+				layoutSEOEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				LayoutSEOEntryImpl.class, layoutSEOEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(layoutSEOEntryModelImpl);
 
@@ -2182,25 +2194,34 @@ public class LayoutSEOEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		LayoutSEOEntry layoutSEOEntry = null;
+		Serializable serializable = entityCache.getResult(
+			LayoutSEOEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		LayoutSEOEntry layoutSEOEntry = (LayoutSEOEntry)serializable;
 
-			layoutSEOEntry = (LayoutSEOEntry)session.get(
-				LayoutSEOEntryImpl.class, primaryKey);
+		if (layoutSEOEntry == null) {
+			Session session = null;
 
-			if (layoutSEOEntry != null) {
-				cacheResult(layoutSEOEntry);
+			try {
+				session = openSession();
+
+				layoutSEOEntry = (LayoutSEOEntry)session.get(
+					LayoutSEOEntryImpl.class, primaryKey);
+
+				if (layoutSEOEntry != null) {
+					cacheResult(layoutSEOEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return layoutSEOEntry;

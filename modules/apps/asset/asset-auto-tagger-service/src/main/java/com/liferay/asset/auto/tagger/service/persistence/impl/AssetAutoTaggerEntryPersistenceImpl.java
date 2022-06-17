@@ -1403,6 +1403,10 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	@Override
 	public void cacheResult(AssetAutoTaggerEntry assetAutoTaggerEntry) {
 		if (assetAutoTaggerEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetAutoTaggerEntryImpl.class,
+				new CTPrimaryKey(assetAutoTaggerEntry), assetAutoTaggerEntry);
+
 			return;
 		}
 
@@ -1709,9 +1713,17 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			return assetAutoTaggerEntry;
 		}
 
-		entityCache.putResult(
-			AssetAutoTaggerEntryImpl.class, assetAutoTaggerEntryModelImpl,
-			false, true);
+		if (assetAutoTaggerEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetAutoTaggerEntryImpl.class,
+				new CTPrimaryKey(assetAutoTaggerEntryModelImpl),
+				assetAutoTaggerEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				AssetAutoTaggerEntryImpl.class, assetAutoTaggerEntryModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(assetAutoTaggerEntryModelImpl);
 
@@ -1776,25 +1788,35 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetAutoTaggerEntry assetAutoTaggerEntry = null;
+		Serializable serializable = entityCache.getResult(
+			AssetAutoTaggerEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetAutoTaggerEntry assetAutoTaggerEntry =
+			(AssetAutoTaggerEntry)serializable;
 
-			assetAutoTaggerEntry = (AssetAutoTaggerEntry)session.get(
-				AssetAutoTaggerEntryImpl.class, primaryKey);
+		if (assetAutoTaggerEntry == null) {
+			Session session = null;
 
-			if (assetAutoTaggerEntry != null) {
-				cacheResult(assetAutoTaggerEntry);
+			try {
+				session = openSession();
+
+				assetAutoTaggerEntry = (AssetAutoTaggerEntry)session.get(
+					AssetAutoTaggerEntryImpl.class, primaryKey);
+
+				if (assetAutoTaggerEntry != null) {
+					cacheResult(assetAutoTaggerEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetAutoTaggerEntry;

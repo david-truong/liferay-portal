@@ -904,6 +904,10 @@ public class SegmentsExperimentRelPersistenceImpl
 	@Override
 	public void cacheResult(SegmentsExperimentRel segmentsExperimentRel) {
 		if (segmentsExperimentRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsExperimentRelImpl.class,
+				new CTPrimaryKey(segmentsExperimentRel), segmentsExperimentRel);
+
 			return;
 		}
 
@@ -1214,9 +1218,17 @@ public class SegmentsExperimentRelPersistenceImpl
 			return segmentsExperimentRel;
 		}
 
-		entityCache.putResult(
-			SegmentsExperimentRelImpl.class, segmentsExperimentRelModelImpl,
-			false, true);
+		if (segmentsExperimentRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsExperimentRelImpl.class,
+				new CTPrimaryKey(segmentsExperimentRelModelImpl),
+				segmentsExperimentRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SegmentsExperimentRelImpl.class, segmentsExperimentRelModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(segmentsExperimentRelModelImpl);
 
@@ -1281,25 +1293,35 @@ public class SegmentsExperimentRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SegmentsExperimentRel segmentsExperimentRel = null;
+		Serializable serializable = entityCache.getResult(
+			SegmentsExperimentRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SegmentsExperimentRel segmentsExperimentRel =
+			(SegmentsExperimentRel)serializable;
 
-			segmentsExperimentRel = (SegmentsExperimentRel)session.get(
-				SegmentsExperimentRelImpl.class, primaryKey);
+		if (segmentsExperimentRel == null) {
+			Session session = null;
 
-			if (segmentsExperimentRel != null) {
-				cacheResult(segmentsExperimentRel);
+			try {
+				session = openSession();
+
+				segmentsExperimentRel = (SegmentsExperimentRel)session.get(
+					SegmentsExperimentRelImpl.class, primaryKey);
+
+				if (segmentsExperimentRel != null) {
+					cacheResult(segmentsExperimentRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return segmentsExperimentRel;

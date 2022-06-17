@@ -4229,6 +4229,10 @@ public class TemplateEntryPersistenceImpl
 	@Override
 	public void cacheResult(TemplateEntry templateEntry) {
 		if (templateEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				TemplateEntryImpl.class, new CTPrimaryKey(templateEntry),
+				templateEntry);
+
 			return;
 		}
 
@@ -4536,8 +4540,16 @@ public class TemplateEntryPersistenceImpl
 			return templateEntry;
 		}
 
-		entityCache.putResult(
-			TemplateEntryImpl.class, templateEntryModelImpl, false, true);
+		if (templateEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				TemplateEntryImpl.class,
+				new CTPrimaryKey(templateEntryModelImpl),
+				templateEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				TemplateEntryImpl.class, templateEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(templateEntryModelImpl);
 
@@ -4601,25 +4613,34 @@ public class TemplateEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		TemplateEntry templateEntry = null;
+		Serializable serializable = entityCache.getResult(
+			TemplateEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		TemplateEntry templateEntry = (TemplateEntry)serializable;
 
-			templateEntry = (TemplateEntry)session.get(
-				TemplateEntryImpl.class, primaryKey);
+		if (templateEntry == null) {
+			Session session = null;
 
-			if (templateEntry != null) {
-				cacheResult(templateEntry);
+			try {
+				session = openSession();
+
+				templateEntry = (TemplateEntry)session.get(
+					TemplateEntryImpl.class, primaryKey);
+
+				if (templateEntry != null) {
+					cacheResult(templateEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return templateEntry;

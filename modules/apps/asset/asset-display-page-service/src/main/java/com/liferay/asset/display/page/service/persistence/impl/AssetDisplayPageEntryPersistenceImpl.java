@@ -2877,6 +2877,10 @@ public class AssetDisplayPageEntryPersistenceImpl
 	@Override
 	public void cacheResult(AssetDisplayPageEntry assetDisplayPageEntry) {
 		if (assetDisplayPageEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetDisplayPageEntryImpl.class,
+				new CTPrimaryKey(assetDisplayPageEntry), assetDisplayPageEntry);
+
 			return;
 		}
 
@@ -3218,9 +3222,17 @@ public class AssetDisplayPageEntryPersistenceImpl
 			return assetDisplayPageEntry;
 		}
 
-		entityCache.putResult(
-			AssetDisplayPageEntryImpl.class, assetDisplayPageEntryModelImpl,
-			false, true);
+		if (assetDisplayPageEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				AssetDisplayPageEntryImpl.class,
+				new CTPrimaryKey(assetDisplayPageEntryModelImpl),
+				assetDisplayPageEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				AssetDisplayPageEntryImpl.class, assetDisplayPageEntryModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(assetDisplayPageEntryModelImpl);
 
@@ -3285,25 +3297,35 @@ public class AssetDisplayPageEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetDisplayPageEntry assetDisplayPageEntry = null;
+		Serializable serializable = entityCache.getResult(
+			AssetDisplayPageEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetDisplayPageEntry assetDisplayPageEntry =
+			(AssetDisplayPageEntry)serializable;
 
-			assetDisplayPageEntry = (AssetDisplayPageEntry)session.get(
-				AssetDisplayPageEntryImpl.class, primaryKey);
+		if (assetDisplayPageEntry == null) {
+			Session session = null;
 
-			if (assetDisplayPageEntry != null) {
-				cacheResult(assetDisplayPageEntry);
+			try {
+				session = openSession();
+
+				assetDisplayPageEntry = (AssetDisplayPageEntry)session.get(
+					AssetDisplayPageEntryImpl.class, primaryKey);
+
+				if (assetDisplayPageEntry != null) {
+					cacheResult(assetDisplayPageEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetDisplayPageEntry;

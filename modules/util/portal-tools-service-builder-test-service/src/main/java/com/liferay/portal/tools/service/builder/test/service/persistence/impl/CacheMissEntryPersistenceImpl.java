@@ -102,6 +102,10 @@ public class CacheMissEntryPersistenceImpl
 	@Override
 	public void cacheResult(CacheMissEntry cacheMissEntry) {
 		if (cacheMissEntry.getCtCollectionId() != 0) {
+			dummyEntityCache.putResult(
+				CacheMissEntryImpl.class, new CTPrimaryKey(cacheMissEntry),
+				cacheMissEntry);
+
 			return;
 		}
 
@@ -327,8 +331,15 @@ public class CacheMissEntryPersistenceImpl
 			return cacheMissEntry;
 		}
 
-		dummyEntityCache.putResult(
-			CacheMissEntryImpl.class, cacheMissEntry, false, true);
+		if (cacheMissEntry.getCtCollectionId() != 0) {
+			dummyEntityCache.putResult(
+				CacheMissEntryImpl.class, new CTPrimaryKey(cacheMissEntry),
+				cacheMissEntry, false, true);
+		}
+		else {
+			dummyEntityCache.putResult(
+				CacheMissEntryImpl.class, cacheMissEntry, false, true);
+		}
 
 		if (isNew) {
 			cacheMissEntry.setNew(false);
@@ -390,25 +401,34 @@ public class CacheMissEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CacheMissEntry cacheMissEntry = null;
+		Serializable serializable = dummyEntityCache.getResult(
+			CacheMissEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CacheMissEntry cacheMissEntry = (CacheMissEntry)serializable;
 
-			cacheMissEntry = (CacheMissEntry)session.get(
-				CacheMissEntryImpl.class, primaryKey);
+		if (cacheMissEntry == null) {
+			Session session = null;
 
-			if (cacheMissEntry != null) {
-				cacheResult(cacheMissEntry);
+			try {
+				session = openSession();
+
+				cacheMissEntry = (CacheMissEntry)session.get(
+					CacheMissEntryImpl.class, primaryKey);
+
+				if (cacheMissEntry != null) {
+					cacheResult(cacheMissEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cacheMissEntry;

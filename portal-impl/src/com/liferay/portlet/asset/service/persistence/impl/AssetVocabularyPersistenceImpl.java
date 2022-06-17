@@ -6510,6 +6510,10 @@ public class AssetVocabularyPersistenceImpl
 	@Override
 	public void cacheResult(AssetVocabulary assetVocabulary) {
 		if (assetVocabulary.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetVocabularyImpl.class, new CTPrimaryKey(assetVocabulary),
+				assetVocabulary);
+
 			return;
 		}
 
@@ -6854,8 +6858,17 @@ public class AssetVocabularyPersistenceImpl
 			return assetVocabulary;
 		}
 
-		EntityCacheUtil.putResult(
-			AssetVocabularyImpl.class, assetVocabularyModelImpl, false, true);
+		if (assetVocabularyModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetVocabularyImpl.class,
+				new CTPrimaryKey(assetVocabularyModelImpl),
+				assetVocabularyModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				AssetVocabularyImpl.class, assetVocabularyModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(assetVocabularyModelImpl);
 
@@ -6919,25 +6932,34 @@ public class AssetVocabularyPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetVocabulary assetVocabulary = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			AssetVocabularyImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetVocabulary assetVocabulary = (AssetVocabulary)serializable;
 
-			assetVocabulary = (AssetVocabulary)session.get(
-				AssetVocabularyImpl.class, primaryKey);
+		if (assetVocabulary == null) {
+			Session session = null;
 
-			if (assetVocabulary != null) {
-				cacheResult(assetVocabulary);
+			try {
+				session = openSession();
+
+				assetVocabulary = (AssetVocabulary)session.get(
+					AssetVocabularyImpl.class, primaryKey);
+
+				if (assetVocabulary != null) {
+					cacheResult(assetVocabulary);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetVocabulary;

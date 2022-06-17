@@ -2210,6 +2210,10 @@ public class DDMFieldAttributePersistenceImpl
 	@Override
 	public void cacheResult(DDMFieldAttribute ddmFieldAttribute) {
 		if (ddmFieldAttribute.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFieldAttributeImpl.class,
+				new CTPrimaryKey(ddmFieldAttribute), ddmFieldAttribute);
+
 			return;
 		}
 
@@ -2485,9 +2489,17 @@ public class DDMFieldAttributePersistenceImpl
 			return ddmFieldAttribute;
 		}
 
-		entityCache.putResult(
-			DDMFieldAttributeImpl.class, ddmFieldAttributeModelImpl, false,
-			true);
+		if (ddmFieldAttributeModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMFieldAttributeImpl.class,
+				new CTPrimaryKey(ddmFieldAttributeModelImpl),
+				ddmFieldAttributeModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMFieldAttributeImpl.class, ddmFieldAttributeModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(ddmFieldAttributeModelImpl);
 
@@ -2551,25 +2563,34 @@ public class DDMFieldAttributePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMFieldAttribute ddmFieldAttribute = null;
+		Serializable serializable = entityCache.getResult(
+			DDMFieldAttributeImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMFieldAttribute ddmFieldAttribute = (DDMFieldAttribute)serializable;
 
-			ddmFieldAttribute = (DDMFieldAttribute)session.get(
-				DDMFieldAttributeImpl.class, primaryKey);
+		if (ddmFieldAttribute == null) {
+			Session session = null;
 
-			if (ddmFieldAttribute != null) {
-				cacheResult(ddmFieldAttribute);
+			try {
+				session = openSession();
+
+				ddmFieldAttribute = (DDMFieldAttribute)session.get(
+					DDMFieldAttributeImpl.class, primaryKey);
+
+				if (ddmFieldAttribute != null) {
+					cacheResult(ddmFieldAttribute);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmFieldAttribute;

@@ -4346,6 +4346,11 @@ public class SiteNavigationMenuItemPersistenceImpl
 	@Override
 	public void cacheResult(SiteNavigationMenuItem siteNavigationMenuItem) {
 		if (siteNavigationMenuItem.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SiteNavigationMenuItemImpl.class,
+				new CTPrimaryKey(siteNavigationMenuItem),
+				siteNavigationMenuItem);
+
 			return;
 		}
 
@@ -4668,9 +4673,17 @@ public class SiteNavigationMenuItemPersistenceImpl
 			return siteNavigationMenuItem;
 		}
 
-		entityCache.putResult(
-			SiteNavigationMenuItemImpl.class, siteNavigationMenuItemModelImpl,
-			false, true);
+		if (siteNavigationMenuItemModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SiteNavigationMenuItemImpl.class,
+				new CTPrimaryKey(siteNavigationMenuItemModelImpl),
+				siteNavigationMenuItemModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SiteNavigationMenuItemImpl.class,
+				siteNavigationMenuItemModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(siteNavigationMenuItemModelImpl);
 
@@ -4738,25 +4751,35 @@ public class SiteNavigationMenuItemPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SiteNavigationMenuItem siteNavigationMenuItem = null;
+		Serializable serializable = entityCache.getResult(
+			SiteNavigationMenuItemImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SiteNavigationMenuItem siteNavigationMenuItem =
+			(SiteNavigationMenuItem)serializable;
 
-			siteNavigationMenuItem = (SiteNavigationMenuItem)session.get(
-				SiteNavigationMenuItemImpl.class, primaryKey);
+		if (siteNavigationMenuItem == null) {
+			Session session = null;
 
-			if (siteNavigationMenuItem != null) {
-				cacheResult(siteNavigationMenuItem);
+			try {
+				session = openSession();
+
+				siteNavigationMenuItem = (SiteNavigationMenuItem)session.get(
+					SiteNavigationMenuItemImpl.class, primaryKey);
+
+				if (siteNavigationMenuItem != null) {
+					cacheResult(siteNavigationMenuItem);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return siteNavigationMenuItem;

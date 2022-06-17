@@ -1473,6 +1473,10 @@ public class DDLRecordSetVersionPersistenceImpl
 	@Override
 	public void cacheResult(DDLRecordSetVersion ddlRecordSetVersion) {
 		if (ddlRecordSetVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordSetVersionImpl.class,
+				new CTPrimaryKey(ddlRecordSetVersion), ddlRecordSetVersion);
+
 			return;
 		}
 
@@ -1763,9 +1767,17 @@ public class DDLRecordSetVersionPersistenceImpl
 			return ddlRecordSetVersion;
 		}
 
-		entityCache.putResult(
-			DDLRecordSetVersionImpl.class, ddlRecordSetVersionModelImpl, false,
-			true);
+		if (ddlRecordSetVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDLRecordSetVersionImpl.class,
+				new CTPrimaryKey(ddlRecordSetVersionModelImpl),
+				ddlRecordSetVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDLRecordSetVersionImpl.class, ddlRecordSetVersionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(ddlRecordSetVersionModelImpl);
 
@@ -1829,25 +1841,35 @@ public class DDLRecordSetVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDLRecordSetVersion ddlRecordSetVersion = null;
+		Serializable serializable = entityCache.getResult(
+			DDLRecordSetVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDLRecordSetVersion ddlRecordSetVersion =
+			(DDLRecordSetVersion)serializable;
 
-			ddlRecordSetVersion = (DDLRecordSetVersion)session.get(
-				DDLRecordSetVersionImpl.class, primaryKey);
+		if (ddlRecordSetVersion == null) {
+			Session session = null;
 
-			if (ddlRecordSetVersion != null) {
-				cacheResult(ddlRecordSetVersion);
+			try {
+				session = openSession();
+
+				ddlRecordSetVersion = (DDLRecordSetVersion)session.get(
+					DDLRecordSetVersionImpl.class, primaryKey);
+
+				if (ddlRecordSetVersion != null) {
+					cacheResult(ddlRecordSetVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddlRecordSetVersion;

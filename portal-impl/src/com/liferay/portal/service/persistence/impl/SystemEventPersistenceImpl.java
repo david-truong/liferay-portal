@@ -2400,6 +2400,10 @@ public class SystemEventPersistenceImpl
 	@Override
 	public void cacheResult(SystemEvent systemEvent) {
 		if (systemEvent.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SystemEventImpl.class, new CTPrimaryKey(systemEvent),
+				systemEvent);
+
 			return;
 		}
 
@@ -2655,8 +2659,15 @@ public class SystemEventPersistenceImpl
 			return systemEvent;
 		}
 
-		EntityCacheUtil.putResult(
-			SystemEventImpl.class, systemEventModelImpl, false, true);
+		if (systemEventModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SystemEventImpl.class, new CTPrimaryKey(systemEventModelImpl),
+				systemEventModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				SystemEventImpl.class, systemEventModelImpl, false, true);
+		}
 
 		if (isNew) {
 			systemEvent.setNew(false);
@@ -2718,25 +2729,34 @@ public class SystemEventPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SystemEvent systemEvent = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			SystemEventImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SystemEvent systemEvent = (SystemEvent)serializable;
 
-			systemEvent = (SystemEvent)session.get(
-				SystemEventImpl.class, primaryKey);
+		if (systemEvent == null) {
+			Session session = null;
 
-			if (systemEvent != null) {
-				cacheResult(systemEvent);
+			try {
+				session = openSession();
+
+				systemEvent = (SystemEvent)session.get(
+					SystemEventImpl.class, primaryKey);
+
+				if (systemEvent != null) {
+					cacheResult(systemEvent);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return systemEvent;

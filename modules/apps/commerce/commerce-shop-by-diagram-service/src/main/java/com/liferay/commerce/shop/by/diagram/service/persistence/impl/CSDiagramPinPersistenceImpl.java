@@ -637,6 +637,10 @@ public class CSDiagramPinPersistenceImpl
 	@Override
 	public void cacheResult(CSDiagramPin csDiagramPin) {
 		if (csDiagramPin.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CSDiagramPinImpl.class, new CTPrimaryKey(csDiagramPin),
+				csDiagramPin);
+
 			return;
 		}
 
@@ -904,8 +908,15 @@ public class CSDiagramPinPersistenceImpl
 			return csDiagramPin;
 		}
 
-		entityCache.putResult(
-			CSDiagramPinImpl.class, csDiagramPinModelImpl, false, true);
+		if (csDiagramPinModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CSDiagramPinImpl.class, new CTPrimaryKey(csDiagramPinModelImpl),
+				csDiagramPinModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CSDiagramPinImpl.class, csDiagramPinModelImpl, false, true);
+		}
 
 		if (isNew) {
 			csDiagramPin.setNew(false);
@@ -967,25 +978,34 @@ public class CSDiagramPinPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CSDiagramPin csDiagramPin = null;
+		Serializable serializable = entityCache.getResult(
+			CSDiagramPinImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CSDiagramPin csDiagramPin = (CSDiagramPin)serializable;
 
-			csDiagramPin = (CSDiagramPin)session.get(
-				CSDiagramPinImpl.class, primaryKey);
+		if (csDiagramPin == null) {
+			Session session = null;
 
-			if (csDiagramPin != null) {
-				cacheResult(csDiagramPin);
+			try {
+				session = openSession();
+
+				csDiagramPin = (CSDiagramPin)session.get(
+					CSDiagramPinImpl.class, primaryKey);
+
+				if (csDiagramPin != null) {
+					cacheResult(csDiagramPin);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return csDiagramPin;

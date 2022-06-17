@@ -13260,6 +13260,9 @@ public class MBThreadPersistenceImpl
 	@Override
 	public void cacheResult(MBThread mbThread) {
 		if (mbThread.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBThreadImpl.class, new CTPrimaryKey(mbThread), mbThread);
+
 			return;
 		}
 
@@ -13580,8 +13583,15 @@ public class MBThreadPersistenceImpl
 			return mbThread;
 		}
 
-		entityCache.putResult(
-			MBThreadImpl.class, mbThreadModelImpl, false, true);
+		if (mbThreadModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBThreadImpl.class, new CTPrimaryKey(mbThreadModelImpl),
+				mbThreadModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				MBThreadImpl.class, mbThreadModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(mbThreadModelImpl);
 
@@ -13645,24 +13655,34 @@ public class MBThreadPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		MBThread mbThread = null;
+		Serializable serializable = entityCache.getResult(
+			MBThreadImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		MBThread mbThread = (MBThread)serializable;
 
-			mbThread = (MBThread)session.get(MBThreadImpl.class, primaryKey);
+		if (mbThread == null) {
+			Session session = null;
 
-			if (mbThread != null) {
-				cacheResult(mbThread);
+			try {
+				session = openSession();
+
+				mbThread = (MBThread)session.get(
+					MBThreadImpl.class, primaryKey);
+
+				if (mbThread != null) {
+					cacheResult(mbThread);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return mbThread;

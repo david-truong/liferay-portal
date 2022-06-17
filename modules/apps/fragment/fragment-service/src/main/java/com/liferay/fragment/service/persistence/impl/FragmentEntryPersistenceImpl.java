@@ -14316,6 +14316,10 @@ public class FragmentEntryPersistenceImpl
 	@Override
 	public void cacheResult(FragmentEntry fragmentEntry) {
 		if (fragmentEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentEntryImpl.class, new CTPrimaryKey(fragmentEntry),
+				fragmentEntry);
+
 			return;
 		}
 
@@ -14645,8 +14649,16 @@ public class FragmentEntryPersistenceImpl
 			return fragmentEntry;
 		}
 
-		entityCache.putResult(
-			FragmentEntryImpl.class, fragmentEntryModelImpl, false, true);
+		if (fragmentEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentEntryImpl.class,
+				new CTPrimaryKey(fragmentEntryModelImpl),
+				fragmentEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FragmentEntryImpl.class, fragmentEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(fragmentEntryModelImpl);
 
@@ -14710,25 +14722,34 @@ public class FragmentEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FragmentEntry fragmentEntry = null;
+		Serializable serializable = entityCache.getResult(
+			FragmentEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FragmentEntry fragmentEntry = (FragmentEntry)serializable;
 
-			fragmentEntry = (FragmentEntry)session.get(
-				FragmentEntryImpl.class, primaryKey);
+		if (fragmentEntry == null) {
+			Session session = null;
 
-			if (fragmentEntry != null) {
-				cacheResult(fragmentEntry);
+			try {
+				session = openSession();
+
+				fragmentEntry = (FragmentEntry)session.get(
+					FragmentEntryImpl.class, primaryKey);
+
+				if (fragmentEntry != null) {
+					cacheResult(fragmentEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return fragmentEntry;

@@ -3248,6 +3248,11 @@ public class SocialActivityAchievementPersistenceImpl
 		SocialActivityAchievement socialActivityAchievement) {
 
 		if (socialActivityAchievement.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityAchievementImpl.class,
+				new CTPrimaryKey(socialActivityAchievement),
+				socialActivityAchievement);
+
 			return;
 		}
 
@@ -3544,9 +3549,17 @@ public class SocialActivityAchievementPersistenceImpl
 			return socialActivityAchievement;
 		}
 
-		EntityCacheUtil.putResult(
-			SocialActivityAchievementImpl.class,
-			socialActivityAchievementModelImpl, false, true);
+		if (socialActivityAchievementModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityAchievementImpl.class,
+				new CTPrimaryKey(socialActivityAchievementModelImpl),
+				socialActivityAchievementModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				SocialActivityAchievementImpl.class,
+				socialActivityAchievementModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(socialActivityAchievementModelImpl);
 
@@ -3616,25 +3629,36 @@ public class SocialActivityAchievementPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SocialActivityAchievement socialActivityAchievement = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			SocialActivityAchievementImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SocialActivityAchievement socialActivityAchievement =
+			(SocialActivityAchievement)serializable;
 
-			socialActivityAchievement = (SocialActivityAchievement)session.get(
-				SocialActivityAchievementImpl.class, primaryKey);
+		if (socialActivityAchievement == null) {
+			Session session = null;
 
-			if (socialActivityAchievement != null) {
-				cacheResult(socialActivityAchievement);
+			try {
+				session = openSession();
+
+				socialActivityAchievement =
+					(SocialActivityAchievement)session.get(
+						SocialActivityAchievementImpl.class, primaryKey);
+
+				if (socialActivityAchievement != null) {
+					cacheResult(socialActivityAchievement);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return socialActivityAchievement;

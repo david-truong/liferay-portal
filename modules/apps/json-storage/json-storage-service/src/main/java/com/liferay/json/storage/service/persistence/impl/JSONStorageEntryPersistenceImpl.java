@@ -2428,6 +2428,10 @@ public class JSONStorageEntryPersistenceImpl
 	@Override
 	public void cacheResult(JSONStorageEntry jsonStorageEntry) {
 		if (jsonStorageEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JSONStorageEntryImpl.class, new CTPrimaryKey(jsonStorageEntry),
+				jsonStorageEntry);
+
 			return;
 		}
 
@@ -2703,8 +2707,17 @@ public class JSONStorageEntryPersistenceImpl
 			return jsonStorageEntry;
 		}
 
-		entityCache.putResult(
-			JSONStorageEntryImpl.class, jsonStorageEntryModelImpl, false, true);
+		if (jsonStorageEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JSONStorageEntryImpl.class,
+				new CTPrimaryKey(jsonStorageEntryModelImpl),
+				jsonStorageEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				JSONStorageEntryImpl.class, jsonStorageEntryModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(jsonStorageEntryModelImpl);
 
@@ -2768,25 +2781,34 @@ public class JSONStorageEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		JSONStorageEntry jsonStorageEntry = null;
+		Serializable serializable = entityCache.getResult(
+			JSONStorageEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		JSONStorageEntry jsonStorageEntry = (JSONStorageEntry)serializable;
 
-			jsonStorageEntry = (JSONStorageEntry)session.get(
-				JSONStorageEntryImpl.class, primaryKey);
+		if (jsonStorageEntry == null) {
+			Session session = null;
 
-			if (jsonStorageEntry != null) {
-				cacheResult(jsonStorageEntry);
+			try {
+				session = openSession();
+
+				jsonStorageEntry = (JSONStorageEntry)session.get(
+					JSONStorageEntryImpl.class, primaryKey);
+
+				if (jsonStorageEntry != null) {
+					cacheResult(jsonStorageEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return jsonStorageEntry;

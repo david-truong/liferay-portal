@@ -1488,6 +1488,11 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 			commercePricingClassCPDefinitionRel) {
 
 		if (commercePricingClassCPDefinitionRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePricingClassCPDefinitionRelImpl.class,
+				new CTPrimaryKey(commercePricingClassCPDefinitionRel),
+				commercePricingClassCPDefinitionRel);
+
 			return;
 		}
 
@@ -1839,9 +1844,19 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 			return commercePricingClassCPDefinitionRel;
 		}
 
-		entityCache.putResult(
-			CommercePricingClassCPDefinitionRelImpl.class,
-			commercePricingClassCPDefinitionRelModelImpl, false, true);
+		if (commercePricingClassCPDefinitionRelModelImpl.getCtCollectionId() !=
+				0) {
+
+			entityCache.putResult(
+				CommercePricingClassCPDefinitionRelImpl.class,
+				new CTPrimaryKey(commercePricingClassCPDefinitionRelModelImpl),
+				commercePricingClassCPDefinitionRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommercePricingClassCPDefinitionRelImpl.class,
+				commercePricingClassCPDefinitionRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(commercePricingClassCPDefinitionRelModelImpl);
 
@@ -1913,27 +1928,39 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
+		Serializable serializable = entityCache.getResult(
+			CommercePricingClassCPDefinitionRelImpl.class,
+			new CTPrimaryKey(primaryKey));
+
+		if (serializable == nullModel) {
+			return null;
+		}
+
 		CommercePricingClassCPDefinitionRel
-			commercePricingClassCPDefinitionRel = null;
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
 			commercePricingClassCPDefinitionRel =
-				(CommercePricingClassCPDefinitionRel)session.get(
-					CommercePricingClassCPDefinitionRelImpl.class, primaryKey);
+				(CommercePricingClassCPDefinitionRel)serializable;
 
-			if (commercePricingClassCPDefinitionRel != null) {
-				cacheResult(commercePricingClassCPDefinitionRel);
+		if (commercePricingClassCPDefinitionRel == null) {
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				commercePricingClassCPDefinitionRel =
+					(CommercePricingClassCPDefinitionRel)session.get(
+						CommercePricingClassCPDefinitionRelImpl.class,
+						primaryKey);
+
+				if (commercePricingClassCPDefinitionRel != null) {
+					cacheResult(commercePricingClassCPDefinitionRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commercePricingClassCPDefinitionRel;

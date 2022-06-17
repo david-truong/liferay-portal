@@ -3502,6 +3502,10 @@ public class FragmentCollectionPersistenceImpl
 	@Override
 	public void cacheResult(FragmentCollection fragmentCollection) {
 		if (fragmentCollection.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentCollectionImpl.class,
+				new CTPrimaryKey(fragmentCollection), fragmentCollection);
+
 			return;
 		}
 
@@ -3828,9 +3832,17 @@ public class FragmentCollectionPersistenceImpl
 			return fragmentCollection;
 		}
 
-		entityCache.putResult(
-			FragmentCollectionImpl.class, fragmentCollectionModelImpl, false,
-			true);
+		if (fragmentCollectionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FragmentCollectionImpl.class,
+				new CTPrimaryKey(fragmentCollectionModelImpl),
+				fragmentCollectionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FragmentCollectionImpl.class, fragmentCollectionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(fragmentCollectionModelImpl);
 
@@ -3894,25 +3906,35 @@ public class FragmentCollectionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FragmentCollection fragmentCollection = null;
+		Serializable serializable = entityCache.getResult(
+			FragmentCollectionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FragmentCollection fragmentCollection =
+			(FragmentCollection)serializable;
 
-			fragmentCollection = (FragmentCollection)session.get(
-				FragmentCollectionImpl.class, primaryKey);
+		if (fragmentCollection == null) {
+			Session session = null;
 
-			if (fragmentCollection != null) {
-				cacheResult(fragmentCollection);
+			try {
+				session = openSession();
+
+				fragmentCollection = (FragmentCollection)session.get(
+					FragmentCollectionImpl.class, primaryKey);
+
+				if (fragmentCollection != null) {
+					cacheResult(fragmentCollection);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return fragmentCollection;

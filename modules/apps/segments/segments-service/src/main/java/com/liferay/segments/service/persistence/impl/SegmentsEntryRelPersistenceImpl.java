@@ -2057,6 +2057,10 @@ public class SegmentsEntryRelPersistenceImpl
 	@Override
 	public void cacheResult(SegmentsEntryRel segmentsEntryRel) {
 		if (segmentsEntryRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsEntryRelImpl.class, new CTPrimaryKey(segmentsEntryRel),
+				segmentsEntryRel);
+
 			return;
 		}
 
@@ -2353,8 +2357,17 @@ public class SegmentsEntryRelPersistenceImpl
 			return segmentsEntryRel;
 		}
 
-		entityCache.putResult(
-			SegmentsEntryRelImpl.class, segmentsEntryRelModelImpl, false, true);
+		if (segmentsEntryRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				SegmentsEntryRelImpl.class,
+				new CTPrimaryKey(segmentsEntryRelModelImpl),
+				segmentsEntryRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				SegmentsEntryRelImpl.class, segmentsEntryRelModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(segmentsEntryRelModelImpl);
 
@@ -2418,25 +2431,34 @@ public class SegmentsEntryRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SegmentsEntryRel segmentsEntryRel = null;
+		Serializable serializable = entityCache.getResult(
+			SegmentsEntryRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SegmentsEntryRel segmentsEntryRel = (SegmentsEntryRel)serializable;
 
-			segmentsEntryRel = (SegmentsEntryRel)session.get(
-				SegmentsEntryRelImpl.class, primaryKey);
+		if (segmentsEntryRel == null) {
+			Session session = null;
 
-			if (segmentsEntryRel != null) {
-				cacheResult(segmentsEntryRel);
+			try {
+				session = openSession();
+
+				segmentsEntryRel = (SegmentsEntryRel)session.get(
+					SegmentsEntryRelImpl.class, primaryKey);
+
+				if (segmentsEntryRel != null) {
+					cacheResult(segmentsEntryRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return segmentsEntryRel;

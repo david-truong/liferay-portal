@@ -2988,6 +2988,10 @@ public class UserGroupRolePersistenceImpl
 	@Override
 	public void cacheResult(UserGroupRole userGroupRole) {
 		if (userGroupRole.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				UserGroupRoleImpl.class, new CTPrimaryKey(userGroupRole),
+				userGroupRole);
+
 			return;
 		}
 
@@ -3256,8 +3260,16 @@ public class UserGroupRolePersistenceImpl
 			return userGroupRole;
 		}
 
-		EntityCacheUtil.putResult(
-			UserGroupRoleImpl.class, userGroupRoleModelImpl, false, true);
+		if (userGroupRoleModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				UserGroupRoleImpl.class,
+				new CTPrimaryKey(userGroupRoleModelImpl),
+				userGroupRoleModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				UserGroupRoleImpl.class, userGroupRoleModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(userGroupRoleModelImpl);
 
@@ -3321,25 +3333,34 @@ public class UserGroupRolePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		UserGroupRole userGroupRole = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			UserGroupRoleImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		UserGroupRole userGroupRole = (UserGroupRole)serializable;
 
-			userGroupRole = (UserGroupRole)session.get(
-				UserGroupRoleImpl.class, primaryKey);
+		if (userGroupRole == null) {
+			Session session = null;
 
-			if (userGroupRole != null) {
-				cacheResult(userGroupRole);
+			try {
+				session = openSession();
+
+				userGroupRole = (UserGroupRole)session.get(
+					UserGroupRoleImpl.class, primaryKey);
+
+				if (userGroupRole != null) {
+					cacheResult(userGroupRole);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return userGroupRole;

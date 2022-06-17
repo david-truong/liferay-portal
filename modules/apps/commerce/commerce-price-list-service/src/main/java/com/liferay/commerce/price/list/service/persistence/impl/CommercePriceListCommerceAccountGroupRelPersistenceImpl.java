@@ -2183,6 +2183,11 @@ public class CommercePriceListCommerceAccountGroupRelPersistenceImpl
 			commercePriceListCommerceAccountGroupRel) {
 
 		if (commercePriceListCommerceAccountGroupRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommercePriceListCommerceAccountGroupRelImpl.class,
+				new CTPrimaryKey(commercePriceListCommerceAccountGroupRel),
+				commercePriceListCommerceAccountGroupRel);
+
 			return;
 		}
 
@@ -2559,9 +2564,20 @@ public class CommercePriceListCommerceAccountGroupRelPersistenceImpl
 			return commercePriceListCommerceAccountGroupRel;
 		}
 
-		entityCache.putResult(
-			CommercePriceListCommerceAccountGroupRelImpl.class,
-			commercePriceListCommerceAccountGroupRelModelImpl, false, true);
+		if (commercePriceListCommerceAccountGroupRelModelImpl.
+				getCtCollectionId() != 0) {
+
+			entityCache.putResult(
+				CommercePriceListCommerceAccountGroupRelImpl.class,
+				new CTPrimaryKey(
+					commercePriceListCommerceAccountGroupRelModelImpl),
+				commercePriceListCommerceAccountGroupRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommercePriceListCommerceAccountGroupRelImpl.class,
+				commercePriceListCommerceAccountGroupRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(
 			commercePriceListCommerceAccountGroupRelModelImpl);
@@ -2635,28 +2651,39 @@ public class CommercePriceListCommerceAccountGroupRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
+		Serializable serializable = entityCache.getResult(
+			CommercePriceListCommerceAccountGroupRelImpl.class,
+			new CTPrimaryKey(primaryKey));
+
+		if (serializable == nullModel) {
+			return null;
+		}
+
 		CommercePriceListCommerceAccountGroupRel
-			commercePriceListCommerceAccountGroupRel = null;
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
 			commercePriceListCommerceAccountGroupRel =
-				(CommercePriceListCommerceAccountGroupRel)session.get(
-					CommercePriceListCommerceAccountGroupRelImpl.class,
-					primaryKey);
+				(CommercePriceListCommerceAccountGroupRel)serializable;
 
-			if (commercePriceListCommerceAccountGroupRel != null) {
-				cacheResult(commercePriceListCommerceAccountGroupRel);
+		if (commercePriceListCommerceAccountGroupRel == null) {
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				commercePriceListCommerceAccountGroupRel =
+					(CommercePriceListCommerceAccountGroupRel)session.get(
+						CommercePriceListCommerceAccountGroupRelImpl.class,
+						primaryKey);
+
+				if (commercePriceListCommerceAccountGroupRel != null) {
+					cacheResult(commercePriceListCommerceAccountGroupRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commercePriceListCommerceAccountGroupRel;

@@ -865,6 +865,10 @@ public class DDMTemplateLinkPersistenceImpl
 	@Override
 	public void cacheResult(DDMTemplateLink ddmTemplateLink) {
 		if (ddmTemplateLink.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMTemplateLinkImpl.class, new CTPrimaryKey(ddmTemplateLink),
+				ddmTemplateLink);
+
 			return;
 		}
 
@@ -1133,8 +1137,17 @@ public class DDMTemplateLinkPersistenceImpl
 			return ddmTemplateLink;
 		}
 
-		entityCache.putResult(
-			DDMTemplateLinkImpl.class, ddmTemplateLinkModelImpl, false, true);
+		if (ddmTemplateLinkModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMTemplateLinkImpl.class,
+				new CTPrimaryKey(ddmTemplateLinkModelImpl),
+				ddmTemplateLinkModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMTemplateLinkImpl.class, ddmTemplateLinkModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(ddmTemplateLinkModelImpl);
 
@@ -1198,25 +1211,34 @@ public class DDMTemplateLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMTemplateLink ddmTemplateLink = null;
+		Serializable serializable = entityCache.getResult(
+			DDMTemplateLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMTemplateLink ddmTemplateLink = (DDMTemplateLink)serializable;
 
-			ddmTemplateLink = (DDMTemplateLink)session.get(
-				DDMTemplateLinkImpl.class, primaryKey);
+		if (ddmTemplateLink == null) {
+			Session session = null;
 
-			if (ddmTemplateLink != null) {
-				cacheResult(ddmTemplateLink);
+			try {
+				session = openSession();
+
+				ddmTemplateLink = (DDMTemplateLink)session.get(
+					DDMTemplateLinkImpl.class, primaryKey);
+
+				if (ddmTemplateLink != null) {
+					cacheResult(ddmTemplateLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmTemplateLink;

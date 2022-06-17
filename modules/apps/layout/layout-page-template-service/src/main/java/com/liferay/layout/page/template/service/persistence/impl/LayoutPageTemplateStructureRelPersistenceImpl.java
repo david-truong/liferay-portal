@@ -2951,6 +2951,11 @@ public class LayoutPageTemplateStructureRelPersistenceImpl
 		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel) {
 
 		if (layoutPageTemplateStructureRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutPageTemplateStructureRelImpl.class,
+				new CTPrimaryKey(layoutPageTemplateStructureRel),
+				layoutPageTemplateStructureRel);
+
 			return;
 		}
 
@@ -3311,9 +3316,17 @@ public class LayoutPageTemplateStructureRelPersistenceImpl
 			return layoutPageTemplateStructureRel;
 		}
 
-		entityCache.putResult(
-			LayoutPageTemplateStructureRelImpl.class,
-			layoutPageTemplateStructureRelModelImpl, false, true);
+		if (layoutPageTemplateStructureRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				LayoutPageTemplateStructureRelImpl.class,
+				new CTPrimaryKey(layoutPageTemplateStructureRelModelImpl),
+				layoutPageTemplateStructureRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				LayoutPageTemplateStructureRelImpl.class,
+				layoutPageTemplateStructureRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(layoutPageTemplateStructureRelModelImpl);
 
@@ -3384,26 +3397,37 @@ public class LayoutPageTemplateStructureRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel = null;
+		Serializable serializable = entityCache.getResult(
+			LayoutPageTemplateStructureRelImpl.class,
+			new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel =
+			(LayoutPageTemplateStructureRel)serializable;
 
-			layoutPageTemplateStructureRel =
-				(LayoutPageTemplateStructureRel)session.get(
-					LayoutPageTemplateStructureRelImpl.class, primaryKey);
+		if (layoutPageTemplateStructureRel == null) {
+			Session session = null;
 
-			if (layoutPageTemplateStructureRel != null) {
-				cacheResult(layoutPageTemplateStructureRel);
+			try {
+				session = openSession();
+
+				layoutPageTemplateStructureRel =
+					(LayoutPageTemplateStructureRel)session.get(
+						LayoutPageTemplateStructureRelImpl.class, primaryKey);
+
+				if (layoutPageTemplateStructureRel != null) {
+					cacheResult(layoutPageTemplateStructureRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return layoutPageTemplateStructureRel;

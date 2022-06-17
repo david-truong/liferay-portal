@@ -2819,6 +2819,10 @@ public class CPOptionValuePersistenceImpl
 	@Override
 	public void cacheResult(CPOptionValue cpOptionValue) {
 		if (cpOptionValue.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPOptionValueImpl.class, new CTPrimaryKey(cpOptionValue),
+				cpOptionValue);
+
 			return;
 		}
 
@@ -3139,8 +3143,16 @@ public class CPOptionValuePersistenceImpl
 			return cpOptionValue;
 		}
 
-		entityCache.putResult(
-			CPOptionValueImpl.class, cpOptionValueModelImpl, false, true);
+		if (cpOptionValueModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPOptionValueImpl.class,
+				new CTPrimaryKey(cpOptionValueModelImpl),
+				cpOptionValueModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPOptionValueImpl.class, cpOptionValueModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cpOptionValueModelImpl);
 
@@ -3204,25 +3216,34 @@ public class CPOptionValuePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPOptionValue cpOptionValue = null;
+		Serializable serializable = entityCache.getResult(
+			CPOptionValueImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPOptionValue cpOptionValue = (CPOptionValue)serializable;
 
-			cpOptionValue = (CPOptionValue)session.get(
-				CPOptionValueImpl.class, primaryKey);
+		if (cpOptionValue == null) {
+			Session session = null;
 
-			if (cpOptionValue != null) {
-				cacheResult(cpOptionValue);
+			try {
+				session = openSession();
+
+				cpOptionValue = (CPOptionValue)session.get(
+					CPOptionValueImpl.class, primaryKey);
+
+				if (cpOptionValue != null) {
+					cacheResult(cpOptionValue);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpOptionValue;

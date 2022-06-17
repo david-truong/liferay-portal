@@ -7928,6 +7928,10 @@ public class StyleBookEntryPersistenceImpl
 	@Override
 	public void cacheResult(StyleBookEntry styleBookEntry) {
 		if (styleBookEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				StyleBookEntryImpl.class, new CTPrimaryKey(styleBookEntry),
+				styleBookEntry);
+
 			return;
 		}
 
@@ -8261,8 +8265,16 @@ public class StyleBookEntryPersistenceImpl
 			return styleBookEntry;
 		}
 
-		entityCache.putResult(
-			StyleBookEntryImpl.class, styleBookEntryModelImpl, false, true);
+		if (styleBookEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				StyleBookEntryImpl.class,
+				new CTPrimaryKey(styleBookEntryModelImpl),
+				styleBookEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				StyleBookEntryImpl.class, styleBookEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(styleBookEntryModelImpl);
 
@@ -8326,25 +8338,34 @@ public class StyleBookEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		StyleBookEntry styleBookEntry = null;
+		Serializable serializable = entityCache.getResult(
+			StyleBookEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		StyleBookEntry styleBookEntry = (StyleBookEntry)serializable;
 
-			styleBookEntry = (StyleBookEntry)session.get(
-				StyleBookEntryImpl.class, primaryKey);
+		if (styleBookEntry == null) {
+			Session session = null;
 
-			if (styleBookEntry != null) {
-				cacheResult(styleBookEntry);
+			try {
+				session = openSession();
+
+				styleBookEntry = (StyleBookEntry)session.get(
+					StyleBookEntryImpl.class, primaryKey);
+
+				if (styleBookEntry != null) {
+					cacheResult(styleBookEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return styleBookEntry;

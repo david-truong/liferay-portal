@@ -1421,6 +1421,10 @@ public class CSDiagramEntryPersistenceImpl
 	@Override
 	public void cacheResult(CSDiagramEntry csDiagramEntry) {
 		if (csDiagramEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CSDiagramEntryImpl.class, new CTPrimaryKey(csDiagramEntry),
+				csDiagramEntry);
+
 			return;
 		}
 
@@ -1712,8 +1716,16 @@ public class CSDiagramEntryPersistenceImpl
 			return csDiagramEntry;
 		}
 
-		entityCache.putResult(
-			CSDiagramEntryImpl.class, csDiagramEntryModelImpl, false, true);
+		if (csDiagramEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CSDiagramEntryImpl.class,
+				new CTPrimaryKey(csDiagramEntryModelImpl),
+				csDiagramEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CSDiagramEntryImpl.class, csDiagramEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(csDiagramEntryModelImpl);
 
@@ -1777,25 +1789,34 @@ public class CSDiagramEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CSDiagramEntry csDiagramEntry = null;
+		Serializable serializable = entityCache.getResult(
+			CSDiagramEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CSDiagramEntry csDiagramEntry = (CSDiagramEntry)serializable;
 
-			csDiagramEntry = (CSDiagramEntry)session.get(
-				CSDiagramEntryImpl.class, primaryKey);
+		if (csDiagramEntry == null) {
+			Session session = null;
 
-			if (csDiagramEntry != null) {
-				cacheResult(csDiagramEntry);
+			try {
+				session = openSession();
+
+				csDiagramEntry = (CSDiagramEntry)session.get(
+					CSDiagramEntryImpl.class, primaryKey);
+
+				if (csDiagramEntry != null) {
+					cacheResult(csDiagramEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return csDiagramEntry;

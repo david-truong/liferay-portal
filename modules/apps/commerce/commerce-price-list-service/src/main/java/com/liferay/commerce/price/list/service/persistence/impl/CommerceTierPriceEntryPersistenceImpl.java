@@ -5169,6 +5169,11 @@ public class CommerceTierPriceEntryPersistenceImpl
 	@Override
 	public void cacheResult(CommerceTierPriceEntry commerceTierPriceEntry) {
 		if (commerceTierPriceEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceTierPriceEntryImpl.class,
+				new CTPrimaryKey(commerceTierPriceEntry),
+				commerceTierPriceEntry);
+
 			return;
 		}
 
@@ -5515,9 +5520,17 @@ public class CommerceTierPriceEntryPersistenceImpl
 			return commerceTierPriceEntry;
 		}
 
-		entityCache.putResult(
-			CommerceTierPriceEntryImpl.class, commerceTierPriceEntryModelImpl,
-			false, true);
+		if (commerceTierPriceEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceTierPriceEntryImpl.class,
+				new CTPrimaryKey(commerceTierPriceEntryModelImpl),
+				commerceTierPriceEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommerceTierPriceEntryImpl.class,
+				commerceTierPriceEntryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(commerceTierPriceEntryModelImpl);
 
@@ -5585,25 +5598,35 @@ public class CommerceTierPriceEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommerceTierPriceEntry commerceTierPriceEntry = null;
+		Serializable serializable = entityCache.getResult(
+			CommerceTierPriceEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommerceTierPriceEntry commerceTierPriceEntry =
+			(CommerceTierPriceEntry)serializable;
 
-			commerceTierPriceEntry = (CommerceTierPriceEntry)session.get(
-				CommerceTierPriceEntryImpl.class, primaryKey);
+		if (commerceTierPriceEntry == null) {
+			Session session = null;
 
-			if (commerceTierPriceEntry != null) {
-				cacheResult(commerceTierPriceEntry);
+			try {
+				session = openSession();
+
+				commerceTierPriceEntry = (CommerceTierPriceEntry)session.get(
+					CommerceTierPriceEntryImpl.class, primaryKey);
+
+				if (commerceTierPriceEntry != null) {
+					cacheResult(commerceTierPriceEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commerceTierPriceEntry;

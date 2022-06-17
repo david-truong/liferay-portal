@@ -3259,6 +3259,9 @@ public class MBBanPersistenceImpl
 	@Override
 	public void cacheResult(MBBan mbBan) {
 		if (mbBan.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBBanImpl.class, new CTPrimaryKey(mbBan), mbBan);
+
 			return;
 		}
 
@@ -3546,7 +3549,14 @@ public class MBBanPersistenceImpl
 			return mbBan;
 		}
 
-		entityCache.putResult(MBBanImpl.class, mbBanModelImpl, false, true);
+		if (mbBanModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				MBBanImpl.class, new CTPrimaryKey(mbBanModelImpl),
+				mbBanModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(MBBanImpl.class, mbBanModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(mbBanModelImpl);
 
@@ -3608,24 +3618,33 @@ public class MBBanPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		MBBan mbBan = null;
+		Serializable serializable = entityCache.getResult(
+			MBBanImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		MBBan mbBan = (MBBan)serializable;
 
-			mbBan = (MBBan)session.get(MBBanImpl.class, primaryKey);
+		if (mbBan == null) {
+			Session session = null;
 
-			if (mbBan != null) {
-				cacheResult(mbBan);
+			try {
+				session = openSession();
+
+				mbBan = (MBBan)session.get(MBBanImpl.class, primaryKey);
+
+				if (mbBan != null) {
+					cacheResult(mbBan);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return mbBan;

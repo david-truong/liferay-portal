@@ -5564,6 +5564,10 @@ public class CalendarBookingPersistenceImpl
 	@Override
 	public void cacheResult(CalendarBooking calendarBooking) {
 		if (calendarBooking.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarBookingImpl.class, new CTPrimaryKey(calendarBooking),
+				calendarBooking);
+
 			return;
 		}
 
@@ -5900,8 +5904,17 @@ public class CalendarBookingPersistenceImpl
 			return calendarBooking;
 		}
 
-		entityCache.putResult(
-			CalendarBookingImpl.class, calendarBookingModelImpl, false, true);
+		if (calendarBookingModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarBookingImpl.class,
+				new CTPrimaryKey(calendarBookingModelImpl),
+				calendarBookingModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CalendarBookingImpl.class, calendarBookingModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(calendarBookingModelImpl);
 
@@ -5965,25 +5978,34 @@ public class CalendarBookingPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CalendarBooking calendarBooking = null;
+		Serializable serializable = entityCache.getResult(
+			CalendarBookingImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CalendarBooking calendarBooking = (CalendarBooking)serializable;
 
-			calendarBooking = (CalendarBooking)session.get(
-				CalendarBookingImpl.class, primaryKey);
+		if (calendarBooking == null) {
+			Session session = null;
 
-			if (calendarBooking != null) {
-				cacheResult(calendarBooking);
+			try {
+				session = openSession();
+
+				calendarBooking = (CalendarBooking)session.get(
+					CalendarBookingImpl.class, primaryKey);
+
+				if (calendarBooking != null) {
+					cacheResult(calendarBooking);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return calendarBooking;

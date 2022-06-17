@@ -3754,6 +3754,11 @@ public class CPInstanceOptionValueRelPersistenceImpl
 	@Override
 	public void cacheResult(CPInstanceOptionValueRel cpInstanceOptionValueRel) {
 		if (cpInstanceOptionValueRel.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPInstanceOptionValueRelImpl.class,
+				new CTPrimaryKey(cpInstanceOptionValueRel),
+				cpInstanceOptionValueRel);
+
 			return;
 		}
 
@@ -4119,9 +4124,17 @@ public class CPInstanceOptionValueRelPersistenceImpl
 			return cpInstanceOptionValueRel;
 		}
 
-		entityCache.putResult(
-			CPInstanceOptionValueRelImpl.class,
-			cpInstanceOptionValueRelModelImpl, false, true);
+		if (cpInstanceOptionValueRelModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPInstanceOptionValueRelImpl.class,
+				new CTPrimaryKey(cpInstanceOptionValueRelModelImpl),
+				cpInstanceOptionValueRelModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPInstanceOptionValueRelImpl.class,
+				cpInstanceOptionValueRelModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cpInstanceOptionValueRelModelImpl);
 
@@ -4189,25 +4202,36 @@ public class CPInstanceOptionValueRelPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPInstanceOptionValueRel cpInstanceOptionValueRel = null;
+		Serializable serializable = entityCache.getResult(
+			CPInstanceOptionValueRelImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPInstanceOptionValueRel cpInstanceOptionValueRel =
+			(CPInstanceOptionValueRel)serializable;
 
-			cpInstanceOptionValueRel = (CPInstanceOptionValueRel)session.get(
-				CPInstanceOptionValueRelImpl.class, primaryKey);
+		if (cpInstanceOptionValueRel == null) {
+			Session session = null;
 
-			if (cpInstanceOptionValueRel != null) {
-				cacheResult(cpInstanceOptionValueRel);
+			try {
+				session = openSession();
+
+				cpInstanceOptionValueRel =
+					(CPInstanceOptionValueRel)session.get(
+						CPInstanceOptionValueRelImpl.class, primaryKey);
+
+				if (cpInstanceOptionValueRel != null) {
+					cacheResult(cpInstanceOptionValueRel);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpInstanceOptionValueRel;

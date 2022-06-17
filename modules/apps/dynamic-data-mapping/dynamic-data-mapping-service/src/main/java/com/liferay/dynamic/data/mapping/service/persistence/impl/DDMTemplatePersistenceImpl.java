@@ -12159,6 +12159,10 @@ public class DDMTemplatePersistenceImpl
 	@Override
 	public void cacheResult(DDMTemplate ddmTemplate) {
 		if (ddmTemplate.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMTemplateImpl.class, new CTPrimaryKey(ddmTemplate),
+				ddmTemplate);
+
 			return;
 		}
 
@@ -12487,8 +12491,15 @@ public class DDMTemplatePersistenceImpl
 			return ddmTemplate;
 		}
 
-		entityCache.putResult(
-			DDMTemplateImpl.class, ddmTemplateModelImpl, false, true);
+		if (ddmTemplateModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMTemplateImpl.class, new CTPrimaryKey(ddmTemplateModelImpl),
+				ddmTemplateModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMTemplateImpl.class, ddmTemplateModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ddmTemplateModelImpl);
 
@@ -12552,25 +12563,34 @@ public class DDMTemplatePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMTemplate ddmTemplate = null;
+		Serializable serializable = entityCache.getResult(
+			DDMTemplateImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMTemplate ddmTemplate = (DDMTemplate)serializable;
 
-			ddmTemplate = (DDMTemplate)session.get(
-				DDMTemplateImpl.class, primaryKey);
+		if (ddmTemplate == null) {
+			Session session = null;
 
-			if (ddmTemplate != null) {
-				cacheResult(ddmTemplate);
+			try {
+				session = openSession();
+
+				ddmTemplate = (DDMTemplate)session.get(
+					DDMTemplateImpl.class, primaryKey);
+
+				if (ddmTemplate != null) {
+					cacheResult(ddmTemplate);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmTemplate;

@@ -5741,6 +5741,10 @@ public class SocialActivityPersistenceImpl
 	@Override
 	public void cacheResult(SocialActivity socialActivity) {
 		if (socialActivity.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityImpl.class, new CTPrimaryKey(socialActivity),
+				socialActivity);
+
 			return;
 		}
 
@@ -6031,8 +6035,16 @@ public class SocialActivityPersistenceImpl
 			return socialActivity;
 		}
 
-		EntityCacheUtil.putResult(
-			SocialActivityImpl.class, socialActivityModelImpl, false, true);
+		if (socialActivityModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				SocialActivityImpl.class,
+				new CTPrimaryKey(socialActivityModelImpl),
+				socialActivityModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				SocialActivityImpl.class, socialActivityModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(socialActivityModelImpl);
 
@@ -6096,25 +6108,34 @@ public class SocialActivityPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		SocialActivity socialActivity = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			SocialActivityImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		SocialActivity socialActivity = (SocialActivity)serializable;
 
-			socialActivity = (SocialActivity)session.get(
-				SocialActivityImpl.class, primaryKey);
+		if (socialActivity == null) {
+			Session session = null;
 
-			if (socialActivity != null) {
-				cacheResult(socialActivity);
+			try {
+				session = openSession();
+
+				socialActivity = (SocialActivity)session.get(
+					SocialActivityImpl.class, primaryKey);
+
+				if (socialActivity != null) {
+					cacheResult(socialActivity);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return socialActivity;

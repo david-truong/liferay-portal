@@ -2243,6 +2243,10 @@ public class CommerceCatalogPersistenceImpl
 	@Override
 	public void cacheResult(CommerceCatalog commerceCatalog) {
 		if (commerceCatalog.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceCatalogImpl.class, new CTPrimaryKey(commerceCatalog),
+				commerceCatalog);
+
 			return;
 		}
 
@@ -2542,8 +2546,17 @@ public class CommerceCatalogPersistenceImpl
 			return commerceCatalog;
 		}
 
-		entityCache.putResult(
-			CommerceCatalogImpl.class, commerceCatalogModelImpl, false, true);
+		if (commerceCatalogModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CommerceCatalogImpl.class,
+				new CTPrimaryKey(commerceCatalogModelImpl),
+				commerceCatalogModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CommerceCatalogImpl.class, commerceCatalogModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(commerceCatalogModelImpl);
 
@@ -2607,25 +2620,34 @@ public class CommerceCatalogPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CommerceCatalog commerceCatalog = null;
+		Serializable serializable = entityCache.getResult(
+			CommerceCatalogImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CommerceCatalog commerceCatalog = (CommerceCatalog)serializable;
 
-			commerceCatalog = (CommerceCatalog)session.get(
-				CommerceCatalogImpl.class, primaryKey);
+		if (commerceCatalog == null) {
+			Session session = null;
 
-			if (commerceCatalog != null) {
-				cacheResult(commerceCatalog);
+			try {
+				session = openSession();
+
+				commerceCatalog = (CommerceCatalog)session.get(
+					CommerceCatalogImpl.class, primaryKey);
+
+				if (commerceCatalog != null) {
+					cacheResult(commerceCatalog);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return commerceCatalog;

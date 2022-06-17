@@ -3034,6 +3034,9 @@ public class AssetLinkPersistenceImpl
 	@Override
 	public void cacheResult(AssetLink assetLink) {
 		if (assetLink.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetLinkImpl.class, new CTPrimaryKey(assetLink), assetLink);
+
 			return;
 		}
 
@@ -3307,8 +3310,15 @@ public class AssetLinkPersistenceImpl
 			return assetLink;
 		}
 
-		EntityCacheUtil.putResult(
-			AssetLinkImpl.class, assetLinkModelImpl, false, true);
+		if (assetLinkModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				AssetLinkImpl.class, new CTPrimaryKey(assetLinkModelImpl),
+				assetLinkModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				AssetLinkImpl.class, assetLinkModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(assetLinkModelImpl);
 
@@ -3370,24 +3380,34 @@ public class AssetLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		AssetLink assetLink = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			AssetLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		AssetLink assetLink = (AssetLink)serializable;
 
-			assetLink = (AssetLink)session.get(AssetLinkImpl.class, primaryKey);
+		if (assetLink == null) {
+			Session session = null;
 
-			if (assetLink != null) {
-				cacheResult(assetLink);
+			try {
+				session = openSession();
+
+				assetLink = (AssetLink)session.get(
+					AssetLinkImpl.class, primaryKey);
+
+				if (assetLink != null) {
+					cacheResult(assetLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return assetLink;

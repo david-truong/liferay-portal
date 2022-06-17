@@ -2338,6 +2338,11 @@ public class JournalArticleResourcePersistenceImpl
 	@Override
 	public void cacheResult(JournalArticleResource journalArticleResource) {
 		if (journalArticleResource.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalArticleResourceImpl.class,
+				new CTPrimaryKey(journalArticleResource),
+				journalArticleResource);
+
 			return;
 		}
 
@@ -2652,9 +2657,17 @@ public class JournalArticleResourcePersistenceImpl
 			return journalArticleResource;
 		}
 
-		entityCache.putResult(
-			JournalArticleResourceImpl.class, journalArticleResourceModelImpl,
-			false, true);
+		if (journalArticleResourceModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalArticleResourceImpl.class,
+				new CTPrimaryKey(journalArticleResourceModelImpl),
+				journalArticleResourceModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				JournalArticleResourceImpl.class,
+				journalArticleResourceModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(journalArticleResourceModelImpl);
 
@@ -2721,25 +2734,35 @@ public class JournalArticleResourcePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		JournalArticleResource journalArticleResource = null;
+		Serializable serializable = entityCache.getResult(
+			JournalArticleResourceImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		JournalArticleResource journalArticleResource =
+			(JournalArticleResource)serializable;
 
-			journalArticleResource = (JournalArticleResource)session.get(
-				JournalArticleResourceImpl.class, primaryKey);
+		if (journalArticleResource == null) {
+			Session session = null;
 
-			if (journalArticleResource != null) {
-				cacheResult(journalArticleResource);
+			try {
+				session = openSession();
+
+				journalArticleResource = (JournalArticleResource)session.get(
+					JournalArticleResourceImpl.class, primaryKey);
+
+				if (journalArticleResource != null) {
+					cacheResult(journalArticleResource);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return journalArticleResource;

@@ -9205,6 +9205,10 @@ public class OrganizationPersistenceImpl
 	@Override
 	public void cacheResult(Organization organization) {
 		if (organization.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				OrganizationImpl.class, new CTPrimaryKey(organization),
+				organization);
+
 			return;
 		}
 
@@ -9529,8 +9533,15 @@ public class OrganizationPersistenceImpl
 			return organization;
 		}
 
-		EntityCacheUtil.putResult(
-			OrganizationImpl.class, organizationModelImpl, false, true);
+		if (organizationModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				OrganizationImpl.class, new CTPrimaryKey(organizationModelImpl),
+				organizationModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				OrganizationImpl.class, organizationModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(organizationModelImpl);
 
@@ -9594,25 +9605,34 @@ public class OrganizationPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		Organization organization = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			OrganizationImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		Organization organization = (Organization)serializable;
 
-			organization = (Organization)session.get(
-				OrganizationImpl.class, primaryKey);
+		if (organization == null) {
+			Session session = null;
 
-			if (organization != null) {
-				cacheResult(organization);
+			try {
+				session = openSession();
+
+				organization = (Organization)session.get(
+					OrganizationImpl.class, primaryKey);
+
+				if (organization != null) {
+					cacheResult(organization);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return organization;

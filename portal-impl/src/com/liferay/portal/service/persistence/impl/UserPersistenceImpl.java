@@ -8197,6 +8197,9 @@ public class UserPersistenceImpl
 	@Override
 	public void cacheResult(User user) {
 		if (user.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				UserImpl.class, new CTPrimaryKey(user), user);
+
 			return;
 		}
 
@@ -8600,7 +8603,15 @@ public class UserPersistenceImpl
 			return user;
 		}
 
-		EntityCacheUtil.putResult(UserImpl.class, userModelImpl, false, true);
+		if (userModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				UserImpl.class, new CTPrimaryKey(userModelImpl), userModelImpl,
+				false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				UserImpl.class, userModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(userModelImpl);
 
@@ -8662,24 +8673,33 @@ public class UserPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		User user = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			UserImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		User user = (User)serializable;
 
-			user = (User)session.get(UserImpl.class, primaryKey);
+		if (user == null) {
+			Session session = null;
 
-			if (user != null) {
-				cacheResult(user);
+			try {
+				session = openSession();
+
+				user = (User)session.get(UserImpl.class, primaryKey);
+
+				if (user != null) {
+					cacheResult(user);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return user;

@@ -2676,6 +2676,10 @@ public class JournalFeedPersistenceImpl
 	@Override
 	public void cacheResult(JournalFeed journalFeed) {
 		if (journalFeed.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalFeedImpl.class, new CTPrimaryKey(journalFeed),
+				journalFeed);
+
 			return;
 		}
 
@@ -2979,8 +2983,15 @@ public class JournalFeedPersistenceImpl
 			return journalFeed;
 		}
 
-		entityCache.putResult(
-			JournalFeedImpl.class, journalFeedModelImpl, false, true);
+		if (journalFeedModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				JournalFeedImpl.class, new CTPrimaryKey(journalFeedModelImpl),
+				journalFeedModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				JournalFeedImpl.class, journalFeedModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(journalFeedModelImpl);
 
@@ -3042,25 +3053,34 @@ public class JournalFeedPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		JournalFeed journalFeed = null;
+		Serializable serializable = entityCache.getResult(
+			JournalFeedImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		JournalFeed journalFeed = (JournalFeed)serializable;
 
-			journalFeed = (JournalFeed)session.get(
-				JournalFeedImpl.class, primaryKey);
+		if (journalFeed == null) {
+			Session session = null;
 
-			if (journalFeed != null) {
-				cacheResult(journalFeed);
+			try {
+				session = openSession();
+
+				journalFeed = (JournalFeed)session.get(
+					JournalFeedImpl.class, primaryKey);
+
+				if (journalFeed != null) {
+					cacheResult(journalFeed);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return journalFeed;

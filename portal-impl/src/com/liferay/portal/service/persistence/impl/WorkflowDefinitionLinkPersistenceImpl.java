@@ -3467,6 +3467,11 @@ public class WorkflowDefinitionLinkPersistenceImpl
 	@Override
 	public void cacheResult(WorkflowDefinitionLink workflowDefinitionLink) {
 		if (workflowDefinitionLink.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				WorkflowDefinitionLinkImpl.class,
+				new CTPrimaryKey(workflowDefinitionLink),
+				workflowDefinitionLink);
+
 			return;
 		}
 
@@ -3786,9 +3791,17 @@ public class WorkflowDefinitionLinkPersistenceImpl
 			return workflowDefinitionLink;
 		}
 
-		EntityCacheUtil.putResult(
-			WorkflowDefinitionLinkImpl.class, workflowDefinitionLinkModelImpl,
-			false, true);
+		if (workflowDefinitionLinkModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				WorkflowDefinitionLinkImpl.class,
+				new CTPrimaryKey(workflowDefinitionLinkModelImpl),
+				workflowDefinitionLinkModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				WorkflowDefinitionLinkImpl.class,
+				workflowDefinitionLinkModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(workflowDefinitionLinkModelImpl);
 
@@ -3856,25 +3869,35 @@ public class WorkflowDefinitionLinkPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		WorkflowDefinitionLink workflowDefinitionLink = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			WorkflowDefinitionLinkImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		WorkflowDefinitionLink workflowDefinitionLink =
+			(WorkflowDefinitionLink)serializable;
 
-			workflowDefinitionLink = (WorkflowDefinitionLink)session.get(
-				WorkflowDefinitionLinkImpl.class, primaryKey);
+		if (workflowDefinitionLink == null) {
+			Session session = null;
 
-			if (workflowDefinitionLink != null) {
-				cacheResult(workflowDefinitionLink);
+			try {
+				session = openSession();
+
+				workflowDefinitionLink = (WorkflowDefinitionLink)session.get(
+					WorkflowDefinitionLinkImpl.class, primaryKey);
+
+				if (workflowDefinitionLink != null) {
+					cacheResult(workflowDefinitionLink);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return workflowDefinitionLink;

@@ -2585,6 +2585,9 @@ public class CTSContentPersistenceImpl
 	@Override
 	public void cacheResult(CTSContent ctsContent) {
 		if (ctsContent.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CTSContentImpl.class, new CTPrimaryKey(ctsContent), ctsContent);
+
 			return;
 		}
 
@@ -2854,8 +2857,15 @@ public class CTSContentPersistenceImpl
 			return ctsContent;
 		}
 
-		entityCache.putResult(
-			CTSContentImpl.class, ctsContentModelImpl, false, true);
+		if (ctsContentModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CTSContentImpl.class, new CTPrimaryKey(ctsContentModelImpl),
+				ctsContentModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CTSContentImpl.class, ctsContentModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(ctsContentModelImpl);
 
@@ -2919,25 +2929,34 @@ public class CTSContentPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CTSContent ctsContent = null;
+		Serializable serializable = entityCache.getResult(
+			CTSContentImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CTSContent ctsContent = (CTSContent)serializable;
 
-			ctsContent = (CTSContent)session.get(
-				CTSContentImpl.class, primaryKey);
+		if (ctsContent == null) {
+			Session session = null;
 
-			if (ctsContent != null) {
-				cacheResult(ctsContent);
+			try {
+				session = openSession();
+
+				ctsContent = (CTSContent)session.get(
+					CTSContentImpl.class, primaryKey);
+
+				if (ctsContent != null) {
+					cacheResult(ctsContent);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ctsContent;

@@ -1473,6 +1473,10 @@ public class DDMStructureVersionPersistenceImpl
 	@Override
 	public void cacheResult(DDMStructureVersion ddmStructureVersion) {
 		if (ddmStructureVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureVersionImpl.class,
+				new CTPrimaryKey(ddmStructureVersion), ddmStructureVersion);
+
 			return;
 		}
 
@@ -1775,9 +1779,17 @@ public class DDMStructureVersionPersistenceImpl
 			return ddmStructureVersion;
 		}
 
-		entityCache.putResult(
-			DDMStructureVersionImpl.class, ddmStructureVersionModelImpl, false,
-			true);
+		if (ddmStructureVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMStructureVersionImpl.class,
+				new CTPrimaryKey(ddmStructureVersionModelImpl),
+				ddmStructureVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMStructureVersionImpl.class, ddmStructureVersionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(ddmStructureVersionModelImpl);
 
@@ -1841,25 +1853,35 @@ public class DDMStructureVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMStructureVersion ddmStructureVersion = null;
+		Serializable serializable = entityCache.getResult(
+			DDMStructureVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMStructureVersion ddmStructureVersion =
+			(DDMStructureVersion)serializable;
 
-			ddmStructureVersion = (DDMStructureVersion)session.get(
-				DDMStructureVersionImpl.class, primaryKey);
+		if (ddmStructureVersion == null) {
+			Session session = null;
 
-			if (ddmStructureVersion != null) {
-				cacheResult(ddmStructureVersion);
+			try {
+				session = openSession();
+
+				ddmStructureVersion = (DDMStructureVersion)session.get(
+					DDMStructureVersionImpl.class, primaryKey);
+
+				if (ddmStructureVersion != null) {
+					cacheResult(ddmStructureVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmStructureVersion;

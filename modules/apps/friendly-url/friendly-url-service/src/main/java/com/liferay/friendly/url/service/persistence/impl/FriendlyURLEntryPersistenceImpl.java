@@ -2133,6 +2133,10 @@ public class FriendlyURLEntryPersistenceImpl
 	@Override
 	public void cacheResult(FriendlyURLEntry friendlyURLEntry) {
 		if (friendlyURLEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FriendlyURLEntryImpl.class, new CTPrimaryKey(friendlyURLEntry),
+				friendlyURLEntry);
+
 			return;
 		}
 
@@ -2439,8 +2443,17 @@ public class FriendlyURLEntryPersistenceImpl
 			return friendlyURLEntry;
 		}
 
-		entityCache.putResult(
-			FriendlyURLEntryImpl.class, friendlyURLEntryModelImpl, false, true);
+		if (friendlyURLEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FriendlyURLEntryImpl.class,
+				new CTPrimaryKey(friendlyURLEntryModelImpl),
+				friendlyURLEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FriendlyURLEntryImpl.class, friendlyURLEntryModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(friendlyURLEntryModelImpl);
 
@@ -2504,25 +2517,34 @@ public class FriendlyURLEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FriendlyURLEntry friendlyURLEntry = null;
+		Serializable serializable = entityCache.getResult(
+			FriendlyURLEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FriendlyURLEntry friendlyURLEntry = (FriendlyURLEntry)serializable;
 
-			friendlyURLEntry = (FriendlyURLEntry)session.get(
-				FriendlyURLEntryImpl.class, primaryKey);
+		if (friendlyURLEntry == null) {
+			Session session = null;
 
-			if (friendlyURLEntry != null) {
-				cacheResult(friendlyURLEntry);
+			try {
+				session = openSession();
+
+				friendlyURLEntry = (FriendlyURLEntry)session.get(
+					FriendlyURLEntryImpl.class, primaryKey);
+
+				if (friendlyURLEntry != null) {
+					cacheResult(friendlyURLEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return friendlyURLEntry;

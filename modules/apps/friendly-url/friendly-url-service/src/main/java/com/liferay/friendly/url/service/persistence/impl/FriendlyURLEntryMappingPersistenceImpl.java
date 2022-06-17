@@ -355,6 +355,11 @@ public class FriendlyURLEntryMappingPersistenceImpl
 	@Override
 	public void cacheResult(FriendlyURLEntryMapping friendlyURLEntryMapping) {
 		if (friendlyURLEntryMapping.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FriendlyURLEntryMappingImpl.class,
+				new CTPrimaryKey(friendlyURLEntryMapping),
+				friendlyURLEntryMapping);
+
 			return;
 		}
 
@@ -643,9 +648,17 @@ public class FriendlyURLEntryMappingPersistenceImpl
 			return friendlyURLEntryMapping;
 		}
 
-		entityCache.putResult(
-			FriendlyURLEntryMappingImpl.class, friendlyURLEntryMappingModelImpl,
-			false, true);
+		if (friendlyURLEntryMappingModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				FriendlyURLEntryMappingImpl.class,
+				new CTPrimaryKey(friendlyURLEntryMappingModelImpl),
+				friendlyURLEntryMappingModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				FriendlyURLEntryMappingImpl.class,
+				friendlyURLEntryMappingModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(friendlyURLEntryMappingModelImpl);
 
@@ -713,25 +726,35 @@ public class FriendlyURLEntryMappingPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		FriendlyURLEntryMapping friendlyURLEntryMapping = null;
+		Serializable serializable = entityCache.getResult(
+			FriendlyURLEntryMappingImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		FriendlyURLEntryMapping friendlyURLEntryMapping =
+			(FriendlyURLEntryMapping)serializable;
 
-			friendlyURLEntryMapping = (FriendlyURLEntryMapping)session.get(
-				FriendlyURLEntryMappingImpl.class, primaryKey);
+		if (friendlyURLEntryMapping == null) {
+			Session session = null;
 
-			if (friendlyURLEntryMapping != null) {
-				cacheResult(friendlyURLEntryMapping);
+			try {
+				session = openSession();
+
+				friendlyURLEntryMapping = (FriendlyURLEntryMapping)session.get(
+					FriendlyURLEntryMappingImpl.class, primaryKey);
+
+				if (friendlyURLEntryMapping != null) {
+					cacheResult(friendlyURLEntryMapping);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return friendlyURLEntryMapping;

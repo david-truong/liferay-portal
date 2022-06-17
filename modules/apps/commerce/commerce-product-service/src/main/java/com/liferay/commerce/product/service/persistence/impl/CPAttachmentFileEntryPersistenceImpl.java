@@ -6126,6 +6126,10 @@ public class CPAttachmentFileEntryPersistenceImpl
 	@Override
 	public void cacheResult(CPAttachmentFileEntry cpAttachmentFileEntry) {
 		if (cpAttachmentFileEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPAttachmentFileEntryImpl.class,
+				new CTPrimaryKey(cpAttachmentFileEntry), cpAttachmentFileEntry);
+
 			return;
 		}
 
@@ -6472,9 +6476,17 @@ public class CPAttachmentFileEntryPersistenceImpl
 			return cpAttachmentFileEntry;
 		}
 
-		entityCache.putResult(
-			CPAttachmentFileEntryImpl.class, cpAttachmentFileEntryModelImpl,
-			false, true);
+		if (cpAttachmentFileEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPAttachmentFileEntryImpl.class,
+				new CTPrimaryKey(cpAttachmentFileEntryModelImpl),
+				cpAttachmentFileEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPAttachmentFileEntryImpl.class, cpAttachmentFileEntryModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(cpAttachmentFileEntryModelImpl);
 
@@ -6539,25 +6551,35 @@ public class CPAttachmentFileEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPAttachmentFileEntry cpAttachmentFileEntry = null;
+		Serializable serializable = entityCache.getResult(
+			CPAttachmentFileEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPAttachmentFileEntry cpAttachmentFileEntry =
+			(CPAttachmentFileEntry)serializable;
 
-			cpAttachmentFileEntry = (CPAttachmentFileEntry)session.get(
-				CPAttachmentFileEntryImpl.class, primaryKey);
+		if (cpAttachmentFileEntry == null) {
+			Session session = null;
 
-			if (cpAttachmentFileEntry != null) {
-				cacheResult(cpAttachmentFileEntry);
+			try {
+				session = openSession();
+
+				cpAttachmentFileEntry = (CPAttachmentFileEntry)session.get(
+					CPAttachmentFileEntryImpl.class, primaryKey);
+
+				if (cpAttachmentFileEntry != null) {
+					cacheResult(cpAttachmentFileEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpAttachmentFileEntry;

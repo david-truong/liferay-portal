@@ -1757,6 +1757,10 @@ public class CPDefinitionInventoryPersistenceImpl
 	@Override
 	public void cacheResult(CPDefinitionInventory cpDefinitionInventory) {
 		if (cpDefinitionInventory.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionInventoryImpl.class,
+				new CTPrimaryKey(cpDefinitionInventory), cpDefinitionInventory);
+
 			return;
 		}
 
@@ -2094,9 +2098,17 @@ public class CPDefinitionInventoryPersistenceImpl
 			return cpDefinitionInventory;
 		}
 
-		entityCache.putResult(
-			CPDefinitionInventoryImpl.class, cpDefinitionInventoryModelImpl,
-			false, true);
+		if (cpDefinitionInventoryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPDefinitionInventoryImpl.class,
+				new CTPrimaryKey(cpDefinitionInventoryModelImpl),
+				cpDefinitionInventoryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPDefinitionInventoryImpl.class, cpDefinitionInventoryModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(cpDefinitionInventoryModelImpl);
 
@@ -2161,25 +2173,35 @@ public class CPDefinitionInventoryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPDefinitionInventory cpDefinitionInventory = null;
+		Serializable serializable = entityCache.getResult(
+			CPDefinitionInventoryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPDefinitionInventory cpDefinitionInventory =
+			(CPDefinitionInventory)serializable;
 
-			cpDefinitionInventory = (CPDefinitionInventory)session.get(
-				CPDefinitionInventoryImpl.class, primaryKey);
+		if (cpDefinitionInventory == null) {
+			Session session = null;
 
-			if (cpDefinitionInventory != null) {
-				cacheResult(cpDefinitionInventory);
+			try {
+				session = openSession();
+
+				cpDefinitionInventory = (CPDefinitionInventory)session.get(
+					CPDefinitionInventoryImpl.class, primaryKey);
+
+				if (cpDefinitionInventory != null) {
+					cacheResult(cpDefinitionInventory);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpDefinitionInventory;

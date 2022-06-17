@@ -6151,6 +6151,10 @@ public class DLFileShortcutPersistenceImpl
 	@Override
 	public void cacheResult(DLFileShortcut dlFileShortcut) {
 		if (dlFileShortcut.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileShortcutImpl.class, new CTPrimaryKey(dlFileShortcut),
+				dlFileShortcut);
+
 			return;
 		}
 
@@ -6453,8 +6457,16 @@ public class DLFileShortcutPersistenceImpl
 			return dlFileShortcut;
 		}
 
-		EntityCacheUtil.putResult(
-			DLFileShortcutImpl.class, dlFileShortcutModelImpl, false, true);
+		if (dlFileShortcutModelImpl.getCtCollectionId() != 0) {
+			EntityCacheUtil.putResult(
+				DLFileShortcutImpl.class,
+				new CTPrimaryKey(dlFileShortcutModelImpl),
+				dlFileShortcutModelImpl, false, true);
+		}
+		else {
+			EntityCacheUtil.putResult(
+				DLFileShortcutImpl.class, dlFileShortcutModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(dlFileShortcutModelImpl);
 
@@ -6518,25 +6530,34 @@ public class DLFileShortcutPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLFileShortcut dlFileShortcut = null;
+		Serializable serializable = EntityCacheUtil.getResult(
+			DLFileShortcutImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLFileShortcut dlFileShortcut = (DLFileShortcut)serializable;
 
-			dlFileShortcut = (DLFileShortcut)session.get(
-				DLFileShortcutImpl.class, primaryKey);
+		if (dlFileShortcut == null) {
+			Session session = null;
 
-			if (dlFileShortcut != null) {
-				cacheResult(dlFileShortcut);
+			try {
+				session = openSession();
+
+				dlFileShortcut = (DLFileShortcut)session.get(
+					DLFileShortcutImpl.class, primaryKey);
+
+				if (dlFileShortcut != null) {
+					cacheResult(dlFileShortcut);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlFileShortcut;

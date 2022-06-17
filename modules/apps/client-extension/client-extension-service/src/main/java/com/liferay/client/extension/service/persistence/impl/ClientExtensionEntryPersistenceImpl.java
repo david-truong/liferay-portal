@@ -4401,6 +4401,10 @@ public class ClientExtensionEntryPersistenceImpl
 	@Override
 	public void cacheResult(ClientExtensionEntry clientExtensionEntry) {
 		if (clientExtensionEntry.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				ClientExtensionEntryImpl.class,
+				new CTPrimaryKey(clientExtensionEntry), clientExtensionEntry);
+
 			return;
 		}
 
@@ -4749,9 +4753,17 @@ public class ClientExtensionEntryPersistenceImpl
 			return clientExtensionEntry;
 		}
 
-		entityCache.putResult(
-			ClientExtensionEntryImpl.class, clientExtensionEntryModelImpl,
-			false, true);
+		if (clientExtensionEntryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				ClientExtensionEntryImpl.class,
+				new CTPrimaryKey(clientExtensionEntryModelImpl),
+				clientExtensionEntryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				ClientExtensionEntryImpl.class, clientExtensionEntryModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(clientExtensionEntryModelImpl);
 
@@ -4816,25 +4828,35 @@ public class ClientExtensionEntryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		ClientExtensionEntry clientExtensionEntry = null;
+		Serializable serializable = entityCache.getResult(
+			ClientExtensionEntryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		ClientExtensionEntry clientExtensionEntry =
+			(ClientExtensionEntry)serializable;
 
-			clientExtensionEntry = (ClientExtensionEntry)session.get(
-				ClientExtensionEntryImpl.class, primaryKey);
+		if (clientExtensionEntry == null) {
+			Session session = null;
 
-			if (clientExtensionEntry != null) {
-				cacheResult(clientExtensionEntry);
+			try {
+				session = openSession();
+
+				clientExtensionEntry = (ClientExtensionEntry)session.get(
+					ClientExtensionEntryImpl.class, primaryKey);
+
+				if (clientExtensionEntry != null) {
+					cacheResult(clientExtensionEntry);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return clientExtensionEntry;

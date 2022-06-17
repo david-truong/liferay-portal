@@ -2277,6 +2277,9 @@ public class DLContentPersistenceImpl
 	@Override
 	public void cacheResult(DLContent dlContent) {
 		if (dlContent.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DLContentImpl.class, new CTPrimaryKey(dlContent), dlContent);
+
 			return;
 		}
 
@@ -2542,8 +2545,15 @@ public class DLContentPersistenceImpl
 			return dlContent;
 		}
 
-		entityCache.putResult(
-			DLContentImpl.class, dlContentModelImpl, false, true);
+		if (dlContentModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DLContentImpl.class, new CTPrimaryKey(dlContentModelImpl),
+				dlContentModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DLContentImpl.class, dlContentModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(dlContentModelImpl);
 
@@ -2607,24 +2617,34 @@ public class DLContentPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DLContent dlContent = null;
+		Serializable serializable = entityCache.getResult(
+			DLContentImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DLContent dlContent = (DLContent)serializable;
 
-			dlContent = (DLContent)session.get(DLContentImpl.class, primaryKey);
+		if (dlContent == null) {
+			Session session = null;
 
-			if (dlContent != null) {
-				cacheResult(dlContent);
+			try {
+				session = openSession();
+
+				dlContent = (DLContent)session.get(
+					DLContentImpl.class, primaryKey);
+
+				if (dlContent != null) {
+					cacheResult(dlContent);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return dlContent;

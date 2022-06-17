@@ -6381,6 +6381,10 @@ public class CalendarResourcePersistenceImpl
 	@Override
 	public void cacheResult(CalendarResource calendarResource) {
 		if (calendarResource.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarResourceImpl.class, new CTPrimaryKey(calendarResource),
+				calendarResource);
+
 			return;
 		}
 
@@ -6700,8 +6704,17 @@ public class CalendarResourcePersistenceImpl
 			return calendarResource;
 		}
 
-		entityCache.putResult(
-			CalendarResourceImpl.class, calendarResourceModelImpl, false, true);
+		if (calendarResourceModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CalendarResourceImpl.class,
+				new CTPrimaryKey(calendarResourceModelImpl),
+				calendarResourceModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CalendarResourceImpl.class, calendarResourceModelImpl, false,
+				true);
+		}
 
 		cacheUniqueFindersCache(calendarResourceModelImpl);
 
@@ -6765,25 +6778,34 @@ public class CalendarResourcePersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CalendarResource calendarResource = null;
+		Serializable serializable = entityCache.getResult(
+			CalendarResourceImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CalendarResource calendarResource = (CalendarResource)serializable;
 
-			calendarResource = (CalendarResource)session.get(
-				CalendarResourceImpl.class, primaryKey);
+		if (calendarResource == null) {
+			Session session = null;
 
-			if (calendarResource != null) {
-				cacheResult(calendarResource);
+			try {
+				session = openSession();
+
+				calendarResource = (CalendarResource)session.get(
+					CalendarResourceImpl.class, primaryKey);
+
+				if (calendarResource != null) {
+					cacheResult(calendarResource);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return calendarResource;

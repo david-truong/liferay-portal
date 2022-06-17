@@ -892,6 +892,10 @@ public class CPTaxCategoryPersistenceImpl
 	@Override
 	public void cacheResult(CPTaxCategory cpTaxCategory) {
 		if (cpTaxCategory.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPTaxCategoryImpl.class, new CTPrimaryKey(cpTaxCategory),
+				cpTaxCategory);
+
 			return;
 		}
 
@@ -1186,8 +1190,16 @@ public class CPTaxCategoryPersistenceImpl
 			return cpTaxCategory;
 		}
 
-		entityCache.putResult(
-			CPTaxCategoryImpl.class, cpTaxCategoryModelImpl, false, true);
+		if (cpTaxCategoryModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				CPTaxCategoryImpl.class,
+				new CTPrimaryKey(cpTaxCategoryModelImpl),
+				cpTaxCategoryModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				CPTaxCategoryImpl.class, cpTaxCategoryModelImpl, false, true);
+		}
 
 		cacheUniqueFindersCache(cpTaxCategoryModelImpl);
 
@@ -1251,25 +1263,34 @@ public class CPTaxCategoryPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		CPTaxCategory cpTaxCategory = null;
+		Serializable serializable = entityCache.getResult(
+			CPTaxCategoryImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		CPTaxCategory cpTaxCategory = (CPTaxCategory)serializable;
 
-			cpTaxCategory = (CPTaxCategory)session.get(
-				CPTaxCategoryImpl.class, primaryKey);
+		if (cpTaxCategory == null) {
+			Session session = null;
 
-			if (cpTaxCategory != null) {
-				cacheResult(cpTaxCategory);
+			try {
+				session = openSession();
+
+				cpTaxCategory = (CPTaxCategory)session.get(
+					CPTaxCategoryImpl.class, primaryKey);
+
+				if (cpTaxCategory != null) {
+					cacheResult(cpTaxCategory);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return cpTaxCategory;

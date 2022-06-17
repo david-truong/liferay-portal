@@ -8582,6 +8582,10 @@ public class StyleBookEntryVersionPersistenceImpl
 	@Override
 	public void cacheResult(StyleBookEntryVersion styleBookEntryVersion) {
 		if (styleBookEntryVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				StyleBookEntryVersionImpl.class,
+				new CTPrimaryKey(styleBookEntryVersion), styleBookEntryVersion);
+
 			return;
 		}
 
@@ -8936,9 +8940,17 @@ public class StyleBookEntryVersionPersistenceImpl
 			return styleBookEntryVersion;
 		}
 
-		entityCache.putResult(
-			StyleBookEntryVersionImpl.class, styleBookEntryVersionModelImpl,
-			false, true);
+		if (styleBookEntryVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				StyleBookEntryVersionImpl.class,
+				new CTPrimaryKey(styleBookEntryVersionModelImpl),
+				styleBookEntryVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				StyleBookEntryVersionImpl.class, styleBookEntryVersionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(styleBookEntryVersionModelImpl);
 
@@ -9003,25 +9015,35 @@ public class StyleBookEntryVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		StyleBookEntryVersion styleBookEntryVersion = null;
+		Serializable serializable = entityCache.getResult(
+			StyleBookEntryVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		StyleBookEntryVersion styleBookEntryVersion =
+			(StyleBookEntryVersion)serializable;
 
-			styleBookEntryVersion = (StyleBookEntryVersion)session.get(
-				StyleBookEntryVersionImpl.class, primaryKey);
+		if (styleBookEntryVersion == null) {
+			Session session = null;
 
-			if (styleBookEntryVersion != null) {
-				cacheResult(styleBookEntryVersion);
+			try {
+				session = openSession();
+
+				styleBookEntryVersion = (StyleBookEntryVersion)session.get(
+					StyleBookEntryVersionImpl.class, primaryKey);
+
+				if (styleBookEntryVersion != null) {
+					cacheResult(styleBookEntryVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return styleBookEntryVersion;

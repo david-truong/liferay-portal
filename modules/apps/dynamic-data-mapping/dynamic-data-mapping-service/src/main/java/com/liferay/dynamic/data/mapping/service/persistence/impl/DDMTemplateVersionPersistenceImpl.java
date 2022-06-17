@@ -1461,6 +1461,10 @@ public class DDMTemplateVersionPersistenceImpl
 	@Override
 	public void cacheResult(DDMTemplateVersion ddmTemplateVersion) {
 		if (ddmTemplateVersion.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMTemplateVersionImpl.class,
+				new CTPrimaryKey(ddmTemplateVersion), ddmTemplateVersion);
+
 			return;
 		}
 
@@ -1751,9 +1755,17 @@ public class DDMTemplateVersionPersistenceImpl
 			return ddmTemplateVersion;
 		}
 
-		entityCache.putResult(
-			DDMTemplateVersionImpl.class, ddmTemplateVersionModelImpl, false,
-			true);
+		if (ddmTemplateVersionModelImpl.getCtCollectionId() != 0) {
+			entityCache.putResult(
+				DDMTemplateVersionImpl.class,
+				new CTPrimaryKey(ddmTemplateVersionModelImpl),
+				ddmTemplateVersionModelImpl, false, true);
+		}
+		else {
+			entityCache.putResult(
+				DDMTemplateVersionImpl.class, ddmTemplateVersionModelImpl,
+				false, true);
+		}
 
 		cacheUniqueFindersCache(ddmTemplateVersionModelImpl);
 
@@ -1817,25 +1829,35 @@ public class DDMTemplateVersionPersistenceImpl
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
-		DDMTemplateVersion ddmTemplateVersion = null;
+		Serializable serializable = entityCache.getResult(
+			DDMTemplateVersionImpl.class, new CTPrimaryKey(primaryKey));
 
-		Session session = null;
+		if (serializable == nullModel) {
+			return null;
+		}
 
-		try {
-			session = openSession();
+		DDMTemplateVersion ddmTemplateVersion =
+			(DDMTemplateVersion)serializable;
 
-			ddmTemplateVersion = (DDMTemplateVersion)session.get(
-				DDMTemplateVersionImpl.class, primaryKey);
+		if (ddmTemplateVersion == null) {
+			Session session = null;
 
-			if (ddmTemplateVersion != null) {
-				cacheResult(ddmTemplateVersion);
+			try {
+				session = openSession();
+
+				ddmTemplateVersion = (DDMTemplateVersion)session.get(
+					DDMTemplateVersionImpl.class, primaryKey);
+
+				if (ddmTemplateVersion != null) {
+					cacheResult(ddmTemplateVersion);
+				}
 			}
-		}
-		catch (Exception exception) {
-			throw processException(exception);
-		}
-		finally {
-			closeSession(session);
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
 		}
 
 		return ddmTemplateVersion;
