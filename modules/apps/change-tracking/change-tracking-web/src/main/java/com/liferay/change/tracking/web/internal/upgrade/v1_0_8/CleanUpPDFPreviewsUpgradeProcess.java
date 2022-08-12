@@ -16,8 +16,11 @@ package com.liferay.change.tracking.web.internal.upgrade.v1_0_8;
 
 import com.liferay.change.tracking.service.CTCollectionLocalService;
 import com.liferay.change.tracking.service.CTEntryLocalService;
+import com.liferay.change.tracking.store.model.CTSContent;
+import com.liferay.document.library.model.DLFileVersionPreview;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.Portal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,14 +32,17 @@ public class CleanUpPDFPreviewsUpgradeProcess extends UpgradeProcess {
 
 	public CleanUpPDFPreviewsUpgradeProcess(
 		CTCollectionLocalService ctCollectionLocalService,
-		CTEntryLocalService ctEntryLocalService) {
+		CTEntryLocalService ctEntryLocalService, Portal portal) {
 
 		_ctCollectionLocalService = ctCollectionLocalService;
 		_ctEntryLocalService = ctEntryLocalService;
+		_portal = portal;
 	}
 
 	@Override
 	protected void doUpgrade() throws Exception {
+		long ctsContentClassNameId = _portal.getClassNameId(CTSContent.class);
+
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select distinct CTEntry.ctCollectionId, ",
@@ -62,6 +68,9 @@ public class CleanUpPDFPreviewsUpgradeProcess extends UpgradeProcess {
 					ctCollectionId, classNameId, classPK, true);
 			}
 		}
+
+		long dlFileVersionPreviewClassNameId = _portal.getClassNameId(
+			DLFileVersionPreview.class);
 
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
@@ -93,5 +102,6 @@ public class CleanUpPDFPreviewsUpgradeProcess extends UpgradeProcess {
 
 	private final CTCollectionLocalService _ctCollectionLocalService;
 	private final CTEntryLocalService _ctEntryLocalService;
+	private final Portal _portal;
 
 }

@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.upgrade.BasePortletIdUpgradeProcess;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.osgi.service.component.annotations.Component;
@@ -107,7 +108,7 @@ public class PublicationsWebUpgradeStepRegistrator
 		registry.register(
 			"1.0.7", "1.0.8",
 			new CleanUpPDFPreviewsUpgradeProcess(
-				_ctCollectionLocalService, _ctEntryLocalService));
+				_ctCollectionLocalService, _ctEntryLocalService, _portal));
 	}
 
 	@Reference
@@ -124,6 +125,9 @@ public class PublicationsWebUpgradeStepRegistrator
 
 	@Reference
 	private CTSettingsConfigurationHelper _ctSettingsConfigurationHelper;
+
+	@Reference
+	private Portal _portal;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;
