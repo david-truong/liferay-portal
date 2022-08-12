@@ -23,7 +23,7 @@ import com.liferay.change.tracking.web.internal.upgrade.v1_0_3.PublicationsConfi
 import com.liferay.change.tracking.web.internal.upgrade.v1_0_4.PublicationsRolePermissionsUpgradeProcess;
 import com.liferay.change.tracking.web.internal.upgrade.v1_0_5.PublicationsAdminRoleNameUpgradeProcess;
 import com.liferay.change.tracking.web.internal.upgrade.v1_0_7.PublicationsEnabledUpgradeProcess;
-import com.liferay.change.tracking.web.internal.upgrade.v1_0_8.CleanUpPDFPreviews;
+import com.liferay.change.tracking.web.internal.upgrade.v1_0_8.CleanUpPDFPreviewsUpgradeProcess;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
@@ -106,7 +106,7 @@ public class PublicationsWebUpgradeStepRegistrator
 
 		registry.register(
 			"1.0.7", "1.0.8",
-			new CleanUpPDFPreviews(
+			new CleanUpPDFPreviewsUpgradeProcess(
 				_ctCollectionLocalService, _ctEntryLocalService));
 	}
 

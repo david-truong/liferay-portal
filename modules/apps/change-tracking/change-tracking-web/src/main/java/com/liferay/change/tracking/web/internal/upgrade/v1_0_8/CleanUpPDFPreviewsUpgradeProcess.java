@@ -25,9 +25,9 @@ import java.sql.ResultSet;
 /**
  * @author David Truong
  */
-public class CleanUpPDFPreviews extends UpgradeProcess {
+public class CleanUpPDFPreviewsUpgradeProcess extends UpgradeProcess {
 
-	public CleanUpPDFPreviews(
+	public CleanUpPDFPreviewsUpgradeProcess(
 		CTCollectionLocalService ctCollectionLocalService,
 		CTEntryLocalService ctEntryLocalService) {
 
