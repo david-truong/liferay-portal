@@ -37,13 +37,9 @@ public class CleanUpPDFPreviewsUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (hasTable("CTSContent")) {
-			_cleanUpCTSContent();
-		}
+		_cleanUpCTSContent();
 
-		if (hasTable("DLFileVersionPreview")) {
-			_cleanUpDLFileVersionPreviews();
-		}
+		_cleanUpDLFileVersionPreviews();
 	}
 
 	private void _cleanUpCTSContent() throws Exception {
