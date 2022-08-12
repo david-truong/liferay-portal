@@ -37,12 +37,6 @@ public class CleanUpPDFPreviewsUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		_cleanUpCTSContent();
-
-		_cleanUpDLFileVersionPreviews();
-	}
-
-	private void _cleanUpCTSContent() throws Exception {
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select distinct CTEntry.ctCollectionId, ",
@@ -68,9 +62,7 @@ public class CleanUpPDFPreviewsUpgradeProcess extends UpgradeProcess {
 					ctCollectionId, classNameId, classPK, true);
 			}
 		}
-	}
 
-	private void _cleanUpDLFileVersionPreviews() throws Exception {
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select distinct CTEntry.ctCollectionId, ",
