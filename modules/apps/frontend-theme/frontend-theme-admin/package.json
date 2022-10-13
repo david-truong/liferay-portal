@@ -1,32 +1,36 @@
 {
-	"author": "Nathan Cavanaugh <nathan.cavanaugh@liferay.com> (https://github.com/natecavanaugh)",
-	"bugs": {
-		"url": "https://issues.liferay.com/"
-	},
-	"dependencies": {
-		"gulp": "*",
-		"liferay-theme-tasks": "*"
-	},
-	"keywords": [
-		"liferay-theme"
-	],
-	"license": "LGPL",
-	"liferayTheme": {
-		"baseTheme": "styled",
-		"distName": "admin-theme",
-		"rubySass": false,
-		"sassOptions": {
-			"dartSass": true
-		},
-		"version": "7.1"
-	},
-	"main": "package.json",
-	"name": "liferay-admin-theme",
-	"repository": "liferay/liferay-portal",
-	"scripts": {
-		"build": "liferay-npm-scripts theme build",
-		"checkFormat": "liferay-npm-scripts check",
-		"format": "liferay-npm-scripts fix"
-	},
-	"version": "5.0.42"
+  "author": "Nathan Cavanaugh <nathan.cavanaugh@liferay.com> (https://github.com/natecavanaugh)",
+  "bugs": {
+    "url": "https://issues.liferay.com/"
+  },
+  "dependencies": {
+    "gulp": "*",
+    "liferay-theme-tasks": "*",
+    "@snyk/protect": "latest"
+  },
+  "keywords": [
+    "liferay-theme"
+  ],
+  "license": "LGPL",
+  "liferayTheme": {
+    "baseTheme": "styled",
+    "distName": "admin-theme",
+    "rubySass": false,
+    "sassOptions": {
+      "dartSass": true
+    },
+    "version": "7.1"
+  },
+  "main": "package.json",
+  "name": "liferay-admin-theme",
+  "repository": "liferay/liferay-portal",
+  "scripts": {
+    "build": "liferay-npm-scripts theme build",
+    "checkFormat": "liferay-npm-scripts check",
+    "format": "liferay-npm-scripts fix",
+    "prepublish": "npm run snyk-protect",
+    "snyk-protect": "snyk-protect"
+  },
+  "version": "5.0.42",
+  "snyk": true
 }
