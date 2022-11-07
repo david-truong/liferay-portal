@@ -12,6 +12,7 @@
  * details.
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import {fetch, navigate, objectToFormData} from 'frontend-js-web';
 import React, {useState} from 'react';
@@ -32,6 +33,7 @@ export default function PublicationTemplateEditView({
 	publicationName,
 	redirect,
 	saveButtonLabel,
+	templateStringTokens,
 }) {
 	const [showModal, setShowModal] = useState(false);
 	const [collaboratorData, setCollaboratorData] = useState(null);
@@ -74,8 +76,13 @@ export default function PublicationTemplateEditView({
 		})
 			.then((response) => {
 				if (response.status === 200) {
+					const successMessage =
+						ctCollectionTemplateId > 0
+							? 'Successfully edited template'
+							: 'Successfully added template';
+
 					showNotification(
-						'Successfully added template',
+						successMessage,
 						false,
 						afterSubmitNotification
 					);
@@ -137,6 +144,20 @@ export default function PublicationTemplateEditView({
 			/>
 
 			<CollapsablePanel title="Publication Information">
+				<ClayAlert
+					className="alert-autofit-stacked alert-indicator-start"
+					displayType="info"
+					title={Liferay.Language.get('info')}
+				>
+					{Liferay.Language.get('publication-template-token-help')}
+
+					<ul>
+						{templateStringTokens.map((token, i) => (
+							<li key={i}>{token}</li>
+						))}
+					</ul>
+				</ClayAlert>
+
 				<TextField
 					ariaLabel={Liferay.Language.get(
 						'publication-name-placeholder'
@@ -194,8 +215,9 @@ export default function PublicationTemplateEditView({
 				/>
 			</CollapsablePanel>
 
-			<div className="button-holder">
+			<div className="button-group">
 				<ClayButton
+					disabled={!nameField.length || !publicationNameField.length}
 					displayType="primary"
 					id="saveButton"
 					onClick={() => handleSubmit()}

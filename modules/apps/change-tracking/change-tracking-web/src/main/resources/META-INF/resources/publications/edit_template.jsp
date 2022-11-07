@@ -57,7 +57,7 @@ portletDisplay.setShowBackIcon(true);
 			HashMapBuilder.<String, Object>put(
 				"actionUrl", actionURL
 			).put(
-				"collaboratorsProps", publicationsDisplayContext.getCollaboratorsReactData(ctCollectionTemplateId)
+				"collaboratorsProps", publicationsDisplayContext.getCollaboratorsReactData(ctCollectionTemplateId, true)
 			).put(
 				"ctCollectionTemplateId", ctCollectionTemplateId
 			).put(
@@ -74,6 +74,8 @@ portletDisplay.setShowBackIcon(true);
 				"redirect", redirect
 			).put(
 				"saveButtonLabel", LanguageUtil.get(request, saveButtonLabel)
+			).put(
+				"templateStringTokens", CTCollectionTemplateLocalServiceUtil.getTemplateStringTokens()
 			).build()
 		%>'
 	/>
