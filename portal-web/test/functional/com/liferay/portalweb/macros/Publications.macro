@@ -81,6 +81,41 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
+	macro createNewPublicationWithTemplate {
+		if ("${gotoPublicationsAdmin}" == "true") {
+			PublicationsNavigator.openPublicationsAdmin();
+
+			Click(locator1 = "Button#PLUS");
+		}
+		else {
+			Click(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
+
+			MenuItem.click(menuItem = "Create New Publication");
+		}
+
+		AssertElementPresent(locator1 = "Publications#TEMPLATE_SELECTOR");
+
+		Select(
+			locator1 = "Publications#TEMPLATE_OPTION",
+			value1 = "${templateName}");
+
+		if (isSet(publicationName)) {
+			AssertTextEquals(
+				locator1 = "Publications#PUBLICATION_NAME",
+				value1 = "${publicationName}");
+		}
+
+		if (isSet(publicationDescription)) {
+			AssertTextEquals(
+				locator1 = "Publications#PUBLICATION_DESCRIPTION",
+				value1 = "${publicationDescription}");
+		}
+
+		Button.click(button = "Create");
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro deletePublication {
 		PublicationsNavigator._gotoPublicationEllipsisItem(
 			menuItem = "Delete",
@@ -427,6 +462,13 @@ definition {
 			locator1 = "Message#WARNING_SPECIFIC");
 
 		AssertVisible(locator1 = "Publications#DISABLED_PUBLISH_BUTTON");
+	}
+
+	macro viewInvitedUser {
+		AssertElementPresent(
+			key_publicationRole = "${publicationRole}",
+			key_userInvite = "${userInvite}",
+			locator1 = "Publications#INVITED_USER");
 	}
 
 	macro viewNeedsManualResolution {
