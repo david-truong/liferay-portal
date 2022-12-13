@@ -193,7 +193,9 @@ export default function PublicationTemplateEditView({
 			</CollapsablePanel>
 
 			<CollapsablePanel
-				helpTooltip="publication-collaborators-help"
+				helpTooltip={Liferay.Language.get(
+					'publication-collaborators-help'
+				)}
 				title="Publication Collaborators"
 			>
 				<ManageCollaborators

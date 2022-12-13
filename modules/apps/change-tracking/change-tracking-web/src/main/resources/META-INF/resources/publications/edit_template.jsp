@@ -41,7 +41,7 @@ if (ctCollectionTemplate != null) {
 	renderResponse.setTitle(StringBundler.concat(LanguageUtil.format(resourceBundle, "edit-x", new Object[] {ctCollectionTemplate.getName()})));
 }
 else {
-renderResponse.setTitle(LanguageUtil.get(request, "create-a-new-publication-template"));
+	renderResponse.setTitle(LanguageUtil.get(request, "create-a-new-publication-template"));
 }
 
 portletDisplay.setURLBack(backURL);
