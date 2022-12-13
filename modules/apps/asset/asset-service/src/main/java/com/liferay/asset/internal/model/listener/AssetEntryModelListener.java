@@ -15,10 +15,14 @@
 package com.liferay.asset.internal.model.listener;
 
 import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
 import com.liferay.portal.kernel.exception.ModelListenerException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.SearchException;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -35,12 +39,37 @@ public class AssetEntryModelListener extends BaseModelListener<AssetEntry> {
 	}
 
 	@Override
+	public void onAfterUpdate(AssetEntry originalModel, AssetEntry model)
+		throws ModelListenerException {
+
+		long ctCollectionId = model.getCtCollectionId();
+
+		if (ctCollectionId != CTConstants.CT_COLLECTION_ID_PRODUCTION) {
+			try {
+				_assetEntryIndexer.reindex(
+					new String[] {
+						String.valueOf(originalModel.getEntryId()),
+						String.valueOf(model.getEntryId())
+					});
+			}
+			catch (SearchException searchException) {
+				throw new SystemException(searchException);
+			}
+		}
+	}
+
+	@Override
 	public void onBeforeRemove(AssetEntry assetEntry)
 		throws ModelListenerException {
 
 		_layoutClassedModelUsageLocalService.deleteLayoutClassedModelUsages(
 			assetEntry.getClassNameId(), assetEntry.getClassPK());
 	}
+
+	@Reference(
+		target = "(component.name=com.liferay.asset.internal.search.AssetEntryIndexer)"
+	)
+	private Indexer<AssetEntry> _assetEntryIndexer;
 
 	@Reference
 	private LayoutClassedModelUsageLocalService
