@@ -130,6 +130,7 @@ public class PublicationsDisplayContext extends BasePublicationsDisplayContext {
 				getCollaboratorsURL.setResourceID(
 					"/change_tracking/get_collaborators");
 				getCollaboratorsURL.setParameter(
+					"ctCollectionId",
 					String.valueOf(
 						publicationTemplate ?
 							CTConstants.CT_COLLECTION_ID_PRODUCTION : id));
@@ -144,6 +145,7 @@ public class PublicationsDisplayContext extends BasePublicationsDisplayContext {
 
 				inviteUsersURL.setResourceID("/change_tracking/invite_users");
 				inviteUsersURL.setParameter(
+					"ctCollectionId",
 					String.valueOf(
 						publicationTemplate ?
 							CTConstants.CT_COLLECTION_ID_PRODUCTION : id));
