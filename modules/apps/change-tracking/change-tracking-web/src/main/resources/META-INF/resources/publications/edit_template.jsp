@@ -26,18 +26,22 @@ CTCollectionTemplate ctCollectionTemplate = (CTCollectionTemplate)request.getAtt
 long ctCollectionTemplateId = 0;
 String description = StringPool.BLANK;
 String name = StringPool.BLANK;
+String publicationDescription = StringPool.BLANK;
+String publicationName = StringPool.BLANK;
 String saveButtonLabel = "create";
 
 if (ctCollectionTemplate != null) {
 	ctCollectionTemplateId = ctCollectionTemplate.getCtCollectionTemplateId();
 	description = ctCollectionTemplate.getDescription();
 	name = ctCollectionTemplate.getName();
+	publicationDescription = ctCollectionTemplate.getPublicationDescription();
+	publicationName = ctCollectionTemplate.getPublicationName();
 	saveButtonLabel = "save";
 
 	renderResponse.setTitle(StringBundler.concat(LanguageUtil.format(resourceBundle, "edit-x", new Object[] {ctCollectionTemplate.getName()})));
 }
 else {
-	renderResponse.setTitle(LanguageUtil.get(request, "create-a-new-publication-template"));
+renderResponse.setTitle(LanguageUtil.get(request, "create-a-new-publication-template"));
 }
 
 portletDisplay.setURLBack(backURL);
@@ -67,9 +71,9 @@ portletDisplay.setShowBackIcon(true);
 			).put(
 				"namespace", liferayPortletResponse.getNamespace()
 			).put(
-				"publicationDescription", description
+				"publicationDescription", publicationDescription
 			).put(
-				"publicationName", name
+				"publicationName", publicationName
 			).put(
 				"redirect", redirect
 			).put(

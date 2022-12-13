@@ -34,19 +34,25 @@ public class CTCollectionTemplateImpl extends CTCollectionTemplateBaseImpl {
 	}
 
 	public String getParsedPublicationDescription() {
-		JSONObject jsonObject = getJSONObject();
-
 		return CTCollectionTemplateLocalServiceUtil.parseTemplateString(
-			getCtCollectionTemplateId(),
-			String.valueOf(jsonObject.get("description")));
+			getCtCollectionTemplateId(), getPublicationDescription());
 	}
 
 	public String getParsedPublicationName() {
+		return CTCollectionTemplateLocalServiceUtil.parseTemplateString(
+			getCtCollectionTemplateId(), getPublicationName());
+	}
+
+	public String getPublicationDescription() {
 		JSONObject jsonObject = getJSONObject();
 
-		return CTCollectionTemplateLocalServiceUtil.parseTemplateString(
-			getCtCollectionTemplateId(),
-			String.valueOf(jsonObject.get("name")));
+		return String.valueOf(jsonObject.get("description"));
+	}
+
+	public String getPublicationName() {
+		JSONObject jsonObject = getJSONObject();
+
+		return String.valueOf(jsonObject.get("name"));
 	}
 
 	public String getUserName() {
