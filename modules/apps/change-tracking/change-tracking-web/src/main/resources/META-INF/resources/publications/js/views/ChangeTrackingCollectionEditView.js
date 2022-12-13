@@ -225,6 +225,7 @@ export default function ChangeTrackingCollectionEditView({
 					'publication-name-placeholder'
 				)}
 				required={true}
+				validateLength={true}
 			/>
 
 			<TextField
@@ -240,6 +241,7 @@ export default function ChangeTrackingCollectionEditView({
 					'publication-description-placeholder'
 				)}
 				required={false}
+				validateLength={true}
 			/>
 
 			{revertingPublication && (

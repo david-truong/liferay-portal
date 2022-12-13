@@ -25,8 +25,10 @@ const TextField = ({
 	onChange,
 	placeholderValue,
 	required,
+	validateLength,
 }) => {
 	const [nameErrorMessage, setNameErrorMessage] = useState('');
+	const defaultMaxLength = 75;
 
 	const isFieldEmpty = (fieldValue) => {
 		return !!fieldValue.length;
@@ -35,18 +37,18 @@ const TextField = ({
 	const isValidLength = () => {
 		return maxLength
 			? fieldValue.length <= maxLength
-			: fieldValue.length <= 75;
+			: fieldValue.length <= defaultMaxLength;
 	};
 
 	const validateOnBlur = () => {
 		if (required && !isFieldEmpty(fieldValue)) {
 			setNameErrorMessage(Liferay.Language.get('this-field-is-required'));
 		}
-		else if (!isValidLength()) {
+		else if (validateLength === true && !isValidLength()) {
 			setNameErrorMessage(
 				sub(
 					Liferay.Language.get('value-exceeds-maximum-length-of-x'),
-					maxLength
+					maxLength ? maxLength : defaultMaxLength
 				)
 			);
 		}

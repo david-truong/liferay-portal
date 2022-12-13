@@ -125,6 +125,7 @@ export default function PublicationTemplateEditView({
 					'publication-template-name-placeholder'
 				)}
 				required={true}
+				validateLength={true}
 			/>
 
 			<TextField
@@ -217,7 +218,11 @@ export default function PublicationTemplateEditView({
 
 			<div className="button-group">
 				<ClayButton
-					disabled={!nameField.length || !publicationNameField.length}
+					disabled={
+						!nameField.length ||
+						!publicationNameField.length ||
+						nameField.length > 75
+					}
 					displayType="primary"
 					id="saveButton"
 					onClick={() => handleSubmit()}
