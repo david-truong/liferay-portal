@@ -66,6 +66,10 @@ public interface CTCollectionTemplate
 
 	public String getParsedPublicationName();
 
+	public String getPublicationDescription();
+
+	public String getPublicationName();
+
 	public String getUserName();
 
 }

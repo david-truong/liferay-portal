@@ -208,6 +208,16 @@ public class CTCollectionTemplateWrapper
 		return model.getPrimaryKey();
 	}
 
+	@Override
+	public String getPublicationDescription() {
+		return model.getPublicationDescription();
+	}
+
+	@Override
+	public String getPublicationName() {
+		return model.getPublicationName();
+	}
+
 	/**
 	 * Returns the user ID of this ct collection template.
 	 *
