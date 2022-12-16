@@ -62,6 +62,8 @@ public class EditCTCollectionMVCRenderCommand implements MVCRenderCommand {
 			CTWebKeys.CT_COLLECTION,
 			_ctCollectionLocalService.fetchCTCollection(ctCollectionId));
 
+		JSONSerializer jsonSerializer = _jsonFactory.createJSONSerializer();
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -69,13 +71,11 @@ public class EditCTCollectionMVCRenderCommand implements MVCRenderCommand {
 			_ctCollectionTemplateLocalService.getCTCollectionTemplates(
 				themeDisplay.getCompanyId(), 0, 100);
 
-		JSONSerializer jsonSerializer = _jsonFactory.createJSONSerializer();
-
 		renderRequest.setAttribute(
 			CTWebKeys.CT_COLLECTION_TEMPLATES,
 			jsonSerializer.serializeDeep(ctCollectionTemplates));
 
-		Map<Long, JSONObject> templatesJsonMap = new HashMap<>();
+		Map<Long, JSONObject> map = new HashMap<>();
 
 		for (CTCollectionTemplate ctCollectionTemplate :
 				ctCollectionTemplates) {
@@ -89,13 +89,13 @@ public class EditCTCollectionMVCRenderCommand implements MVCRenderCommand {
 				"name", ctCollectionTemplate.getParsedPublicationName()
 			);
 
-			templatesJsonMap.put(
+			map.put(
 				ctCollectionTemplate.getCtCollectionTemplateId(), jsonObject);
 		}
 
 		renderRequest.setAttribute(
 			CTWebKeys.CT_COLLECTION_TEMPLATES_JSONS,
-			_jsonFactory.looseSerializeDeep(templatesJsonMap));
+			_jsonFactory.looseSerializeDeep(map));
 
 		return "/publications/edit_ct_collection.jsp";
 	}
