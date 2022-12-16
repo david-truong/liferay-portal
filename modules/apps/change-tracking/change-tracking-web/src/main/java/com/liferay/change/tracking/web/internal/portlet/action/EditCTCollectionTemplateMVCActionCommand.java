@@ -18,7 +18,7 @@ import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.service.CTCollectionTemplateService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -63,32 +63,21 @@ public class EditCTCollectionTemplateMVCActionCommand
 
 		String name = ParamUtil.getString(actionRequest, "name");
 		String description = ParamUtil.getString(actionRequest, "description");
-		String publicationName = ParamUtil.getString(
-			actionRequest, "publicationName");
-		String publicationDescription = ParamUtil.getString(
-			actionRequest, "publicationDescription");
-
-		int[] roleValues = ParamUtil.getIntegerValues(
-			actionRequest, "roleValues");
-		long[] userIds = ParamUtil.getLongValues(actionRequest, "userIds");
-		long[] publicationsUserRoleUserIds = ParamUtil.getLongValues(
-			actionRequest, "publicationsUserRoleUserIds");
-
-		JSONObject jsonObject = _jsonFactory.createJSONObject();
-
-		jsonObject.put(
-			"description", publicationDescription
+		String json = JSONUtil.put(
+			"description",
+			ParamUtil.getString(actionRequest, "publicationDescription")
 		).put(
-			"name", publicationName
+			"name", ParamUtil.getString(actionRequest, "publicationName")
 		).put(
-			"publicationsUserRoleUserIds", publicationsUserRoleUserIds
+			"publicationsUserRoleUserIds",
+			ParamUtil.getLongValues(
+				actionRequest, "publicationsUserRoleUserIds")
 		).put(
-			"roleValues", roleValues
+			"roleValues",
+			ParamUtil.getIntegerValues(actionRequest, "roleValues")
 		).put(
-			"userIds", userIds
-		);
-
-		String json = jsonObject.toString();
+			"userIds", ParamUtil.getLongValues(actionRequest, "userIds")
+		).toString();
 
 		try {
 			if (ctCollectionTemplateId > 0) {
