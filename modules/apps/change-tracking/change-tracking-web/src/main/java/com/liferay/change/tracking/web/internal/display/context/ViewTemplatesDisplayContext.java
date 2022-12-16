@@ -83,22 +83,22 @@ public class ViewTemplatesDisplayContext
 	public String getEditTemplateURL(long ctCollectionTemplateId)
 		throws PortalException {
 
-		if (CTCollectionTemplatePermission.contains(
+		if (!CTCollectionTemplatePermission.contains(
 				_themeDisplay.getPermissionChecker(), ctCollectionTemplateId,
 				ActionKeys.UPDATE)) {
 
-			return PortletURLBuilder.createRenderURL(
-				_renderResponse
-			).setMVCRenderCommandName(
-				"/change_tracking/edit_ct_collection_template"
-			).setRedirect(
-				_themeDisplay.getURLCurrent()
-			).setParameter(
-				"ctCollectionTemplateId", ctCollectionTemplateId
-			).buildString();
+			return null;
 		}
 
-		return null;
+		return PortletURLBuilder.createRenderURL(
+			_renderResponse
+		).setMVCRenderCommandName(
+			"/change_tracking/edit_ct_collection_template"
+		).setRedirect(
+			_themeDisplay.getURLCurrent()
+		).setParameter(
+			"ctCollectionTemplateId", ctCollectionTemplateId
+		).buildString();
 	}
 
 	public SearchContainer<CTCollectionTemplate> getSearchContainer() {
