@@ -53,13 +53,11 @@ public class ViewTemplatesDisplayContext
 		_ctCollectionTemplateService = ctCollectionTemplateService;
 		_httpServletRequest = httpServletRequest;
 		_language = language;
-
 		_renderRequest = renderRequest;
-
-		_themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		_renderResponse = renderResponse;
+
+		_themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 	}
 
 	public Map<String, Object> getDropdownReactData(
