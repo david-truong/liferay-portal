@@ -160,22 +160,22 @@ public class ViewTemplatesDisplayContext
 	private String _getDeleteTemplateURL(long ctCollectionTemplateId)
 		throws PortalException {
 
-		if (CTCollectionTemplatePermission.contains(
+		if (!CTCollectionTemplatePermission.contains(
 				_themeDisplay.getPermissionChecker(), ctCollectionTemplateId,
 				ActionKeys.UPDATE)) {
 
-			return PortletURLBuilder.createActionURL(
-				_renderResponse
-			).setActionName(
-				"/change_tracking/delete_ct_collection_template"
-			).setRedirect(
-				_themeDisplay.getURLCurrent()
-			).setParameter(
-				"ctCollectionTemplateId", ctCollectionTemplateId
-			).buildString();
+			return null;
 		}
 
-		return null;
+		return PortletURLBuilder.createActionURL(
+			_renderResponse
+		).setActionName(
+			"/change_tracking/delete_ct_collection_template"
+		).setRedirect(
+			_themeDisplay.getURLCurrent()
+		).setParameter(
+			"ctCollectionTemplateId", ctCollectionTemplateId
+		).buildString();
 	}
 
 	private final CTCollectionTemplateService _ctCollectionTemplateService;
