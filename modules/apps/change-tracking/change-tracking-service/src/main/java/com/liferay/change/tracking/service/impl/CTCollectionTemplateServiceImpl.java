@@ -53,7 +53,7 @@ public class CTCollectionTemplateServiceImpl
 
 	@Override
 	public CTCollectionTemplate addCTCollectionTemplate(
-			long companyId, long userId, String name, String description,
+			String name, String description,
 			String json)
 		throws PortalException {
 
@@ -65,7 +65,7 @@ public class CTCollectionTemplateServiceImpl
 	}
 
 	public List<CTCollectionTemplate> getCTCollectionTemplates(
-		long companyId, String keywords, int start, int end,
+		String keywords, int start, int end,
 		OrderByComparator<CTCollectionTemplate> orderByComparator) {
 
 		String[] keywordsArray = _customSQL.keywords(
@@ -98,7 +98,7 @@ public class CTCollectionTemplateServiceImpl
 		return ctCollectionTemplatePersistence.dslQuery(dslQuery);
 	}
 
-	public int getCTCollectionTemplatesCount(long companyId, String keywords) {
+	public int getCTCollectionTemplatesCount(String keywords) {
 		String[] keywordsArray = _customSQL.keywords(
 			keywords, true, WildcardMode.SURROUND);
 

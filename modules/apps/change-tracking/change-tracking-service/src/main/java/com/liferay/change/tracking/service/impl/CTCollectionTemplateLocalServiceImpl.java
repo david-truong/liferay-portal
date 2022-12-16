@@ -61,7 +61,7 @@ public class CTCollectionTemplateLocalServiceImpl
 
 	@Override
 	public CTCollectionTemplate addCTCollectionTemplate(
-			long companyId, long userId, String name, String description,
+			long userId, String name, String description,
 			String json)
 		throws PortalException {
 
