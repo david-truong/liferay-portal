@@ -21,12 +21,12 @@
 <%
 ViewTemplatesDisplayContext viewTemplatesDisplayContext = (ViewTemplatesDisplayContext)request.getAttribute(CTWebKeys.VIEW_TEMPLATES_DISPLAY_CONTEXT);
 
+SearchContainer<CTCollectionTemplate> searchContainer = viewTemplatesDisplayContext.getSearchContainer();
+
 renderResponse.setTitle(LanguageUtil.get(request, "publication-templates"));
 
 portletDisplay.setURLBack(backURL);
 portletDisplay.setShowBackIcon(true);
-
-SearchContainer<CTCollectionTemplate> searchContainer = viewTemplatesDisplayContext.getSearchContainer();
 %>
 
 <clay:management-toolbar

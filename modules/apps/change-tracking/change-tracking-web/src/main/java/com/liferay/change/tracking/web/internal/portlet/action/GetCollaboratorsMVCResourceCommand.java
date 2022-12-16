@@ -97,33 +97,33 @@ public class GetCollaboratorsMVCResourceCommand extends BaseMVCResourceCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		User owner = null;
+		User user = null;
 
 		if (ctCollectionId != CTConstants.CT_COLLECTION_ID_PRODUCTION) {
-			owner = _userLocalService.fetchUser(ctCollection.getUserId());
+			user = _userLocalService.fetchUser(ctCollection.getUserId());
 		}
 
 		if (owner != null) {
 			String portraitURL = StringPool.BLANK;
 
-			if (owner.getPortraitId() > 0) {
-				portraitURL = owner.getPortraitURL(themeDisplay);
+			if (user.getPortraitId() > 0) {
+				portraitURL = user.getPortraitURL(themeDisplay);
 			}
 
 			jsonArray.put(
 				JSONUtil.put(
-					"emailAddress", owner.getEmailAddress()
+					"emailAddress", user.getEmailAddress()
 				).put(
-					"fullName", owner.getFullName()
+					"fullName", user.getFullName()
 				).put(
 					"isCurrentUser",
-					owner.getUserId() == themeDisplay.getUserId()
+					user.getUserId() == themeDisplay.getUserId()
 				).put(
 					"isOwner", true
 				).put(
 					"portraitURL", portraitURL
 				).put(
-					"userId", owner.getUserId()
+					"userId", user.getUserId()
 				));
 		}
 
@@ -143,7 +143,7 @@ public class GetCollaboratorsMVCResourceCommand extends BaseMVCResourceCommand {
 			return;
 		}
 
-		Map<Long, Role> roleMap = new HashMap<>();
+		Map<Long, Role> roles = new HashMap<>();
 
 		for (Role role :
 				_roleLocalService.<List<Role>>dslQuery(
@@ -160,12 +160,12 @@ public class GetCollaboratorsMVCResourceCommand extends BaseMVCResourceCommand {
 							group.getGroupId())
 					))) {
 
-			roleMap.put(role.getRoleId(), role);
+			roles.put(role.getRoleId(), role);
 		}
 
-		Map<Long, User> userMap = new HashMap<>();
+		Map<Long, User> users = new HashMap<>();
 
-		for (User user :
+		for (User curUser :
 				_userLocalService.<List<User>>dslQuery(
 					DSLQueryFactoryUtil.select(
 						UserTable.INSTANCE
@@ -180,7 +180,7 @@ public class GetCollaboratorsMVCResourceCommand extends BaseMVCResourceCommand {
 							group.getGroupId())
 					))) {
 
-			userMap.put(user.getUserId(), user);
+			users.put(curUser.getUserId(), curUser);
 		}
 
 		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
@@ -190,8 +190,8 @@ public class GetCollaboratorsMVCResourceCommand extends BaseMVCResourceCommand {
 				_userGroupRoleLocalService.getUserGroupRolesByGroup(
 					group.getGroupId())) {
 
-			Role role = roleMap.get(userGroupRole.getRoleId());
-			User user = userMap.get(userGroupRole.getUserId());
+			Role role = roles.get(userGroupRole.getRoleId());
+			User user = users.get(userGroupRole.getUserId());
 
 			if ((role == null) || (user == null) ||
 				(user.getUserId() == owner.getUserId())) {

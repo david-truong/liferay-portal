@@ -21,19 +21,14 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 CTCollection ctCollection = (CTCollection)request.getAttribute(CTWebKeys.CT_COLLECTION);
 
-String ctCollectionTemplates = (String)request.getAttribute(CTWebKeys.CT_COLLECTION_TEMPLATES);
-String templatesJsons = (String)request.getAttribute(CTWebKeys.CT_COLLECTION_TEMPLATES_JSONS);
-
 String actionName = "/change_tracking/edit_ct_collection";
 long ctCollectionId = CTConstants.CT_COLLECTION_ID_PRODUCTION;
 String description = StringPool.BLANK;
 String name = StringPool.BLANK;
 String saveButtonLabel = "create";
-
-boolean revert = ParamUtil.getBoolean(request, "revert");
 boolean showTemplates = false;
 
-if (revert) {
+if (ParamUtil.getBoolean(request, "revert")) {
 	actionName = "/change_tracking/undo_ct_collection";
 	ctCollectionId = ctCollection.getCtCollectionId();
 	name = StringBundler.concat(LanguageUtil.get(request, "revert"), " \"", ctCollection.getName(), "\"");
@@ -51,6 +46,7 @@ else if (ctCollection != null) {
 }
 else {
 	showTemplates = true;
+
 	renderResponse.setTitle(LanguageUtil.get(request, "create-new-publication"));
 }
 
@@ -80,7 +76,7 @@ portletDisplay.setShowBackIcon(true);
 			).put(
 				"ctCollectionId", ctCollectionId
 			).put(
-				"ctCollectionTemplates", ctCollectionTemplates
+				"ctCollectionTemplates", request.getAttribute(CTWebKeys.CT_COLLECTION_TEMPLATES)
 			).put(
 				"descriptionFieldMaxLength", ModelHintsUtil.getMaxLength(CTCollection.class.getName(), "description")
 			).put(
@@ -102,7 +98,7 @@ portletDisplay.setShowBackIcon(true);
 			).put(
 				"showTemplates", showTemplates
 			).put(
-				"templatesJsonMap", templatesJsons
+				"templatesJsonMap", request.getAttribute(CTWebKeys.CT_COLLECTION_TEMPLATES_JSONS)
 			).build()
 		%>'
 	/>
