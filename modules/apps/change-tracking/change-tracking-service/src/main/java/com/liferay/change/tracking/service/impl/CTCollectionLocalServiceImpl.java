@@ -74,9 +74,14 @@ import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.search.Document;
+import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
+import com.liferay.portal.kernel.search.QueryConfig;
+import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
@@ -494,9 +499,8 @@ public class CTCollectionLocalServiceImpl
 
 		Map<Long, List<CTEntry>> ctEntriesMap = new HashMap<>();
 
-		List<CTEntry> discardCTEntries =
-			ctCollectionLocalService.getDiscardCTEntries(
-				ctCollectionId, modelClassNameId, modelClassPK);
+		List<CTEntry> discardCTEntries = getDiscardCTEntries(
+			ctCollectionId, modelClassNameId, modelClassPK);
 
 		for (CTEntry ctEntry : discardCTEntries) {
 			List<CTEntry> ctEntries = ctEntriesMap.computeIfAbsent(
@@ -615,131 +619,8 @@ public class CTCollectionLocalServiceImpl
 	public List<CTEntry> getDiscardCTEntries(
 		long ctCollectionId, long modelClassNameId, long modelClassPK) {
 
-		CTClosure ctClosure = _ctClosureFactory.create(ctCollectionId);
-
-		Set<Node> nodes = new HashSet<>();
-
-		int rootCount = _ctEntryPersistence.countByC_MCNI_MCPK(
+		return _getRelatedCTEntries(
 			ctCollectionId, modelClassNameId, modelClassPK);
-
-		if (rootCount == 0) {
-			Map<Long, List<Long>> pksMap = ctClosure.getChildPKsMap(
-				modelClassNameId, modelClassPK);
-
-			Deque<Map.Entry<Long, ? extends Collection<Long>>> queue =
-				new LinkedList<>(pksMap.entrySet());
-
-			Map.Entry<Long, ? extends Collection<Long>> entry = null;
-
-			while ((entry = queue.poll()) != null) {
-				long classNameId = entry.getKey();
-
-				for (long classPK : entry.getValue()) {
-					int count = _ctEntryPersistence.countByC_MCNI_MCPK(
-						ctCollectionId, classNameId, classPK);
-
-					if (count == 0) {
-						Map<Long, ? extends Collection<Long>> childPKsMap =
-							ctClosure.getChildPKsMap(classNameId, classPK);
-
-						if (!childPKsMap.isEmpty()) {
-							queue.addAll(childPKsMap.entrySet());
-						}
-					}
-					else {
-						nodes.add(new Node(classNameId, classPK));
-					}
-				}
-			}
-		}
-		else {
-			nodes.add(new Node(modelClassNameId, modelClassPK));
-		}
-
-		Map<Long, Set<Long>> discardRootsMap = new HashMap<>();
-
-		CTEnclosureUtil.visitParentEntries(
-			ctClosure,
-			(classNameId, classPK, backtraceEntries) -> {
-				if (!nodes.contains(new Node(classNameId, classPK))) {
-					return false;
-				}
-
-				long previousModelClassNameId = classNameId;
-
-				Iterator<Map.Entry<Long, Long>> iterator =
-					backtraceEntries.iterator();
-
-				Map.Entry<Long, Long> highestRequiredBacktraceEntry = null;
-
-				while (iterator.hasNext()) {
-					Map.Entry<Long, Long> backtraceEntry = iterator.next();
-
-					long backtraceClassNameId = backtraceEntry.getKey();
-					long backtraceClassPK = backtraceEntry.getValue();
-
-					Set<Long> classPKs = discardRootsMap.get(
-						backtraceClassNameId);
-
-					if ((classPKs != null) &&
-						classPKs.contains(backtraceClassPK)) {
-
-						break;
-					}
-
-					CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
-						ctCollectionId, backtraceClassNameId, backtraceClassPK);
-
-					if ((ctEntry == null) ||
-						((ctEntry.getChangeType() !=
-							CTConstants.CT_CHANGE_TYPE_DELETION) &&
-						 _tableReferenceDefinitionManager.isChildModelOptional(
-							 previousModelClassNameId, backtraceClassNameId))) {
-
-						break;
-					}
-
-					highestRequiredBacktraceEntry = backtraceEntry;
-
-					previousModelClassNameId = backtraceClassNameId;
-				}
-
-				if (highestRequiredBacktraceEntry != null) {
-					Set<Long> classPKs = discardRootsMap.computeIfAbsent(
-						highestRequiredBacktraceEntry.getKey(),
-						key -> new HashSet<>());
-
-					classPKs.add(highestRequiredBacktraceEntry.getValue());
-				}
-
-				return true;
-			});
-
-		if (discardRootsMap.isEmpty()) {
-			discardRootsMap.put(
-				modelClassNameId, Collections.singleton(modelClassPK));
-		}
-
-		Map<Long, Set<Long>> discardEnclosureMap =
-			CTEnclosureUtil.getEnclosureMap(
-				ctClosure, discardRootsMap.entrySet());
-
-		List<CTEntry> ctEntries = new ArrayList<>(discardEnclosureMap.size());
-
-		for (Map.Entry<Long, Set<Long>> entry :
-				discardEnclosureMap.entrySet()) {
-
-			for (long classPK : entry.getValue()) {
-				CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
-					ctCollectionId, entry.getKey(), classPK);
-
-				if (ctEntry != null) {
-					ctEntries.add(ctEntry);
-				}
-			}
-		}
-
-		return ctEntries;
 	}
 
 	public List<CTCollection> getExclusivePublishedCTCollections(
@@ -876,6 +757,118 @@ public class CTCollectionLocalServiceImpl
 		}
 
 		return true;
+	}
+
+	@Override
+	public void moveCTEntries(
+			long ctCollectionId, long modelClassNameId, long modelClassPK,
+			long newCTCollectionId)
+		throws PortalException {
+
+		CTCollection ctCollection = ctCollectionPersistence.findByPrimaryKey(
+			ctCollectionId);
+
+		CTCollection newCTCollection = ctCollectionPersistence.findByPrimaryKey(
+			newCTCollectionId);
+
+		if ((ctCollection.getStatus() != WorkflowConstants.STATUS_DRAFT) &&
+			(ctCollection.getStatus() != WorkflowConstants.STATUS_PENDING) &&
+			(newCTCollection.getStatus() != WorkflowConstants.STATUS_DRAFT) &&
+			(newCTCollection.getStatus() != WorkflowConstants.STATUS_PENDING)) {
+
+			throw new PortalException(
+				"Change tracking collection " + ctCollection + " is read only");
+		}
+
+		Map<Long, List<CTEntry>> ctEntriesMap = new HashMap<>();
+
+		List<CTEntry> moveCTEntries = _getRelatedCTEntries(
+			ctCollectionId, modelClassNameId, modelClassPK);
+
+		for (CTEntry ctEntry : moveCTEntries) {
+			List<CTEntry> ctEntries = ctEntriesMap.computeIfAbsent(
+				ctEntry.getModelClassNameId(), key -> new ArrayList<>());
+
+			ctEntries.add(ctEntry);
+		}
+
+		for (Map.Entry<Long, List<CTEntry>> entry : ctEntriesMap.entrySet()) {
+			_moveCTEntries(
+				ctCollection, entry.getKey(), entry.getValue(),
+				newCTCollection);
+		}
+	}
+
+	@Override
+	public void moveCTEntry(
+			long ctCollectionId, long modelClassNameId, long modelClassPK,
+			long newCTCollectionId)
+		throws PortalException {
+
+		CTCollection ctCollection = ctCollectionPersistence.findByPrimaryKey(
+			ctCollectionId);
+
+		CTCollection newCTCollection = ctCollectionPersistence.findByPrimaryKey(
+			newCTCollectionId);
+
+		if ((ctCollection.getStatus() != WorkflowConstants.STATUS_DRAFT) &&
+			(ctCollection.getStatus() != WorkflowConstants.STATUS_PENDING) &&
+			(newCTCollection.getStatus() != WorkflowConstants.STATUS_DRAFT) &&
+			(newCTCollection.getStatus() != WorkflowConstants.STATUS_PENDING)) {
+
+			throw new PortalException(
+				"Change tracking collection " + ctCollection + " is read only");
+		}
+
+		CTClosure ctClosure = _ctClosureFactory.create(
+			ctCollection.getCtCollectionId());
+
+		Map<Long, Set<Long>> enclosureMap = CTEnclosureUtil.getEnclosureMap(
+			ctClosure, modelClassNameId, modelClassPK);
+
+		for (Map.Entry<Long, Long> entry :
+				CTEnclosureUtil.getEnclosureParentEntries(
+					ctClosure, enclosureMap)) {
+
+			long classNameId = entry.getKey();
+			long classPK = entry.getValue();
+
+			int count = _ctEntryPersistence.countByC_MCNI_MCPK(
+				ctCollectionId, classNameId, classPK);
+
+			if (count > 0) {
+				throw new CTEnclosureException(
+					StringBundler.concat(
+						"{classNameId=", classNameId, ", classPK=", classPK,
+						", ctCollectionId=", ctCollectionId, "}"));
+			}
+		}
+
+		for (Map.Entry<Long, Set<Long>> enclosureEntry :
+				enclosureMap.entrySet()) {
+
+			long classNameId = enclosureEntry.getKey();
+
+			Set<Long> classPKs = enclosureEntry.getValue();
+
+			List<CTEntry> ctEntries = new ArrayList<>(classPKs.size());
+
+			for (long classPK : classPKs) {
+				CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
+					ctCollectionId, classNameId, classPK);
+
+				if (ctEntry != null) {
+					ctEntries.add(ctEntry);
+				}
+			}
+
+			if (ctEntries.isEmpty()) {
+				continue;
+			}
+
+			_moveCTEntries(
+				ctCollection, classNameId, ctEntries, newCTCollection);
+		}
 	}
 
 	@Override
@@ -1180,6 +1173,281 @@ public class CTCollectionLocalServiceImpl
 					return null;
 				});
 		}
+	}
+
+	private List<CTEntry> _getRelatedCTEntries(
+		long ctCollectionId, long modelClassNameId, long modelClassPK) {
+
+		CTClosure ctClosure = _ctClosureFactory.create(ctCollectionId);
+
+		Set<Node> nodes = new HashSet<>();
+
+		int rootCount = _ctEntryPersistence.countByC_MCNI_MCPK(
+			ctCollectionId, modelClassNameId, modelClassPK);
+
+		if (rootCount == 0) {
+			Map<Long, List<Long>> pksMap = ctClosure.getChildPKsMap(
+				modelClassNameId, modelClassPK);
+
+			Deque<Map.Entry<Long, ? extends Collection<Long>>> queue =
+				new LinkedList<>(pksMap.entrySet());
+
+			Map.Entry<Long, ? extends Collection<Long>> entry = null;
+
+			while ((entry = queue.poll()) != null) {
+				long classNameId = entry.getKey();
+
+				for (long classPK : entry.getValue()) {
+					int count = _ctEntryPersistence.countByC_MCNI_MCPK(
+						ctCollectionId, classNameId, classPK);
+
+					if (count == 0) {
+						Map<Long, ? extends Collection<Long>> childPKsMap =
+							ctClosure.getChildPKsMap(classNameId, classPK);
+
+						if (!childPKsMap.isEmpty()) {
+							queue.addAll(childPKsMap.entrySet());
+						}
+					}
+					else {
+						nodes.add(new Node(classNameId, classPK));
+					}
+				}
+			}
+		}
+		else {
+			nodes.add(new Node(modelClassNameId, modelClassPK));
+		}
+
+		Map<Long, Set<Long>> discardRootsMap = new HashMap<>();
+
+		CTEnclosureUtil.visitParentEntries(
+			ctClosure,
+			(classNameId, classPK, backtraceEntries) -> {
+				if (!nodes.contains(new Node(classNameId, classPK))) {
+					return false;
+				}
+
+				long previousModelClassNameId = classNameId;
+
+				Iterator<Map.Entry<Long, Long>> iterator =
+					backtraceEntries.iterator();
+
+				Map.Entry<Long, Long> highestRequiredBacktraceEntry = null;
+
+				while (iterator.hasNext()) {
+					Map.Entry<Long, Long> backtraceEntry = iterator.next();
+
+					long backtraceClassNameId = backtraceEntry.getKey();
+					long backtraceClassPK = backtraceEntry.getValue();
+
+					Set<Long> classPKs = discardRootsMap.get(
+						backtraceClassNameId);
+
+					if ((classPKs != null) &&
+						classPKs.contains(backtraceClassPK)) {
+
+						break;
+					}
+
+					CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
+						ctCollectionId, backtraceClassNameId, backtraceClassPK);
+
+					if ((ctEntry == null) ||
+						((ctEntry.getChangeType() !=
+							CTConstants.CT_CHANGE_TYPE_DELETION) &&
+						 _tableReferenceDefinitionManager.isChildModelOptional(
+							 previousModelClassNameId, backtraceClassNameId))) {
+
+						break;
+					}
+
+					highestRequiredBacktraceEntry = backtraceEntry;
+
+					previousModelClassNameId = backtraceClassNameId;
+				}
+
+				if (highestRequiredBacktraceEntry != null) {
+					Set<Long> classPKs = discardRootsMap.computeIfAbsent(
+						highestRequiredBacktraceEntry.getKey(),
+						key -> new HashSet<>());
+
+					classPKs.add(highestRequiredBacktraceEntry.getValue());
+				}
+
+				return true;
+			});
+
+		if (discardRootsMap.isEmpty()) {
+			discardRootsMap.put(
+				modelClassNameId, Collections.singleton(modelClassPK));
+		}
+
+		Map<Long, Set<Long>> discardEnclosureMap =
+			CTEnclosureUtil.getEnclosureMap(
+				ctClosure, discardRootsMap.entrySet());
+
+		List<CTEntry> ctEntries = new ArrayList<>(discardEnclosureMap.size());
+
+		for (Map.Entry<Long, Set<Long>> entry :
+				discardEnclosureMap.entrySet()) {
+
+			for (long classPK : entry.getValue()) {
+				CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
+					ctCollectionId, entry.getKey(), classPK);
+
+				if (ctEntry != null) {
+					ctEntries.add(ctEntry);
+				}
+			}
+		}
+
+		return ctEntries;
+	}
+
+	private void _moveCTEntries(
+		CTCollection ctCollection, long classNameId, List<CTEntry> ctEntries,
+		CTCollection newCTCollection) {
+
+		CTService<?> ctService = _ctServiceRegistry.getCTService(classNameId);
+
+		ctService.updateWithUnsafeFunction(
+			ctPersistence -> {
+				Set<String> primaryKeyNames = ctPersistence.getCTColumnNames(
+					CTColumnResolutionType.PK);
+
+				if (primaryKeyNames.size() != 1) {
+					throw new IllegalArgumentException(
+						StringBundler.concat(
+							"{primaryKeyNames=", primaryKeyNames,
+							", tableName=", ctPersistence.getTableName(), "}"));
+				}
+
+				Iterator<String> iterator = primaryKeyNames.iterator();
+
+				String primaryKeyName = iterator.next();
+
+				StringBundler sb = new StringBundler(
+					(2 * ctEntries.size()) + 7);
+
+				sb.append("update from ");
+				sb.append(ctPersistence.getTableName());
+				sb.append("set ctCollectionId = ");
+				sb.append(newCTCollection.getCtCollectionId());
+				sb.append(" where ctCollectionId = ");
+				sb.append(ctCollection.getCtCollectionId());
+				sb.append(" and ");
+				sb.append(primaryKeyName);
+				sb.append(" in (");
+
+				for (CTEntry ctEntry : ctEntries) {
+					sb.append(ctEntry.getModelClassPK());
+					sb.append(", ");
+				}
+
+				sb.setStringAt(")", sb.index() - 1);
+
+				Connection connection = _currentConnection.getConnection(
+					ctPersistence.getDataSource());
+
+				try (PreparedStatement preparedStatement =
+						connection.prepareStatement(sb.toString())) {
+
+					preparedStatement.executeUpdate();
+				}
+				catch (Exception exception) {
+					throw new SystemException(exception);
+				}
+
+				for (String mappingTableName :
+						ctPersistence.getMappingTableNames()) {
+
+					sb.setStringAt(mappingTableName, 1);
+
+					try (PreparedStatement preparedStatement =
+							connection.prepareStatement(sb.toString())) {
+
+						preparedStatement.executeUpdate();
+					}
+					catch (Exception exception) {
+						throw new SystemException(exception);
+					}
+				}
+
+				return null;
+			});
+
+		List<Long> modelClassPKs = new ArrayList<>(ctEntries.size());
+
+		for (CTEntry ctEntry : ctEntries) {
+			modelClassPKs.add(ctEntry.getModelClassPK());
+
+			ctEntry.setCtCollectionId(newCTCollection.getCtCollectionId());
+
+			_ctEntryPersistence.update(ctEntry);
+		}
+
+		for (CTAutoResolutionInfo ctAutoResolutionInfo :
+				_ctAutoResolutionInfoPersistence.findByC_MCNI_SMCPK(
+					ctCollection.getCtCollectionId(), classNameId,
+					ArrayUtil.toLongArray(modelClassPKs))) {
+
+			ctAutoResolutionInfo.setCtCollectionId(
+				newCTCollection.getCtCollectionId());
+
+			_ctAutoResolutionInfoPersistence.update(ctAutoResolutionInfo);
+		}
+
+//		Indexer<?> indexer = _indexerRegistry.getIndexer(
+//			ctService.getModelClass());
+//
+//		if (indexer != null) {
+//			TransactionCommitCallbackUtil.registerCallback(
+//				() -> {
+//					List<String> previousUIDs = new ArrayList<>(
+//						ctEntries.size());
+//
+//					SearchContext searchContext = new SearchContext();
+//
+//					searchContext.
+//
+//					QueryConfig queryConfig = searchContext.getQueryConfig();
+//
+//					queryConfig.addSelectedFieldNames(Field.UID);
+//
+//					Hits hits = indexer.search(searchContext);
+//
+//					Document[] documents = hits.getDocs();
+//
+//					for (CTEntry ctEntry : ctEntries) {
+//						if (ctEntry.getChangeType() !=
+//								CTConstants.CT_CHANGE_TYPE_DELETION) {
+//
+//							previousUIDs.add(
+//								_uidFactory.getUID(
+//									indexer.getClassName(),
+//									ctEntry.getModelClassPK(),
+//									ctCollection.getCtCollectionId()));
+//						}
+//					}
+//
+//
+//
+//					for (Document document : documents) {
+//						document.add(Field.UID, );
+//					}
+//
+//					_indexWriterHelper.deleteDocuments(
+//						ctCollection.getCompanyId(), previousUIDs,
+//						indexer.isCommitImmediately());
+//
+//					//					_indexWriterHelper.addDocuments(
+//					//						ctCollection.getCompanyId(), previousUIDs,
+//					//						indexer.isCommitImmediately());
+//
+//					return null;
+//				});
+//		}
 	}
 
 	private void _validate(String name, String description)
