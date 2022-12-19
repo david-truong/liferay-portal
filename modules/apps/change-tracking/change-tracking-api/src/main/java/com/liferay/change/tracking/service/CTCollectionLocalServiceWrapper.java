@@ -422,6 +422,26 @@ public class CTCollectionLocalServiceWrapper
 	}
 
 	@Override
+	public void moveCTEntries(
+			long ctCollectionId, long modelClassNameId, long modelClassPK,
+			long newCTCollectionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_ctCollectionLocalService.moveCTEntries(
+			ctCollectionId, modelClassNameId, modelClassPK, newCTCollectionId);
+	}
+
+	@Override
+	public void moveCTEntry(
+			long ctCollectionId, long modelClassNameId, long modelClassPK,
+			long newCtCollectionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_ctCollectionLocalService.moveCTEntry(
+			ctCollectionId, modelClassNameId, modelClassPK, newCtCollectionId);
+	}
+
+	@Override
 	public com.liferay.change.tracking.model.CTCollection undoCTCollection(
 			long ctCollectionId, long userId, String name, String description)
 		throws com.liferay.portal.kernel.exception.PortalException {

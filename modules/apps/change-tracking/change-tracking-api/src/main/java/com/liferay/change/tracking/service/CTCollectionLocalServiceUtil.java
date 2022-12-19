@@ -368,6 +368,24 @@ public class CTCollectionLocalServiceUtil {
 			ctCollectionId, modelClassNameId, modelClassPK);
 	}
 
+	public static void moveCTEntries(
+			long ctCollectionId, long modelClassNameId, long modelClassPK,
+			long newCTCollectionId)
+		throws PortalException {
+
+		getService().moveCTEntries(
+			ctCollectionId, modelClassNameId, modelClassPK, newCTCollectionId);
+	}
+
+	public static void moveCTEntry(
+			long ctCollectionId, long modelClassNameId, long modelClassPK,
+			long newCtCollectionId)
+		throws PortalException {
+
+		getService().moveCTEntry(
+			ctCollectionId, modelClassNameId, modelClassPK, newCtCollectionId);
+	}
+
 	public static CTCollection undoCTCollection(
 			long ctCollectionId, long userId, String name, String description)
 		throws PortalException {
