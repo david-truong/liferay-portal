@@ -34,6 +34,7 @@ import {CSSTransition} from 'react-transition-group';
 import ChangeTrackingComments from './ChangeTrackingComments';
 import ChangeTrackingRenderView from './ChangeTrackingRenderView';
 import ManageCollaborators from './ManageCollaborators';
+import MoveChangesModal from './MoveChangesModal';
 import WorkflowStatusLabel from './components/WorkflowStatusLabel';
 
 const DIRECTION_NEXT = 'next';
@@ -2823,6 +2824,20 @@ export default function ChangeTrackingChangesView({
 
 						<ClayToolbar.Item>
 							<ManageCollaborators {...collaboratorsData} />
+						</ClayToolbar.Item>
+
+						<ClayToolbar.Item>
+							<MoveChangesModal
+								changes=""
+								ctCollectionId={ctCollectionId}
+								moveChangesURL=""
+								publications={[
+									{id: '1', name: 'Pub 1'},
+									{id: '2', name: 'Pub 2'},
+									{id: '3', name: 'Pub 3'},
+								]}
+								spritemap={spritemap}
+							/>
 						</ClayToolbar.Item>
 
 						{renderToolbarAction(
