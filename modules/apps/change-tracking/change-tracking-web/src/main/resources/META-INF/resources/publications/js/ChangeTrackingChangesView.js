@@ -2891,7 +2891,7 @@ export default function ChangeTrackingChangesView({
 
 						<ClayToolbar.Item>
 							<MoveChangesModal
-								changes=""
+								changes={selectedChanges}
 								ctCollectionId={ctCollectionId}
 								moveChangesURL=""
 								publications={[
