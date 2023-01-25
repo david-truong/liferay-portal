@@ -99,6 +99,7 @@ export default function ChangeTrackingChangesView({
 	columnFromURL,
 	contextView,
 	ctCollectionId,
+	ctCollections,
 	ctMappingInfos,
 	currentUserId,
 	dataURL,
@@ -113,6 +114,7 @@ export default function ChangeTrackingChangesView({
 	getCTCommentsURL,
 	keywordsFromURL,
 	modelData,
+	moveChangesURL,
 	name,
 	namespace,
 	navigationFromURL,
@@ -2893,12 +2895,9 @@ export default function ChangeTrackingChangesView({
 							<MoveChangesModal
 								changes={selectedChanges}
 								ctCollectionId={ctCollectionId}
-								moveChangesURL=""
-								publications={[
-									{id: '1', name: 'Pub 1'},
-									{id: '2', name: 'Pub 2'},
-									{id: '3', name: 'Pub 3'},
-								]}
+								moveChangesURL={moveChangesURL}
+								namespace={namespace}
+								publications={ctCollections}
 								spritemap={spritemap}
 							/>
 						</ClayToolbar.Item>
