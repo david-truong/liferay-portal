@@ -179,7 +179,7 @@ definition {
 		WaitForElementPresent(locator1 = "PublicationsChanges#CHANGE_HEADER");
 
 		if (${showAllItems} == "true") {
-			Check.checkToggleSwitch(locator1 = "PublicationsChanges#SHOW_ALL_ITEMS_TOGGLE_SWITCH");
+			Click(locator1 = "PublicationsChanges#SHOW_ALL_ITEMS_TOGGLE_SWITCH");
 		}
 
 		var key_changeCategory = ${changeCategory};
