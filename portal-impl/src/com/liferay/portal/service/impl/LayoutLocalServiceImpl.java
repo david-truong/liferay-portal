@@ -3422,7 +3422,11 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 
 		// Layout
 
-		Layout layout = layoutLocalService.getLayout(plid);
+		Layout layout = layoutPersistence.fetchByPrimaryKey(plid);
+
+		layoutPersistence.clearCache(layout);
+
+		layout = layoutPersistence.fetchByPrimaryKey(plid);
 
 		layout.setModifiedDate(new Date());
 		layout.setStatus(status);
@@ -3462,7 +3466,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 				layout.getStatusDate(), null, true, false);
 		}
 
-		return layout;
+		return layoutPersistence.fetchByPrimaryKey(layout.getPrimaryKey());
 	}
 
 	/**
