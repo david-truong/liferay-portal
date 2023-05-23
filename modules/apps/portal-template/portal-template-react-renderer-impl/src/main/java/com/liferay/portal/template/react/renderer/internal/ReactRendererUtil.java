@@ -221,6 +221,8 @@ public class ReactRendererUtil {
 				portal.getPortletId(httpServletRequest),
 				javascriptSB.toString(), dependenciesSB.toString(),
 				ScriptData.ModulesType.ES6);
+
+//			scriptData.writeTo(writer);
 		}
 	}
 

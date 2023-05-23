@@ -205,7 +205,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 	@Override
 	public void register(DynamicIncludeRegistry dynamicIncludeRegistry) {
 		dynamicIncludeRegistry.register(
-			"com.liferay.product.navigation.taglib#/page.jsp#pre");
+			"/html/common/themes/body_top.jsp#post");
 	}
 
 	@Activate
@@ -495,10 +495,10 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 				));
 		}
 
-		if (FeatureFlagManagerUtil.isEnabled("LPS-161033")) {
+//		if (FeatureFlagManagerUtil.isEnabled("LPS-161033")) {
 			_getTimelineData(
 				ctCollection, data, httpServletRequest, themeDisplay);
-		}
+//		}
 
 		return data;
 	}
