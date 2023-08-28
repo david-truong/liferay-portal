@@ -18,7 +18,7 @@ renderResponse.setTitle(LanguageUtil.get(request, "discard-changes"));
 %>
 
 <clay:container-fluid
-	cssClass="publications-discard-container"
+	cssClass="publications-related-entries-container"
 >
 	<div class="sheet">
 		<clay:sheet-section>
