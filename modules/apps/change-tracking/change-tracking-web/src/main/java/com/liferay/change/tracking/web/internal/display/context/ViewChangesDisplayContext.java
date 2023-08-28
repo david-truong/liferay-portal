@@ -35,7 +35,6 @@ import com.liferay.portal.kernel.change.tracking.sql.CTSQLModeThreadLocal;
 import com.liferay.portal.kernel.dao.orm.ORMException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -558,27 +557,21 @@ public class ViewChangesDisplayContext {
 		).put(
 			"moveChangesURL",
 			() -> {
-				if (FeatureFlagManagerUtil.isEnabled(
-						_themeDisplay.getCompanyId(), "LPS-171364")) {
-
-					return PortletURLBuilder.createActionURL(
+				return PortletURLBuilder.createActionURL(
+					_renderResponse
+				).setMVCRenderCommandName(
+					"/change_tracking/view_move_changes"
+				).setRedirect(
+					PortletURLBuilder.createRenderURL(
 						_renderResponse
-					).setActionName(
-						"/change_tracking/move_changes"
-					).setRedirect(
-						PortletURLBuilder.createRenderURL(
-							_renderResponse
-						).setMVCRenderCommandName(
-							"/change_tracking/view_changes"
-						).setParameter(
-							"ctCollectionId", _ctCollection.getCtCollectionId()
-						).buildString()
+					).setMVCRenderCommandName(
+						"/change_tracking/view_changes"
 					).setParameter(
 						"ctCollectionId", _ctCollection.getCtCollectionId()
-					).buildString();
-				}
-
-				return null;
+					).buildString()
+				).setParameter(
+					"ctCollectionId", _ctCollection.getCtCollectionId()
+				).buildString();
 			}
 		).put(
 			"name", _ctCollection.getName()
