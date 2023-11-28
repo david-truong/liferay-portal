@@ -42,8 +42,6 @@ liferay {
 			binDir = project.properties["app.server.openliberty.bin.dir"] ?: "${->liferay.appServers.openliberty.dir}/bin"
 			deployDir = project.properties["app.server.openliberty.deploy.dir"] ?: "${->liferay.appServers.openliberty.instance.dir}/apps"
 			dir = project.properties["app.server.openliberty.dir"] ?: "${->liferay.appServerParentDir}/wlp-${->liferay.appServers.openliberty.version}"
-			instanceDir = project.properties["app.server.openliberty.instance.dir"] ?: "${->liferay.appServers.openliberty.dir}/usr/${->liferay.appServers.openliberty.instance.name}"
-			instanceName = project.properties["app.server.openliberty.instance.name"] ?: "liferay"
 			libGlobalDir = project.properties["app.server.openliberty.lib.global.dir"] ?: "${->liferay.appServers.openliberty.dir}/lib"
 			portalDir = project.properties["app.server.openliberty.portal.dir"] ?: "${->liferay.appServers.openliberty.instance.dir}/apps/liferay-portal.war"
 			shieldedContainerLibPortalDir = project.properties["app.server.openliberty.shielded-container-lib.portal.dir"] ?: "${->liferay.appServers.openliberty.portalDir}/WEB-INF/shielded-container-lib"
