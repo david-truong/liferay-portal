@@ -130,10 +130,9 @@ public class EntityCacheImpl
 			mvcc = true;
 		}
 
-		portalCache =
-			(PortalCache<Serializable, Serializable>)
-				_multiVMPool.getPortalCache(
-					groupKey, mvcc, DBPartition.isPartitionedModel(clazz));
+		portalCache = new CTAwarePortalCache(
+			_multiVMPool, groupKey, mvcc,
+			DBPartition.isPartitionedModel(clazz));
 
 		PortalCache<Serializable, Serializable> previousPortalCache =
 			_portalCaches.putIfAbsent(className, portalCache);
@@ -234,11 +233,10 @@ public class EntityCacheImpl
 
 		finderCacheImpl.removeCacheByEntityCache(className);
 
-		_portalCaches.remove(className);
+		CTAwarePortalCache ctAwarePortalCache =
+			(CTAwarePortalCache)_portalCaches.remove(className);
 
-		String groupKey = _GROUP_KEY_PREFIX.concat(className);
-
-		_multiVMPool.removePortalCache(groupKey);
+		ctAwarePortalCache.destroy();
 	}
 
 	@Override

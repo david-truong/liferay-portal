@@ -370,11 +370,10 @@ public class FinderCacheImpl
 
 	@Override
 	public void removeCache(String className) {
-		_portalCaches.remove(className);
+		CTAwarePortalCache ctAwarePortalCache =
+			(CTAwarePortalCache)_portalCaches.remove(className);
 
-		String groupKey = _GROUP_KEY_PREFIX.concat(className);
-
-		_multiVMPool.removePortalCache(groupKey);
+		ctAwarePortalCache.destroy();
 
 		_finderPathsMap.remove(className);
 	}
@@ -680,9 +679,8 @@ public class FinderCacheImpl
 
 		String groupKey = _GROUP_KEY_PREFIX.concat(className);
 
-		portalCache =
-			(PortalCache<Serializable, Serializable>)
-				_multiVMPool.getPortalCache(groupKey, false, sharded);
+		portalCache = new CTAwarePortalCache(
+			_multiVMPool, groupKey, false, sharded);
 
 		PortalCache<Serializable, Serializable> previousPortalCache =
 			_portalCaches.putIfAbsent(className, portalCache);
