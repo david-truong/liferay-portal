@@ -59,6 +59,8 @@ import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.jdbc.CurrentConnection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -879,6 +881,41 @@ public class CTCollectionLocalServiceImpl
 				toCTCollectionId, entry.getKey(), entry.getValue());
 		}
 
+		if (DBManagerUtil.getDBType() == DBType.HYPERSONIC) {
+			relatedCTEntriesMap = _getRelatedCTEntriesMap(
+				toCTCollection, modelClassNameId, modelClassPK);
+
+			ctEntries = new ArrayList<>();
+
+			for (List<CTEntry> curCTEntries : relatedCTEntriesMap.values()) {
+				ctEntries.addAll(curCTEntries);
+			}
+
+			conflictInfoMap = checkConflicts(
+				fromCTCollection.getCompanyId(), ctEntries, toCTCollectionId,
+				toCTCollection.getName(),
+				CTConstants.CT_COLLECTION_ID_PRODUCTION, "Production");
+
+			if (!conflictInfoMap.isEmpty()) {
+				Connection connection = _currentConnection.getConnection(
+					ctCollectionPersistence.getDataSource());
+
+				try {
+					connection.rollback();
+				}
+				catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+
+				throw new CTPublishConflictException("Conflict detected");
+			}
+
+			_ctClosureFactory.clearCache(fromCTCollectionId);
+			_ctClosureFactory.clearCache(toCTCollectionId);
+
+			return;
+		}
+
 		relatedCTEntriesMap = _getRelatedCTEntriesMap(
 			toCTCollection, modelClassNameId, modelClassPK);
 
@@ -1483,10 +1520,24 @@ public class CTCollectionLocalServiceImpl
 		Connection connection = _currentConnection.getConnection(
 			ctPersistence.getDataSource());
 
+		if (DBManagerUtil.getDBType() == DBType.HYPERSONIC) {
+			try {
+				connection.setAutoCommit(false);
+			}
+			catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				sb.toString())) {
 
 			preparedStatement.executeUpdate();
+
+			if (DBManagerUtil.getDBType() == DBType.HYPERSONIC) {
+				connection.commit();
+				connection.setAutoCommit(true);
+			}
 		}
 		catch (Exception exception) {
 			throw new SystemException(exception);
@@ -1499,6 +1550,11 @@ public class CTCollectionLocalServiceImpl
 					connection.prepareStatement(sb.toString())) {
 
 				preparedStatement.executeUpdate();
+
+				if (DBManagerUtil.getDBType() == DBType.HYPERSONIC) {
+					connection.commit();
+					connection.setAutoCommit(true);
+				}
 			}
 			catch (Exception exception) {
 				throw new SystemException(exception);
