@@ -8,23 +8,34 @@ package com.liferay.change.tracking.internal.performance.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
+import com.liferay.change.tracking.service.CTCollectionService;
 import com.liferay.change.tracking.service.CTProcessLocalService;
+import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.DDMTemplate;
+import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
+import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
+import com.liferay.journal.constants.JournalFolderConstants;
+import com.liferay.journal.model.JournalArticle;
+import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.performance.PerformanceTimer;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DataGuard;
+import com.liferay.portal.kernel.test.rule.NewEnv;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -44,6 +55,7 @@ import org.junit.runner.RunWith;
  */
 @DataGuard(scope = DataGuard.Scope.NONE)
 @RunWith(Arquillian.class)
+@NewEnv.JVMArgsLine("-Dattached=true -Xmx11g")
 public class CTCollectionLocalServicePerformanceTest {
 
 	@ClassRule
@@ -188,11 +200,49 @@ public class CTCollectionLocalServicePerformanceTest {
 		}
 	}
 
+	@Test
+	public void testPublish1000CTCollections() throws Exception {
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName());
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), ddmStructure.getStructureId(),
+			ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class));
+
+		for (int i = 0; i < 1000; i++) {
+			CTCollection ctCollection = _ctCollectionService.addCTCollection(
+				null, TestPropsValues.getCompanyId(), TestPropsValues.getUserId(), 0,
+				RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+			try (SafeCloseable safeCloseable =
+					 CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+						 ctCollection.getCtCollectionId())) {
+
+				for (int j = 0; j < 10; j++) {
+					JournalTestUtil.addArticle(
+						_group.getGroupId(),
+						JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+				}
+
+				long x = System.currentTimeMillis();
+				_ctCollectionService.publishCTCollection(
+					TestPropsValues.getUserId(), ctCollection.getCtCollectionId());
+
+				long y = System.currentTimeMillis();
+				System.out.println("Publication " + String.valueOf(i) + " took " + String.valueOf(y - x) + " ms to publish");
+			}
+		}
+	}
+
 	@Inject
 	private static LayoutLocalService _layoutLocalService;
 
 	private CTCollection _ctCollection1;
 	private CTCollection _ctCollection2;
+
+	@Inject
+	private static CTCollectionService _ctCollectionService;
 
 	@Inject
 	private CTCollectionLocalService _ctCollectionLocalService;
