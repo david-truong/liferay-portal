@@ -13,6 +13,7 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -112,6 +113,9 @@ public class CTEntryDTOConverter
 				com.liferay.change.tracking.model.CTEntry.class);
 
 		Document document = indexer.getDocument(ctEntry);
+
+		_indexWriterHelper.partiallyUpdateDocument(
+			ctEntry.getCompanyId(), document, indexer.isCommitImmediately());
 
 		return new CTEntry() {
 			{
@@ -224,6 +228,9 @@ public class CTEntryDTOConverter
 
 	@Reference
 	private IndexerRegistry _indexerRegistry;
+
+	@Reference
+	private IndexWriterHelper _indexWriterHelper;
 
 	@Reference
 	private Language _language;
