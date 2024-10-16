@@ -66,8 +66,7 @@ public class CTCollectionModelListener extends BaseModelListener<CTCollection> {
 		throws ModelListenerException {
 
 		if (!Objects.equals(
-				originalCTCollection.getName(), ctCollection.getName()) ||
-			(originalCTCollection.getStatus() != ctCollection.getStatus())) {
+			originalCTCollection.getName(), ctCollection.getName())) {
 
 			Indexer<CTEntry> indexer = _indexerRegistry.getIndexer(
 				CTEntry.class);
@@ -76,8 +75,8 @@ public class CTCollectionModelListener extends BaseModelListener<CTCollection> {
 				try {
 					indexer.reindex(
 						_ctEntryLocalService.getCTCollectionCTEntries(
-							ctCollection.getCtCollectionId(), QueryUtil.ALL_POS,
-							QueryUtil.ALL_POS, null));
+						ctCollection.getCtCollectionId(), QueryUtil.ALL_POS,
+						QueryUtil.ALL_POS, null));
 				}
 				catch (SearchException searchException) {
 					throw new ModelListenerException(searchException);

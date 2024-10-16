@@ -15,9 +15,12 @@ import com.liferay.change.tracking.spi.exception.CTEventException;
 import com.liferay.change.tracking.spi.listener.CTEventListener;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
+import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
@@ -116,6 +119,23 @@ public class CTSearchEventListener implements CTEventListener {
 
 						_reindex(
 							ctEntryEntry.getKey(), ctEntryEntry.getValue());
+					}
+				}
+
+				Indexer<CTEntry> indexer = _indexerRegistry.getIndexer(
+					CTEntry.class);
+
+				if (indexer != null) {
+					List<CTEntry> ctEntries =
+						_ctEntryLocalService.getCTCollectionCTEntries(
+						ctCollection.getCtCollectionId(), QueryUtil.ALL_POS,
+						QueryUtil.ALL_POS, null);
+
+					for(CTEntry ctEntry: ctEntries) {
+						Document document = indexer.getDocument(ctEntry);
+
+						_indexWriterHelper.updateDocument(
+							ctEntry.getCompanyId(), document);
 					}
 				}
 
