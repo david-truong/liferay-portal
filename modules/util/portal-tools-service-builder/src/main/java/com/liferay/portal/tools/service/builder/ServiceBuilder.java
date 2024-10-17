@@ -6488,6 +6488,14 @@ public class ServiceBuilder {
 
 				changeTrackingResolutionType = "ignore";
 			}
+			else if (columnName.equals("status") ||
+					 columnName.equals("statusByUserId") ||
+					 columnName.equals("statusByUserName") ||
+					 columnName.equals("statusDate") ||
+					 columnName.equals("lastPublishedDate")) {
+
+				changeTrackingResolutionType = "merge";
+			}
 
 			changeTrackingResolutionType = StringUtil.toUpperCase(
 				GetterUtil.getString(
