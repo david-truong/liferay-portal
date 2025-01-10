@@ -38,6 +38,19 @@ public class LayoutFriendlyURLModelListener
 	}
 
 	@Override
+	public void onAfterRemove(LayoutFriendlyURL layoutFriendlyURL) {
+		if (layoutFriendlyURL == null) {
+			return;
+		}
+
+		_friendlyURLEntryLocalService.deleteFriendlyURLEntry(
+			layoutFriendlyURL.getGroupId(),
+			_layoutFriendlyURLEntryHelper.getClassNameId(
+				layoutFriendlyURL.isPrivateLayout()),
+			layoutFriendlyURL.getPlid());
+	}
+
+	@Override
 	public void onAfterUpdate(
 			LayoutFriendlyURL originalLayoutFriendlyURL,
 			LayoutFriendlyURL layoutFriendlyURL)
