@@ -1,0 +1,7 @@
+assemble:
+    - fromTask: bootJar
+liferay-cloud-export:
+    key: liferay-cloud-export-import-bridge
+    name: Liferay Cloud Export Import Bridge
+    oAuth2ApplicationExternalReferenceCode: liferay-cloud-export-import-bridge
+    type: oAuthApplicationHeadlessServer
