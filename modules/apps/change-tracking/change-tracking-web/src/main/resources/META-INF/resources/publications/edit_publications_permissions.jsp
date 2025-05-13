@@ -1,42 +1,57 @@
 <%--
 /**
- * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2025 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 --%>
 
-<%@ include file="/init.jsp" %>
+<%@ include file="/publications/init.jsp" %>
 
 <%
 RoleTypeContributorProvider roleTypeContributorProvider = (RoleTypeContributorProvider)request.getAttribute(RolesAdminWebKeys.ROLE_TYPE_CONTRIBUTOR_PROVIDER);
 
-PortletConfigurationPermissionsDisplayContext portletConfigurationPermissionsDisplayContext = new PortletConfigurationPermissionsDisplayContext(request, renderRequest, roleTypeContributorProvider);
+PublicationsPortletConfigurationPermissionsDisplayContext publicationsPortletConfigurationPermissionsDisplayContext = new PublicationsPortletConfigurationPermissionsDisplayContext(request, renderRequest, roleTypeContributorProvider);
 
-List<Resource> resources = portletConfigurationPermissionsDisplayContext.getResources();
+List<Resource> resources = publicationsPortletConfigurationPermissionsDisplayContext.getResources();
 
 Resource resource = resources.get(0);
 
 String resourceName = resource.getName();
 
-SearchContainer<Role> roleSearchContainer = portletConfigurationPermissionsDisplayContext.getRoleSearchContainer();
+SearchContainer<Role> roleSearchContainer = publicationsPortletConfigurationPermissionsDisplayContext.getRoleSearchContainer();
 
-if (Validator.isNotNull(portletConfigurationPermissionsDisplayContext.getModelResource())) {
-	PortalUtil.addPortletBreadcrumbEntry(request, HtmlUtil.unescape(portletConfigurationPermissionsDisplayContext.getSelResourceDescription()), null);
+if (Validator.isNotNull(publicationsPortletConfigurationPermissionsDisplayContext.getModelResource())) {
+	PortalUtil.addPortletBreadcrumbEntry(request, HtmlUtil.unescape(publicationsPortletConfigurationPermissionsDisplayContext.getSelResourceDescription()), null);
 	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "permissions"), currentURL);
 }
 %>
-aaaaaaa
+
+<%!
+private String _getActionLabel(HttpServletRequest request, String resourceName, String actionId) {
+	String actionLabel = null;
+
+	if (actionId.equals("ADD_STRUCTURE") && resourceName.equals("com.liferay.document.library")) {
+		actionLabel = LanguageUtil.get(request, "add-metadata-set");
+	}
+
+	if (actionLabel == null) {
+		actionLabel = ResourceActionsUtil.getAction(request, actionId);
+	}
+
+	return actionLabel;
+}
+%>
+
 <div class="cadmin edit-permissions portlet-configuration-edit-permissions">
 	<div class="portlet-configuration-body-content">
 		<clay:management-toolbar
-			clearResultsURL="<%= portletConfigurationPermissionsDisplayContext.getClearResultsURL() %>"
+			clearResultsURL="<%= publicationsPortletConfigurationPermissionsDisplayContext.getClearResultsURL() %>"
 			itemsTotal="<%= roleSearchContainer.getTotal() %>"
-			searchActionURL="<%= portletConfigurationPermissionsDisplayContext.getSearchActionURL() %>"
+			searchActionURL="<%= publicationsPortletConfigurationPermissionsDisplayContext.getSearchActionURL() %>"
 			searchFormName="searchFm"
 			selectable="<%= false %>"
 		/>
-
-		<aui:form action="<%= portletConfigurationPermissionsDisplayContext.getUpdateRolePermissionsURL() %>" cssClass="container-fluid container-fluid-max-xxxl" method="post" name="fm">
+<aui:form action="<%= publicationsPortletConfigurationPermissionsDisplayContext.getUpdateRolePermissionsURL() %>" cssClass="container-fluid container-fluid-max-xxxl" method="post" name="fm">
 			<liferay-ui:search-container
 				searchContainer="<%= roleSearchContainer %>"
 			>
@@ -91,12 +106,12 @@ aaaaaaa
 					List<String> currentCompanyActions = new ArrayList<String>();
 
 					for (Resource curResource : resources) {
-						ResourcePermissionUtil.populateResourcePermissionActionIds(portletConfigurationPermissionsDisplayContext.getGroupId(), role, curResource, portletConfigurationPermissionsDisplayContext.getActions(), currentIndividualActions, currentGroupActions, currentGroupTemplateActions, currentCompanyActions);
+						ResourcePermissionUtil.populateResourcePermissionActionIds(publicationsPortletConfigurationPermissionsDisplayContext.getGroupId(), role, curResource, publicationsPortletConfigurationPermissionsDisplayContext.getActions(), currentIndividualActions, currentGroupActions, currentGroupTemplateActions, currentCompanyActions);
 					}
 
-					Map<String, List<String>> actionIdResourcePrimKeysMap = portletConfigurationPermissionsDisplayContext.getActionIdResourcePrimKeysMap(role);
+					Map<String, List<String>> actionIdResourcePrimKeysMap = publicationsPortletConfigurationPermissionsDisplayContext.getActionIdResourcePrimKeysMap(role);
 
-					for (String action : portletConfigurationPermissionsDisplayContext.getActions()) {
+					for (String action : publicationsPortletConfigurationPermissionsDisplayContext.getActions()) {
 						if (action.equals(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
 							continue;
 						}
@@ -116,7 +131,7 @@ aaaaaaa
 							preselectedMsg = "x-is-allowed-to-do-action-x-in-all-items-of-type-x-in-this-portal-instance";
 						}
 
-						List<String> guestUnsupportedActions = portletConfigurationPermissionsDisplayContext.getGuestUnsupportedActions();
+						List<String> guestUnsupportedActions = publicationsPortletConfigurationPermissionsDisplayContext.getGuestUnsupportedActions();
 
 						boolean disabled = false;
 
@@ -127,18 +142,18 @@ aaaaaaa
 						String dataMessage = StringPool.BLANK;
 
 						if (Validator.isNotNull(preselectedMsg)) {
-							String type = portletConfigurationPermissionsDisplayContext.getSelResourceDescription();
+							String type = publicationsPortletConfigurationPermissionsDisplayContext.getSelResourceDescription();
 
 							if (Validator.isNull(type)) {
 								type = ResourceActionsUtil.getModelResource(locale, resourceName);
 							}
 
-							dataMessage = HtmlUtil.escapeAttribute(LanguageUtil.format(request, preselectedMsg, new Object[] {role.getTitle(locale), _getActionLabel(request, resourceName, action), type, HtmlUtil.escape(portletConfigurationPermissionsDisplayContext.getGroupDescriptiveName())}, false));
+							dataMessage = HtmlUtil.escapeAttribute(LanguageUtil.format(request, preselectedMsg, new Object[] {role.getTitle(locale), _getActionLabel(request, resourceName, action), type, HtmlUtil.escape(publicationsPortletConfigurationPermissionsDisplayContext.getGroupDescriptiveName())}, false));
 
 							disabled = true;
 						}
 
-						String actionSeparator = Validator.isNotNull(preselectedMsg) ? ActionUtil.PRESELECTED : ActionUtil.ACTION;
+						String actionSeparator = Validator.isNotNull(preselectedMsg) ? "_PRESELECTED_" : "_ACTION_";
 
 						String inputName = StringBundler.concat(liferayPortletResponse.getNamespace(), role.getRoleId(), actionSeparator, action);
 						String inputId = StringBundler.concat(FriendlyURLNormalizerUtil.normalize(role.getName()), actionSeparator, action);
@@ -216,6 +231,8 @@ aaaaaaa
 				/>
 			</liferay-ui:search-container>
 		</aui:form>
+
+
 	</div>
 
 	<aui:button-row>
@@ -233,6 +250,7 @@ aaaaaaa
 	</aui:button-row>
 </div>
 
+
 <aui:script>
 	var <portlet:namespace />saveButton = document.getElementById(
 		'<portlet:namespace />saveButton'
@@ -243,16 +261,15 @@ aaaaaaa
 			event.preventDefault();
 
 			if (
-				<%= portletConfigurationPermissionsDisplayContext.getRoleSearchContainer().getTotal() != 0 %>
+				<%= publicationsPortletConfigurationPermissionsDisplayContext.getRoleSearchContainer().getTotal() != 0 %>
 			) {
 				var form = document.getElementById('<portlet:namespace />fm');
 
+ 				var formClone = form.cloneNode(true);
+				console.log("Form (?)", formClone);
+
 				if (form) {
-					var formClone = form.cloneNode(true);
-					console.log("Form (?)", formClone);
-
 					submitForm(form);
-
 				}
 			}
 		});

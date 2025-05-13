@@ -64,7 +64,33 @@ page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %>
 
-<%@ page import="java.util.Date" %><%@
+<%@ page import="com.liferay.portal.kernel.security.permission.ResourceActionsUtil" %><%@
+page import="com.liferay.portal.kernel.service.PortletLocalServiceUtil" %><%@
+page import="com.liferay.roles.admin.role.type.contributor.RoleTypeContributor" %><%@
+page import="com.liferay.roles.admin.role.type.contributor.provider.RoleTypeContributorProvider" %><%@
+page import="com.liferay.change.tracking.web.internal.display.context.PublicationsPortletConfigurationPermissionsDisplayContext" %><%@
+page import="com.liferay.portal.kernel.model.Resource" %><%@
+page import="com.liferay.portal.kernel.model.Role" %><%@
+page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
+page import="com.liferay.portal.kernel.model.Portlet" %><%@
+page import="com.liferay.portal.util.ResourcePermissionUtil" %><%@
+page import="com.liferay.roles.admin.constants.RolesAdminWebKeys" %><%@
+page import="com.liferay.portal.kernel.model.role.RoleConstants" %><%@
+page import="com.liferay.portal.util.PropsValues" %><%@
+page import="com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil" %><%@
+page import="com.liferay.portal.kernel.util.ListUtil" %><%@
+page import="com.liferay.portal.kernel.security.permission.ActionKeys" %><%@
+page import="com.liferay.portal.kernel.util.PortalUtil" %>
+
+
+
+
+<%@ page import="java.util.ArrayList" %><%@
+
+page import="java.util.Date" %><%@
+page import="java.util.Collections" %><%@
+page import="java.util.List" %><%@
+page import="java.util.Map" %><%@
 page import="java.util.Objects" %>
 
 <%@ page import="javax.portlet.RenderResponse" %>

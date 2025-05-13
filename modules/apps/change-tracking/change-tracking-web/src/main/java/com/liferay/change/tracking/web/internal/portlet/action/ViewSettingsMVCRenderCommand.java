@@ -19,6 +19,8 @@ import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
+import com.liferay.roles.admin.constants.RolesAdminWebKeys;
+import com.liferay.roles.admin.role.type.contributor.provider.RoleTypeContributorProvider;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -53,7 +55,7 @@ public class ViewSettingsMVCRenderCommand implements MVCRenderCommand {
 				new PublicationsConfigurationDisplayContext(
 					_ctSettingsConfigurationHelper,
 					_portal.getHttpServletRequest(renderRequest),
-					renderResponse);
+					renderResponse, _roleTypeContributorProvider);
 
 		renderRequest.setAttribute(
 			CTWebKeys.PUBLICATIONS_CONFIGURATION_DISPLAY_CONTEXT,
@@ -67,5 +69,8 @@ public class ViewSettingsMVCRenderCommand implements MVCRenderCommand {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private RoleTypeContributorProvider _roleTypeContributorProvider;
 
 }
