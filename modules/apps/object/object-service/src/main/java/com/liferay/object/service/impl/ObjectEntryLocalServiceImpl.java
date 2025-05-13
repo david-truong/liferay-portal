@@ -170,6 +170,7 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.Users_OrgsTable;
+import com.liferay.portal.kernel.model.WorkflowInstanceLink;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -218,6 +219,8 @@ import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
+import com.liferay.portal.kernel.workflow.WorkflowInstance;
+import com.liferay.portal.kernel.workflow.WorkflowInstanceManagerUtil;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.search.document.Document;
 import com.liferay.portal.search.hits.SearchHits;
@@ -399,9 +402,13 @@ public class ObjectEntryLocalServiceImpl
 				});
 		}
 
-		if (workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT) {
+		if (objectDefinition.isRootDescendantNode() ||
+			(workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT)) {
+
 			try {
-				ObjectEntryThreadLocal.setSkipObjectValidationRules(true);
+				if (workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT) {
+					ObjectEntryThreadLocal.setSkipObjectValidationRules(true);
+				}
 
 				objectEntry = objectEntryPersistence.update(objectEntry);
 			}
@@ -636,9 +643,17 @@ public class ObjectEntryLocalServiceImpl
 			_objectDefinitionPersistence.findByPrimaryKey(
 				objectEntry.getObjectDefinitionId());
 
-		_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
-			objectEntry.getCompanyId(), objectEntry.getNonzeroGroupId(),
-			objectDefinition.getClassName(), objectEntry.getObjectEntryId());
+		if (objectDefinition.isRootDescendantNode()) {
+			_startWorkflowInstance(
+				PrincipalThreadLocal.getUserId(), objectEntry,
+				new ServiceContext(), false);
+		}
+		else {
+			_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+				objectEntry.getCompanyId(), objectEntry.getNonzeroGroupId(),
+				objectDefinition.getClassName(),
+				objectEntry.getObjectEntryId());
+		}
 
 		_deleteFileEntries(
 			Collections.emptyMap(), objectDefinition.getObjectDefinitionId(),
@@ -776,6 +791,27 @@ public class ObjectEntryLocalServiceImpl
 					false);
 			}
 		}
+	}
+
+	@Override
+	public ObjectEntry expireObjectEntry(
+			long userId, long objectEntryId, int version,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		ObjectEntry objectEntry = objectEntryPersistence.findByPrimaryKey(
+			objectEntryId);
+
+		if (objectEntry.getVersion() == version) {
+			return updateStatus(
+				userId, objectEntry, WorkflowConstants.STATUS_EXPIRED,
+				serviceContext);
+		}
+
+		_objectEntryVersionLocalService.expireObjectEntryVersion(
+			userId, objectEntryId, version);
+
+		return objectEntry;
 	}
 
 	@Override
@@ -1788,7 +1824,9 @@ public class ObjectEntryLocalServiceImpl
 
 		_deleteTempFileEntries(dlFileEntriesMap);
 
-		if (objectEntry.isPending() || originalObjectEntry.isDraft()) {
+		if (objectEntry.isPending() || originalObjectEntry.isDraft() ||
+			originalObjectEntry.isExpired()) {
+
 			_updateLatestObjectEntryVersion(objectDefinition, objectEntry);
 
 			return objectEntry;
@@ -1913,6 +1951,21 @@ public class ObjectEntryLocalServiceImpl
 
 		ObjectEntry originalObjectEntry = (ObjectEntry)objectEntry.clone();
 
+		Date date = new Date();
+		Date expirationDate = objectEntry.getExpirationDate();
+
+		if ((status == WorkflowConstants.STATUS_APPROVED) &&
+			(expirationDate != null) && expirationDate.before(date)) {
+
+			objectEntry.setExpirationDate(null);
+		}
+
+		if ((status == WorkflowConstants.STATUS_EXPIRED) &&
+			(expirationDate == null)) {
+
+			objectEntry.setExpirationDate(date);
+		}
+
 		objectEntry.setStatus(status);
 
 		User user = _userLocalService.getUser(userId);
@@ -1973,7 +2026,9 @@ public class ObjectEntryLocalServiceImpl
 				serviceContext.getLanguageId(), user);
 		}
 
-		if (originalObjectEntry.isDraft() || originalObjectEntry.isPending()) {
+		if ((status == WorkflowConstants.STATUS_EXPIRED) ||
+			originalObjectEntry.isDraft() || originalObjectEntry.isPending()) {
+
 			List<ObjectEntryVersion> objectEntryVersions =
 				_objectEntryVersionLocalService.getObjectEntryVersions(
 					objectEntry.getObjectEntryId());
@@ -1981,11 +2036,17 @@ public class ObjectEntryLocalServiceImpl
 			if (!objectEntryVersions.isEmpty()) {
 				_updateLatestObjectEntryVersion(objectDefinition, objectEntry);
 			}
-
-			return objectEntry;
+		}
+		else {
+			objectEntry = _addObjectEntryVersion(objectDefinition, objectEntry);
 		}
 
-		return _addObjectEntryVersion(objectDefinition, objectEntry);
+		if (objectDefinition.isRootNode()) {
+			_updateRootDescendantNodeObjectEntryStatus(
+				userId, objectEntry, serviceContext);
+		}
+
+		return objectEntry;
 	}
 
 	@Override
@@ -5073,15 +5134,88 @@ public class ObjectEntryLocalServiceImpl
 		boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
 
 		try {
-			_skipModelListeners.set(skipModelListener);
-
-			ObjectActionThreadLocal.setSkipObjectActionExecution(true);
 			WorkflowThreadLocal.setEnabled(true);
 
-			WorkflowHandlerRegistryUtil.startWorkflowInstance(
-				objectEntry.getCompanyId(), objectEntry.getNonzeroGroupId(),
-				userId, objectDefinition.getClassName(),
-				objectEntry.getObjectEntryId(), objectEntry, serviceContext);
+			if (objectDefinition.isRootDescendantNode()) {
+				ObjectEntry rootObjectEntry =
+					objectEntryPersistence.fetchByPrimaryKey(
+						objectEntry.getRootObjectEntryId());
+
+				if (rootObjectEntry == null) {
+					return;
+				}
+
+				ObjectDefinition rootObjectDefinition =
+					_objectDefinitionPersistence.fetchByPrimaryKey(
+						objectDefinition.getRootObjectDefinitionId());
+
+				if (serviceContext.getWorkflowAction() ==
+						WorkflowConstants.ACTION_SAVE_DRAFT) {
+
+					WorkflowInstanceLink workflowInstanceLink =
+						_workflowInstanceLinkLocalService.
+							fetchWorkflowInstanceLink(
+								rootObjectDefinition.getCompanyId(),
+								rootObjectEntry.getNonzeroGroupId(),
+								rootObjectDefinition.getClassName(),
+								rootObjectEntry.getObjectEntryId());
+
+					if (workflowInstanceLink != null) {
+						WorkflowInstance workflowInstance =
+							WorkflowInstanceManagerUtil.getWorkflowInstance(
+								objectDefinition.getCompanyId(),
+								workflowInstanceLink.getWorkflowInstanceId());
+
+						if (!workflowInstance.isComplete()) {
+							throw new ObjectEntryStatusException(
+								"Draft root descendant nodes cannot be added " +
+									"when the root node has incomplete " +
+										"workflow instance");
+						}
+					}
+
+					if (rootObjectEntry.getStatus() !=
+							WorkflowConstants.STATUS_DRAFT) {
+
+						rootObjectEntry.setStatus(
+							WorkflowConstants.STATUS_DRAFT);
+
+						rootObjectEntry = updateObjectEntry(rootObjectEntry);
+					}
+				}
+
+				ServiceContext workflowServiceContext =
+					(ServiceContext)serviceContext.clone();
+
+				workflowServiceContext.setStrictAdd(false);
+
+				if (rootObjectEntry.getStatus() ==
+						WorkflowConstants.STATUS_DRAFT) {
+
+					workflowServiceContext.setWorkflowAction(
+						WorkflowConstants.ACTION_SAVE_DRAFT);
+				}
+
+				int originalStatus = rootObjectEntry.getStatus();
+
+				_startWorkflowInstance(
+					userId, rootObjectDefinition.getClassName(),
+					rootObjectEntry, workflowServiceContext);
+
+				if (originalStatus == rootObjectEntry.getStatus()) {
+					_updateRootDescendantNodeObjectEntryStatus(
+						userId, rootObjectEntry, workflowServiceContext);
+				}
+			}
+			else {
+				_skipModelListeners.set(skipModelListener);
+
+				ObjectActionThreadLocal.setSkipObjectActionExecution(true);
+
+				_startWorkflowInstance(
+					userId, objectDefinition.getClassName(), objectEntry,
+					serviceContext);
+			}
 		}
 		finally {
 			_skipModelListeners.set(false);
@@ -5090,6 +5224,17 @@ public class ObjectEntryLocalServiceImpl
 				skipObjectActionExecution);
 			WorkflowThreadLocal.setEnabled(workflowEnabled);
 		}
+	}
+
+	private void _startWorkflowInstance(
+			long userId, String className, ObjectEntry objectEntry,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		WorkflowHandlerRegistryUtil.startWorkflowInstance(
+			objectEntry.getCompanyId(), objectEntry.getNonzeroGroupId(), userId,
+			className, objectEntry.getObjectEntryId(), objectEntry,
+			serviceContext);
 	}
 
 	private String _toPeriodSeparator(String value) {
@@ -5219,6 +5364,37 @@ public class ObjectEntryLocalServiceImpl
 			objectEntry.getCompanyId(), objectEntry.getGroupId(),
 			objectDefinition.getClassName(),
 			String.valueOf(objectEntry.getObjectEntryId()), modelPermissions);
+	}
+
+	private void _updateRootDescendantNodeObjectEntryStatus(
+			long userId, ObjectEntry objectEntry, ServiceContext serviceContext)
+		throws PortalException {
+
+		boolean skipModelListener = _skipModelListeners.get();
+		boolean skipObjectActionExecution =
+			ObjectActionThreadLocal.isSkipObjectActionExecution();
+
+		try {
+			_skipModelListeners.set(true);
+
+			ObjectActionThreadLocal.setSkipObjectActionExecution(true);
+
+			for (ObjectEntry rootDescendantNodeObjectEntry :
+					objectEntryPersistence.findByROEI_NotS(
+						objectEntry.getObjectEntryId(),
+						objectEntry.getStatus())) {
+
+				updateStatus(
+					userId, rootDescendantNodeObjectEntry,
+					objectEntry.getStatus(), serviceContext);
+			}
+		}
+		finally {
+			_skipModelListeners.set(skipModelListener);
+
+			ObjectActionThreadLocal.setSkipObjectActionExecution(
+				skipObjectActionExecution);
+		}
 	}
 
 	private void _updateRootObjectEntryIds(

@@ -6,11 +6,18 @@
 package com.liferay.change.tracking.web.internal.display.context;
 
 import com.liferay.change.tracking.configuration.CTSettingsConfiguration;
+import com.liferay.change.tracking.constants.CTConstants;
+import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.web.internal.configuration.helper.CTSettingsConfigurationHelper;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.taglib.security.PermissionsURLTag;
 
 import javax.portlet.RenderResponse;
 
@@ -68,6 +75,23 @@ public class PublicationsConfigurationDisplayContext {
 		}
 
 		return _navigation;
+	}
+
+	public String getPermissionsHref() throws Exception {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return StringBundler.concat(
+			"javascript:Liferay.Util.openModal({containerProps: {}, ",
+			"iframeBodyCssClass: 'dialog-with-footer', title:'",
+			LanguageUtil.get(themeDisplay.getLocale(), "permissions"),
+			"', url:'",
+			PermissionsURLTag.doTag(
+				StringPool.BLANK, CTCollection.class.getName(), null, null,
+				CTConstants.RESOURCE_NAME, LiferayWindowState.POP_UP.toString(),
+				null, _httpServletRequest),
+			"',});");
 	}
 
 	public String getRemoteClientId() {

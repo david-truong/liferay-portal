@@ -141,6 +141,8 @@ public class ObjectEntryPersistenceTest {
 
 		newObjectEntry.setDefaultLanguageId(RandomTestUtil.randomString());
 
+		newObjectEntry.setExpirationDate(RandomTestUtil.nextDate());
+
 		newObjectEntry.setTreePath(RandomTestUtil.randomString());
 
 		newObjectEntry.setVersion(RandomTestUtil.nextInt());
@@ -197,6 +199,9 @@ public class ObjectEntryPersistenceTest {
 		Assert.assertEquals(
 			existingObjectEntry.getDefaultLanguageId(),
 			newObjectEntry.getDefaultLanguageId());
+		Assert.assertEquals(
+			Time.getShortTimestamp(existingObjectEntry.getExpirationDate()),
+			Time.getShortTimestamp(newObjectEntry.getExpirationDate()));
 		Assert.assertEquals(
 			existingObjectEntry.getTreePath(), newObjectEntry.getTreePath());
 		Assert.assertEquals(
@@ -284,6 +289,14 @@ public class ObjectEntryPersistenceTest {
 	}
 
 	@Test
+	public void testCountByROEI_NotS() throws Exception {
+		_persistence.countByROEI_NotS(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
+
+		_persistence.countByROEI_NotS(0L, 0);
+	}
+
+	@Test
 	public void testCountByERC_G_C() throws Exception {
 		_persistence.countByERC_G_C(
 			"", RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
@@ -351,9 +364,10 @@ public class ObjectEntryPersistenceTest {
 			true, "companyId", true, "userId", true, "userName", true,
 			"createDate", true, "modifiedDate", true, "objectDefinitionId",
 			true, "objectEntryFolderId", true, "rootObjectEntryId", true,
-			"defaultLanguageId", true, "treePath", true, "version", true,
-			"lastPublishDate", true, "status", true, "statusByUserId", true,
-			"statusByUserName", true, "statusDate", true);
+			"defaultLanguageId", true, "expirationDate", true, "treePath", true,
+			"version", true, "lastPublishDate", true, "status", true,
+			"statusByUserId", true, "statusByUserName", true, "statusDate",
+			true);
 	}
 
 	@Test
@@ -692,6 +706,8 @@ public class ObjectEntryPersistenceTest {
 		objectEntry.setRootObjectEntryId(RandomTestUtil.nextLong());
 
 		objectEntry.setDefaultLanguageId(RandomTestUtil.randomString());
+
+		objectEntry.setExpirationDate(RandomTestUtil.nextDate());
 
 		objectEntry.setTreePath(RandomTestUtil.randomString());
 

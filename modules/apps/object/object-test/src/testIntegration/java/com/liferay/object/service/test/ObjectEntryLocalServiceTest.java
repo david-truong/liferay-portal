@@ -33,6 +33,7 @@ import com.liferay.list.type.entry.util.ListTypeEntryUtil;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
+import com.liferay.object.constants.ObjectActionConstants;
 import com.liferay.object.constants.ObjectActionExecutorConstants;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
@@ -131,6 +132,7 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.SystemEvent;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.scheduler.SchedulerJobConfiguration;
@@ -184,6 +186,7 @@ import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
 import com.liferay.portal.security.script.management.test.rule.ScriptManagementConfigurationTestRule;
@@ -2750,19 +2753,8 @@ public class ObjectEntryLocalServiceTest {
 			_objectRelationshipLocalService,
 			Collections.singletonList(objectRelationship));
 
-		ObjectAction objectAction = _objectActionLocalService.addObjectAction(
-			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
-			objectDefinition2.getObjectDefinitionId(), true, null,
-			RandomTestUtil.randomString(),
-			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-			RandomTestUtil.randomString(),
-			ObjectActionExecutorConstants.KEY_GROOVY,
-			ObjectActionTriggerConstants.KEY_STANDALONE,
-			UnicodePropertiesBuilder.put(
-				"script", "println \"Hello World\""
-			).build(),
-			false);
+		ObjectAction objectAction = _addObjectAction(
+			objectDefinition2, ObjectActionTriggerConstants.KEY_STANDALONE);
 
 		Assert.assertThat(
 			_resourceActions.getModelResourceActions(
@@ -5042,32 +5034,344 @@ public class ObjectEntryLocalServiceTest {
 			Assert.assertEquals(
 				WorkflowConstants.STATUS_PENDING, objectEntry.getStatus());
 
-			List<WorkflowTask> workflowTasks =
-				_workflowTaskManager.getWorkflowTasksBySubmittingUser(
-					TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-					false, 0, 1, null);
+			_completeWorkflowTask();
 
-			WorkflowTask workflowTask = workflowTasks.get(0);
-
-			_workflowTaskManager.assignWorkflowTaskToUser(
-				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-				workflowTask.getWorkflowTaskId(), TestPropsValues.getUserId(),
-				StringPool.BLANK, null, null);
-
-			_workflowTaskManager.completeWorkflowTask(
-				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-				workflowTask.getWorkflowTaskId(), Constants.APPROVE,
-				StringPool.BLANK, null);
-
-			objectEntry = _objectEntryLocalService.getObjectEntry(
-				objectEntry.getObjectEntryId());
-
-			Assert.assertEquals(
-				WorkflowConstants.STATUS_APPROVED, objectEntry.getStatus());
+			_assertObjectEntryStatus(
+				WorkflowConstants.STATUS_APPROVED, objectEntry);
 		}
 		finally {
 			PermissionThreadLocal.setPermissionChecker(permissionChecker);
 		}
+	}
+
+	@Test
+	public void testUpdateStatusWithHierarchy() throws Exception {
+		ObjectField objectField = new TextObjectFieldBuilder(
+		).labelMap(
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+		).name(
+			"a" + RandomTestUtil.randomString()
+		).build();
+
+		ObjectDefinition objectDefinitionA =
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				false, Collections.singletonList(objectField));
+		ObjectDefinition objectDefinitionAA =
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				false, Collections.singletonList(objectField));
+		ObjectDefinition objectDefinitionAAA =
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				false, Collections.singletonList(objectField));
+
+		Assert.assertNotNull(
+			WorkflowHandlerRegistryUtil.getWorkflowHandler(
+				objectDefinitionA.getClassName()));
+		Assert.assertNotNull(
+			WorkflowHandlerRegistryUtil.getWorkflowHandler(
+				objectDefinitionAA.getClassName()));
+		Assert.assertNotNull(
+			WorkflowHandlerRegistryUtil.getWorkflowHandler(
+				objectDefinitionAAA.getClassName()));
+
+		TreeTestUtil.bind(
+			_objectRelationshipLocalService,
+			Arrays.asList(
+				ObjectRelationshipTestUtil.addObjectRelationship(
+					_objectRelationshipLocalService, objectDefinitionA,
+					objectDefinitionAA,
+					ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+					"objectRelationship1"),
+				ObjectRelationshipTestUtil.addObjectRelationship(
+					_objectRelationshipLocalService, objectDefinitionAA,
+					objectDefinitionAAA,
+					ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+					"objectRelationship2")));
+
+		Assert.assertNotNull(
+			WorkflowHandlerRegistryUtil.getWorkflowHandler(
+				objectDefinitionA.getClassName()));
+		Assert.assertNull(
+			WorkflowHandlerRegistryUtil.getWorkflowHandler(
+				objectDefinitionAA.getClassName()));
+		Assert.assertNull(
+			WorkflowHandlerRegistryUtil.getWorkflowHandler(
+				objectDefinitionAAA.getClassName()));
+
+		ObjectEntry objectEntryA = _addObjectEntry(
+			0, objectDefinitionA.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				objectField.getName(), RandomTestUtil.randomString()
+			).build());
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryA);
+
+		ObjectAction objectAction = _addObjectAction(
+			objectDefinitionAA,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_UPDATE);
+
+		ObjectEntry objectEntryAA = _addObjectEntry(
+			0, objectDefinitionAA.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				objectField.getName(), RandomTestUtil.randomString()
+			).put(
+				"r_objectRelationship1_" +
+					objectDefinitionA.getPKObjectFieldName(),
+				objectEntryA.getObjectEntryId()
+			).build());
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAA);
+
+		WorkflowDefinitionLink workflowDefinitionLink =
+			_updateWorkflowDefinitionLink(objectDefinitionA);
+
+		ObjectEntry objectEntryAAA = _addObjectEntry(
+			0, objectDefinitionAAA.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				objectField.getName(), RandomTestUtil.randomString()
+			).put(
+				"r_objectRelationship2_" +
+					objectDefinitionAA.getPKObjectFieldName(),
+				objectEntryAA.getObjectEntryId()
+			).build());
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAAA);
+
+		_completeWorkflowTask();
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAAA);
+
+		_objectEntryLocalService.deleteObjectEntry(
+			objectEntryAAA.getObjectEntryId());
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAA);
+
+		_completeWorkflowTask();
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAA);
+
+		_assertObjectActionStatus(
+			ObjectActionConstants.STATUS_NEVER_RAN, objectAction);
+
+		objectEntryAA = _objectEntryLocalService.updateObjectEntry(
+			TestPropsValues.getUserId(), objectEntryAA.getObjectEntryId(),
+			HashMapBuilder.<String, Serializable>put(
+				objectField.getName(), RandomTestUtil.randomString()
+			).put(
+				"r_objectRelationship1_" +
+					objectDefinitionA.getPKObjectFieldName(),
+				objectEntryA.getObjectEntryId()
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+
+		_assertObjectActionStatus(
+			ObjectActionConstants.STATUS_SUCCESS, objectAction);
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAA);
+
+		_workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
+			workflowDefinitionLink);
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED,
+			_addObjectEntry(
+				0, objectDefinitionA.getObjectDefinitionId(),
+				HashMapBuilder.<String, Serializable>put(
+					objectField.getName(), RandomTestUtil.randomString()
+				).build()));
+
+		objectEntryAAA = _addObjectEntry(
+			0, objectDefinitionAAA.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				objectField.getName(), RandomTestUtil.randomString()
+			).put(
+				"r_objectRelationship2_" +
+					objectDefinitionAA.getPKObjectFieldName(),
+				objectEntryAA.getObjectEntryId()
+			).build());
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAAA);
+
+		_completeWorkflowTask();
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAAA);
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			_objectDefinitionLocalService,
+			new String[] {
+				objectDefinitionA.getName(), objectDefinitionAA.getName(),
+				objectDefinitionAAA.getName()
+			},
+			_objectEntryLocalService, _objectRelationshipLocalService);
+	}
+
+	@Test
+	public void testUpdateStatusWithHierarchyAndObjectEntryAsDraft()
+		throws Exception {
+
+		ObjectDefinition objectDefinitionA =
+			ObjectDefinitionTestUtil.publishObjectDefinition();
+		ObjectDefinition objectDefinitionAA =
+			ObjectDefinitionTestUtil.publishObjectDefinition();
+
+		_setEnableObjectEntryDraft(objectDefinitionA);
+		_setEnableObjectEntryDraft(objectDefinitionAA);
+
+		_updateWorkflowDefinitionLink(objectDefinitionA);
+
+		TreeTestUtil.bind(
+			_objectRelationshipLocalService,
+			Collections.singletonList(
+				ObjectRelationshipTestUtil.addObjectRelationship(
+					_objectRelationshipLocalService, objectDefinitionA,
+					objectDefinitionAA,
+					ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+					"objectRelationship")));
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		ObjectEntry objectEntryA = _addObjectEntry(
+			objectDefinitionA, Collections.emptyMap(), serviceContext);
+
+		ObjectEntry objectEntryAA1 = _addObjectEntry(
+			objectDefinitionAA,
+			HashMapBuilder.<String, Serializable>put(
+				"r_objectRelationship_" +
+					objectDefinitionA.getPKObjectFieldName(),
+				objectEntryA.getObjectEntryId()
+			).build(),
+			serviceContext);
+		ObjectEntry objectEntryAA2 = _addObjectEntry(
+			objectDefinitionAA,
+			HashMapBuilder.<String, Serializable>put(
+				"r_objectRelationship_" +
+					objectDefinitionA.getPKObjectFieldName(),
+				objectEntryA.getObjectEntryId()
+			).build(),
+			serviceContext);
+
+		_assertObjectEntryStatus(WorkflowConstants.STATUS_DRAFT, objectEntryA);
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA1);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA2);
+
+		_objectEntryLocalService.deleteObjectEntry(
+			objectEntryAA2.getObjectEntryId());
+
+		_assertObjectEntryStatus(WorkflowConstants.STATUS_DRAFT, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA1);
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
+
+		objectEntryAA2 = _addObjectEntry(
+			objectDefinitionAA,
+			HashMapBuilder.<String, Serializable>put(
+				"r_objectRelationship_" +
+					objectDefinitionA.getPKObjectFieldName(),
+				objectEntryA.getObjectEntryId()
+			).build(),
+			serviceContext);
+
+		_assertObjectEntryStatus(WorkflowConstants.STATUS_DRAFT, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA1);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA2);
+
+		_objectEntryLocalService.updateObjectEntry(
+			TestPropsValues.getUserId(), objectEntryA.getObjectEntryId(),
+			Collections.emptyMap(), serviceContext);
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAA1);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_PENDING, objectEntryAA2);
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		AssertUtils.assertFailure(
+			ObjectEntryStatusException.class,
+			"Draft root descendant nodes cannot be added when the root node " +
+				"has incomplete workflow instance",
+			() -> _addObjectEntry(
+				objectDefinitionAA,
+				HashMapBuilder.<String, Serializable>put(
+					"r_objectRelationship_" +
+						objectDefinitionA.getPKObjectFieldName(),
+					objectEntryA.getObjectEntryId()
+				).build(),
+				serviceContext));
+
+		_completeWorkflowTask();
+
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAA1);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_APPROVED, objectEntryAA2);
+
+		ObjectEntry objectEntryAA3 = _addObjectEntry(
+			objectDefinitionAA,
+			HashMapBuilder.<String, Serializable>put(
+				"r_objectRelationship_" +
+					objectDefinitionA.getPKObjectFieldName(),
+				objectEntryA.getObjectEntryId()
+			).build(),
+			serviceContext);
+
+		_assertObjectEntryStatus(WorkflowConstants.STATUS_DRAFT, objectEntryA);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA1);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA2);
+		_assertObjectEntryStatus(
+			WorkflowConstants.STATUS_DRAFT, objectEntryAA3);
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			_objectDefinitionLocalService,
+			new String[] {
+				objectDefinitionA.getName(), objectDefinitionAA.getName()
+			},
+			_objectEntryLocalService, _objectRelationshipLocalService);
 	}
 
 	@Test
@@ -5223,6 +5527,24 @@ public class ObjectEntryLocalServiceTest {
 			objectField.getObjectFieldSettings());
 	}
 
+	private ObjectAction _addObjectAction(
+			ObjectDefinition objectDefinition, String objectActionTriggerKey)
+		throws Exception {
+
+		return _objectActionLocalService.addObjectAction(
+			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+			objectDefinition.getObjectDefinitionId(), true, null,
+			RandomTestUtil.randomString(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			RandomTestUtil.randomString(),
+			ObjectActionExecutorConstants.KEY_GROOVY, objectActionTriggerKey,
+			UnicodePropertiesBuilder.put(
+				"script", "println \"Hello World\""
+			).build(),
+			false);
+	}
+
 	private ObjectEntry _addObjectEntry(
 			long groupId, long objectDefinitionId,
 			Map<String, Serializable> values)
@@ -5239,6 +5561,18 @@ public class ObjectEntryLocalServiceTest {
 
 		return _addObjectEntry(
 			0, _objectDefinition.getObjectDefinitionId(), values);
+	}
+
+	private ObjectEntry _addObjectEntry(
+			ObjectDefinition objectDefinition, Map<String, Serializable> values,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		return _objectEntryLocalService.addObjectEntry(
+			TestPropsValues.getUserId(), 0,
+			objectDefinition.getObjectDefinitionId(),
+			ObjectEntryFolderConstants.PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
+			null, values, serviceContext);
 	}
 
 	private ObjectValidationRule _addObjectValidationRule(
@@ -5409,6 +5743,15 @@ public class ObjectEntryLocalServiceTest {
 		Assert.assertEquals(count, baseModelSearchResult.getLength());
 	}
 
+	private void _assertObjectActionStatus(
+		int expectedStatus, ObjectAction objectAction) {
+
+		objectAction = _objectActionLocalService.fetchObjectAction(
+			objectAction.getObjectActionId());
+
+		Assert.assertEquals(expectedStatus, objectAction.getStatus());
+	}
+
 	private void _assertObjectEntryLocalizedValues(
 			Map<String, Serializable> expectedLocalizedValues,
 			ObjectEntry objectEntry, ObjectField objectField)
@@ -5420,6 +5763,16 @@ public class ObjectEntryLocalServiceTest {
 		Assert.assertEquals(
 			expectedLocalizedValues.get(objectField.getI18nObjectFieldName()),
 			actualLocalizedValues.get(objectField.getI18nObjectFieldName()));
+	}
+
+	private void _assertObjectEntryStatus(
+			int expectedStatus, ObjectEntry objectEntry)
+		throws Exception {
+
+		objectEntry = _objectEntryLocalService.getObjectEntry(
+			objectEntry.getObjectEntryId());
+
+		Assert.assertEquals(expectedStatus, objectEntry.getStatus());
 	}
 
 	private void _assertObjectEntryValues(
@@ -5473,6 +5826,25 @@ public class ObjectEntryLocalServiceTest {
 			ObjectEntryThreadLocal.class, "_validatedObjectEntryIds");
 
 		threadLocal.set(new HashSet<>());
+	}
+
+	private void _completeWorkflowTask() throws Exception {
+		List<WorkflowTask> workflowTasks =
+			_workflowTaskManager.getWorkflowTasksBySubmittingUser(
+				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+				false, 0, 1, null);
+
+		WorkflowTask workflowTask = workflowTasks.get(0);
+
+		_workflowTaskManager.assignWorkflowTaskToUser(
+			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+			workflowTask.getWorkflowTaskId(), TestPropsValues.getUserId(),
+			StringPool.BLANK, null, null);
+
+		_workflowTaskManager.completeWorkflowTask(
+			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+			workflowTask.getWorkflowTaskId(), Constants.APPROVE,
+			StringPool.BLANK, null);
 	}
 
 	private boolean _containsObjectEntryValuesSQLQuery(LogCapture logCapture) {
@@ -5650,12 +6022,17 @@ public class ObjectEntryLocalServiceTest {
 		return serviceRegistration::unregister;
 	}
 
-	private void _testAddObjectEntryAsDraft() throws Exception {
-		_objectDefinition.setEnableObjectEntryDraft(true);
+	private ObjectDefinition _setEnableObjectEntryDraft(
+		ObjectDefinition objectDefinition) {
 
-		_objectDefinition =
-			_objectDefinitionLocalService.updateObjectDefinition(
-				_objectDefinition);
+		objectDefinition.setEnableObjectEntryDraft(true);
+
+		return _objectDefinitionLocalService.updateObjectDefinition(
+			objectDefinition);
+	}
+
+	private void _testAddObjectEntryAsDraft() throws Exception {
+		_objectDefinition = _setEnableObjectEntryDraft(_objectDefinition);
 
 		Map<String, Serializable> values1 =
 			HashMapBuilder.<String, Serializable>put(
@@ -6264,6 +6641,15 @@ public class ObjectEntryLocalServiceTest {
 
 		return _objectValidationRuleLocalService.updateObjectValidationRule(
 			objectValidationRule);
+	}
+
+	private WorkflowDefinitionLink _updateWorkflowDefinitionLink(
+			ObjectDefinition objectDefinition)
+		throws Exception {
+
+		return _workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
+			TestPropsValues.getUserId(), TestPropsValues.getCompanyId(), 0,
+			objectDefinition.getClassName(), 0, 0, "Single Approver", 1);
 	}
 
 	private static final String _OBJECT_VALIDATION_RULE_KEY =
