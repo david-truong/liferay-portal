@@ -39,6 +39,23 @@
 	</div>
 </c:if>
 
+<div id="<portlet:namespace />permissions">
+	<clay:sheet-section>
+		<h3 class="sheet-subtitle" id="<portlet:namespace />permissionsHeader"><liferay-ui:message key="permissions" /></h3>
+
+		<div class="sheet-text" id="<portlet:namespace />permissionsHelp"><liferay-ui:message key="permissions-help" /></div>
+
+		<div class="btn-group">
+			<clay:link
+				displayType="secondary"
+				href="<%= publicationsConfigurationDisplayContext.getPermissionsHref() %>"
+				label="edit-permissions"
+				type="button"
+			/>
+		</div>
+	</clay:sheet-section>
+</div>
+
 <div id="<portlet:namespace />sandboxOnly">
 	<clay:sheet-section>
 		<h3 class="sheet-subtitle" id="<portlet:namespace />sandboxOnlyHeader"><liferay-ui:message key="sandbox-only" /></h3>
@@ -79,6 +96,12 @@
 	Liferay.Util.toggleBoxes(
 		'<portlet:namespace />enablePublications',
 		'<portlet:namespace />manageRemotely',
+		<%= publicationsConfigurationDisplayContext.isPublicationsEnabled() ? false : null %>
+	);
+
+	Liferay.Util.toggleBoxes(
+		'<portlet:namespace />enablePublications',
+		'<portlet:namespace />permissions',
 		<%= publicationsConfigurationDisplayContext.isPublicationsEnabled() ? false : null %>
 	);
 
