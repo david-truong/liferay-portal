@@ -105,6 +105,11 @@ public class EmbedVideoMVCRenderCommand implements MVCRenderCommand {
 			previewQueryString += "&status=" + status;
 		}
 
+		if (fileVersion.getCtCollectionId() != 0) {
+			previewQueryString +=
+				"&previewCTCollectionId=" + fileVersion.getCtCollectionId();
+		}
+
 		if (PropsValues.DL_FILE_ENTRY_PREVIEW_VIDEO_CONTAINERS.length > 0) {
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
@@ -152,7 +157,8 @@ public class EmbedVideoMVCRenderCommand implements MVCRenderCommand {
 
 		return _dlURLHelper.getPreviewURL(
 			fileVersion.getFileEntry(), fileVersion, themeDisplay,
-			"&videoThumbnail=1");
+			"&videoThumbnail=1&previewCTCollectionId=" +
+				fileVersion.getCtCollectionId());
 	}
 
 	private boolean _isPreviewFailure(FileVersion fileVersion) {
