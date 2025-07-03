@@ -49,7 +49,9 @@ public class DLVideoRendererImpl implements DLVideoRenderer {
 				"src=\"",
 				_dlURLHelper.getPreviewURL(
 					fileVersion.getFileEntry(), fileVersion, themeDisplay,
-					"&videoEmbed=true", true, false),
+					"&videoEmbed=true&previewCTCollectionId=" +
+						fileVersion.getCtCollectionId(),
+					true, false),
 				"\" width=\"560\"></iframe>");
 		}
 		catch (PortalException portalException) {
