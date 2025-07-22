@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
-import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -300,12 +300,7 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 	public void reindex(long ctCollectionId, long modelClassNameId)
 		throws SearchException {
 
-		Indexer<Object> indexer = IndexerRegistryUtil.getIndexer(
-			_portal.getClassName(modelClassNameId));
-
-		if (indexer == null) {
-			return;
-		}
+		Indexer<CTEntry> indexer = _indexerRegistry.getIndexer(CTEntry.class);
 
 		List<CTEntry> ctEntries = ctEntryPersistence.findByC_MCNI(
 			ctCollectionId, modelClassNameId);
@@ -353,6 +348,5 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 	private CTCollectionPersistence _ctCollectionPersistence;
 
 	@Reference
-	private Portal _portal;
-
+	private IndexerRegistry _indexerRegistry;
 }

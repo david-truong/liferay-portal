@@ -5,7 +5,10 @@
 
 package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
+import com.liferay.change.tracking.constants.CTConstants;
+import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
+import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.layout.admin.kernel.model.LayoutTypePortletConstants;
 import com.liferay.layout.constants.LayoutTypeSettingsConstants;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
@@ -14,6 +17,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutSet;
+import com.liferay.portal.kernel.model.PortletPreferences;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.search.IndexStatusManagerThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -147,6 +151,19 @@ public class PublishLayoutMVCActionCommand
 			}
 			finally {
 				IndexStatusManagerThreadLocal.setIndexReadOnly(indexReadOnly);
+
+				if (layout.getCtCollectionId() !=
+						CTConstants.CT_COLLECTION_ID_PRODUCTION) {
+
+					_ctEntryLocalService.reindex(
+						layout.getCtCollectionId(),
+						_portal.getClassNameId(
+							FragmentEntryLink.class.getName()));
+					_ctEntryLocalService.reindex(
+						layout.getCtCollectionId(),
+						_portal.getClassNameId(
+							PortletPreferences.class.getName()));
+				}
 			}
 
 			layout = _layoutLocalService.getLayout(layout.getPlid());
@@ -265,6 +282,9 @@ public class PublishLayoutMVCActionCommand
 			layoutRevision.getColorSchemeId(), layoutRevision.getCss(),
 			serviceContext);
 	}
+
+	@Reference
+	private CTEntryLocalService _ctEntryLocalService;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
