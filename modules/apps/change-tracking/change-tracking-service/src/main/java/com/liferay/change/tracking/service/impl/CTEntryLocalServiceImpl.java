@@ -23,10 +23,14 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
@@ -292,6 +296,25 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 		return true;
 	}
 
+	@Override
+	public void reindex(long ctCollectionId, long modelClassNameId)
+		throws SearchException {
+
+		Indexer<Object> indexer = IndexerRegistryUtil.getIndexer(
+			_portal.getClassName(modelClassNameId));
+
+		if (indexer == null) {
+			return;
+		}
+
+		List<CTEntry> ctEntries = ctEntryPersistence.findByC_MCNI(
+			ctCollectionId, modelClassNameId);
+
+		for (CTEntry ctEntry : ctEntries) {
+			indexer.reindex(ctEntry);
+		}
+	}
+
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public CTEntry updateCTEntry(CTEntry ctEntry) {
@@ -328,5 +351,8 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 
 	@Reference
 	private CTCollectionPersistence _ctCollectionPersistence;
+
+	@Reference
+	private Portal _portal;
 
 }
