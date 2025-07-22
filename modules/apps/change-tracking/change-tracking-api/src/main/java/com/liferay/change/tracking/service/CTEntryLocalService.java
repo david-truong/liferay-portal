@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.transaction.Isolation;
@@ -332,6 +333,10 @@ public interface CTEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean hasUnpublishedCTEntries(
 		long modelClassNameId, long modelClassPK, int changeType);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public void reindex(long ctCollectionId, long modelClassNameId)
+		throws SearchException;
 
 	/**
 	 * Updates the ct entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.

@@ -468,6 +468,13 @@ public class CTEntryLocalServiceWrapper
 			modelClassNameId, modelClassPK, changeType);
 	}
 
+	@Override
+	public void reindex(long ctCollectionId, long modelClassNameId)
+		throws com.liferay.portal.kernel.search.SearchException {
+
+		_ctEntryLocalService.reindex(ctCollectionId, modelClassNameId);
+	}
+
 	/**
 	 * Updates the ct entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
