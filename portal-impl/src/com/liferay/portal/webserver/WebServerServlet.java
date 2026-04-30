@@ -177,12 +177,14 @@ public class WebServerServlet extends HttpServlet {
 				return true;
 			}
 			else if (Validator.isNumber(pathArray[0])) {
+				long previewCTCollectionId = ParamUtil.getLong(
+					httpServletRequest, "previewCTCollectionId",
+					CTCollectionThreadLocal.getCTCollectionId());
+
 				try (SafeCloseable safeCloseable =
 						CTCollectionThreadLocal.
 							setCTCollectionIdWithSafeCloseable(
-								ParamUtil.getLong(
-									httpServletRequest,
-									"previewCTCollectionId"))) {
+								previewCTCollectionId)) {
 
 					_checkFileEntry(pathArray);
 				}
@@ -1581,12 +1583,15 @@ public class WebServerServlet extends HttpServlet {
 			return null;
 		}
 
-		User user = _getUser(httpServletRequest);
+		long previewCTCollectionId = ParamUtil.getLong(
+			httpServletRequest, "previewCTCollectionId",
+			CTCollectionThreadLocal.getCTCollectionId());
 
 		try (SafeCloseable safeCloseable =
 				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
-					ParamUtil.getLong(
-						httpServletRequest, "previewCTCollectionId"))) {
+					previewCTCollectionId)) {
+
+			User user = _getUser(httpServletRequest);
 
 			Group group = _getGroup(user.getCompanyId(), pathArray[1]);
 
