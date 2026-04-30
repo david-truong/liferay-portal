@@ -5,8 +5,10 @@
 
 package com.liferay.change.tracking.service.impl;
 
+import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.internal.background.task.CTPublishBackgroundTaskExecutor;
 import com.liferay.change.tracking.model.CTCollection;
+import com.liferay.change.tracking.model.CTPreferences;
 import com.liferay.change.tracking.model.CTProcess;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
 import com.liferay.change.tracking.service.CTPreferencesLocalService;
@@ -20,12 +22,15 @@ import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -73,11 +78,28 @@ public class CTProcessLocalServiceImpl extends CTProcessLocalServiceBaseImpl {
 		ctCollection = _ctCollectionLocalService.updateCTCollection(
 			ctCollection);
 
-		if (!FeatureFlagManagerUtil.isEnabled(
+		_ctPreferencesLocalService.resetCTPreferences(ctCollectionId);
+
+		if (FeatureFlagManagerUtil.isEnabled(
 				ctCollection.getCompanyId(), "LPD-39203")) {
 
-			_ctPreferencesLocalService.resetCTPreferences(
-				ctCollection.getCtCollectionId());
+			CTPreferences ctPreferences =
+				_ctPreferencesLocalService.getCTPreferences(
+					ctCollection.getCompanyId(),
+					_userLocalService.getGuestUserId(
+						ctCollection.getCompanyId()));
+
+			ctPreferences.setCtCollectionId(ctCollectionId);
+			ctPreferences.setPreviousCtCollectionId(
+				CTConstants.CT_COLLECTION_ID_PRODUCTION);
+
+			_ctPreferencesLocalService.updateCTPreferences(ctPreferences);
+
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Using publication " + ctCollection.getName() +
+						" temporarily in place of production");
+			}
 		}
 
 		long ctProcessId = counterLocalService.increment(
@@ -176,6 +198,9 @@ public class CTProcessLocalServiceImpl extends CTProcessLocalServiceBaseImpl {
 		return ctProcessPersistence.findByCtCollectionId(ctCollectionId);
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		CTProcessLocalServiceImpl.class);
+
 	@Reference
 	private BackgroundTaskLocalService _backgroundTaskLocalService;
 
@@ -190,5 +215,8 @@ public class CTProcessLocalServiceImpl extends CTProcessLocalServiceBaseImpl {
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }
