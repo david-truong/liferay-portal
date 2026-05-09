@@ -42,7 +42,7 @@
 </tr>
 <tr>
 	<td>USER_AVATAR_BUTTON</td>
-	<td>//button[@aria-label='Personal Menu']</td>
+	<td>//button[@data-qa-id='userPersonalMenu']</td>
 	<td></td>
 </tr>
 <tr>

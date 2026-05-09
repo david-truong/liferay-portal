@@ -8,6 +8,9 @@ definition {
 		else if (IsElementPresent(locator1 = "UserBar#USER_AVATAR_TOGGLE")) {
 			Click.waitForMenuToggleJSClick(locator1 = "UserBar#USER_AVATAR_TOGGLE");
 		}
+		else if (IsElementPresent(locator1 = "UserBar#USER_AVATAR_BUTTON")) {
+			Click.waitForPersonalMenuJSClick(locator1 = "UserBar#USER_AVATAR_BUTTON");
+		}
 		else {
 			Click.waitForPersonalMenuJSClick(locator1 = "UserBar#USER_AVATAR_ICON");
 		}
