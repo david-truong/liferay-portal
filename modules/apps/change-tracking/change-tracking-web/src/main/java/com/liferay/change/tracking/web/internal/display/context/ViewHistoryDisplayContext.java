@@ -71,6 +71,19 @@ public class ViewHistoryDisplayContext {
 				_language.get(_httpServletRequest, "review-changes"), "get",
 				"get", null),
 			new FDSActionDropdownItem(
+				PortletURLBuilder.createRenderURL(
+					_renderResponse
+				).setMVCRenderCommandName(
+					"/change_tracking/generate_lar"
+				).setRedirect(
+					_themeDisplay.getURLCurrent()
+				).setParameter(
+					"ctCollectionId", "{ctCollectionId}"
+				).buildString(),
+				"download", "generate-lar",
+				_language.get(_httpServletRequest, "generate-lar"), "get",
+				"get", null),
+			new FDSActionDropdownItem(
 				_language.get(
 					_httpServletRequest,
 					"are-you-sure-you-want-to-delete-this-publication-history"),
