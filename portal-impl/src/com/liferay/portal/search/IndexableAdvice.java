@@ -76,13 +76,13 @@ public class IndexableAdvice extends ChainableMethodAdvice {
 	}
 
 	@Override
-	protected void afterReturning(
+	protected Object afterReturning(
 			AopMethodInvocation aopMethodInvocation, Object[] arguments,
 			Object result)
 		throws Throwable {
 
 		if (result == null) {
-			return;
+			return result;
 		}
 
 		if (PortalInstances.isCurrentCompanyInDeletionProcess() ||
@@ -98,7 +98,7 @@ public class IndexableAdvice extends ChainableMethodAdvice {
 				}
 			}
 
-			return;
+			return result;
 		}
 
 		IndexableContext indexableContext =
@@ -111,7 +111,7 @@ public class IndexableAdvice extends ChainableMethodAdvice {
 		if (indexer != null) {
 			_reindex(indexableContext, indexer, arguments, result);
 
-			return;
+			return result;
 		}
 
 		DependencyManagerSyncUtil.registerSyncCallable(
@@ -128,6 +128,8 @@ public class IndexableAdvice extends ChainableMethodAdvice {
 
 					return null;
 				}));
+
+		return result;
 	}
 
 	private int _getServiceContextParameterIndex(Method method) {
