@@ -1,0 +1,455 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.journal.service.test;
+
+import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.journal.constants.JournalFolderConstants;
+import com.liferay.journal.exception.NoSuchArticleException;
+import com.liferay.journal.model.JournalArticle;
+import com.liferay.journal.model.JournalFolder;
+import com.liferay.journal.service.JournalArticleLocalService;
+import com.liferay.journal.service.JournalFolderLocalService;
+import com.liferay.journal.test.util.JournalFolderFixture;
+import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.preview.PreviewableResolverUtil;
+import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+
+import java.lang.reflect.UndeclaredThrowableException;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+/**
+ * @author Shuyang Zhou
+ */
+@RunWith(Arquillian.class)
+public class JournalArticleLocalServicePreviewTest {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new LiferayIntegrationTestRule();
+
+	@Before
+	public void setUp() throws Exception {
+		_group = GroupTestUtil.addGroup();
+
+		_journArticle1 = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		_journArticle2 = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		_journalFolder = _journalFolderFixture.addFolder(
+			_group.getGroupId(), "PREVIEW");
+
+		_journArticle3 = JournalTestUtil.addArticle(
+			_group.getGroupId(), _journalFolder.getFolderId());
+
+		_journArticle4 = JournalTestUtil.addArticle(
+			_group.getGroupId(), _journalFolder.getFolderId());
+	}
+
+	@Test
+	public void testListJounalArticles() {
+
+		// Outside preview
+
+		Assert.assertEquals(
+			Arrays.asList(_journArticle1, _journArticle2),
+			_journalArticleLocalService.getArticles(
+				_group.getGroupId(),
+				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+		Assert.assertEquals(
+			Arrays.asList(_journArticle3, _journArticle4),
+			_journalArticleLocalService.getArticles(
+				_group.getGroupId(), _journalFolder.getFolderId()));
+
+		// Nonexist preview
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(0)) {
+
+			Assert.assertEquals(
+				Arrays.asList(_journArticle1, _journArticle2),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(),
+					JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+			Assert.assertEquals(
+				Arrays.asList(_journArticle3, _journArticle4),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(), _journalFolder.getFolderId()));
+		}
+
+		// Empty preview
+
+		Long previewId1 = PreviewableResolverUtil.addPreviewableMap(
+			Collections.emptyMap());
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId1)) {
+
+			Assert.assertEquals(
+				Arrays.asList(_journArticle1, _journArticle2),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(),
+					JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+			Assert.assertEquals(
+				Arrays.asList(_journArticle3, _journArticle4),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(), _journalFolder.getFolderId()));
+		}
+
+		// Preview with empty model class mapping
+
+		Long previewId2 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(JournalArticle.class, Collections.emptyMap()));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId2)) {
+
+			Assert.assertEquals(
+				Arrays.asList(_journArticle1, _journArticle2),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(),
+					JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+			Assert.assertEquals(
+				Arrays.asList(_journArticle3, _journArticle4),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(), _journalFolder.getFolderId()));
+		}
+
+		// Preview _journArticle1 -> _journArticle3
+
+		Long previewId3 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(
+				JournalArticle.class,
+				Map.of(_journArticle1.getId(), _journArticle3.getId())));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId3)) {
+
+			Assert.assertEquals(
+				Arrays.asList(_journArticle3, _journArticle2),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(),
+					JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+			Assert.assertEquals(
+				Arrays.asList(_journArticle3, _journArticle4),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(), _journalFolder.getFolderId()));
+		}
+
+		// Preview _journArticle2 -> _journArticle4
+
+		Long previewId4 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(
+				JournalArticle.class,
+				Map.of(_journArticle2.getId(), _journArticle4.getId())));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId4)) {
+
+			Assert.assertEquals(
+				Arrays.asList(_journArticle1, _journArticle4),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(),
+					JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+			Assert.assertEquals(
+				Arrays.asList(_journArticle3, _journArticle4),
+				_journalArticleLocalService.getArticles(
+					_group.getGroupId(), _journalFolder.getFolderId()));
+		}
+
+		// Preview with missing target
+
+		Long previewId5 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(
+				JournalArticle.class,
+				Map.of(
+					_journArticle1.getId(), -1L, _journArticle2.getId(), -2L)));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId5)) {
+
+			_journalArticleLocalService.getArticles(
+				_group.getGroupId(),
+				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+			Assert.fail();
+		}
+		catch (UndeclaredThrowableException undeclaredThrowableException) {
+			Throwable throwable = undeclaredThrowableException.getCause();
+
+			Assert.assertSame(
+				NoSuchArticleException.class, throwable.getClass());
+			Assert.assertEquals(
+				"No JournalArticle exists with the primary key -1",
+				throwable.getMessage());
+
+			Throwable[] throwables = throwable.getSuppressed();
+
+			Assert.assertEquals(
+				Arrays.toString(throwables), 1, throwables.length);
+
+			throwable = throwables[0];
+
+			Assert.assertSame(
+				NoSuchArticleException.class, throwable.getClass());
+			Assert.assertEquals(
+				"No JournalArticle exists with the primary key -2",
+				throwable.getMessage());
+		}
+
+		PreviewableResolverUtil.removePreviewableMap(previewId4);
+		PreviewableResolverUtil.removePreviewableMap(previewId4);
+	}
+
+	@Test
+	public void testSingleJounalArticle() {
+
+		// Outside preview
+
+		Assert.assertEquals(
+			_journArticle1,
+			_journalArticleLocalService.fetchArticle(
+				_group.getGroupId(), _journArticle1.getArticleId()));
+		Assert.assertEquals(
+			_journArticle2,
+			_journalArticleLocalService.fetchArticle(
+				_group.getGroupId(), _journArticle2.getArticleId()));
+		Assert.assertEquals(
+			_journArticle3,
+			_journalArticleLocalService.fetchArticle(
+				_group.getGroupId(), _journArticle3.getArticleId()));
+		Assert.assertEquals(
+			_journArticle4,
+			_journalArticleLocalService.fetchArticle(
+				_group.getGroupId(), _journArticle4.getArticleId()));
+
+		// Nonexist preview
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(0)) {
+
+			Assert.assertEquals(
+				_journArticle1,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle1.getArticleId()));
+			Assert.assertEquals(
+				_journArticle2,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle2.getArticleId()));
+			Assert.assertEquals(
+				_journArticle3,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle3.getArticleId()));
+			Assert.assertEquals(
+				_journArticle4,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle4.getArticleId()));
+		}
+
+		// Empty preview
+
+		Long previewId1 = PreviewableResolverUtil.addPreviewableMap(
+			Collections.emptyMap());
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId1)) {
+
+			Assert.assertEquals(
+				_journArticle1,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle1.getArticleId()));
+			Assert.assertEquals(
+				_journArticle2,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle2.getArticleId()));
+			Assert.assertEquals(
+				_journArticle3,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle3.getArticleId()));
+			Assert.assertEquals(
+				_journArticle4,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle4.getArticleId()));
+		}
+
+		// Preview with empty model class mapping
+
+		Long previewId2 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(JournalArticle.class, Collections.emptyMap()));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId2)) {
+
+			Assert.assertEquals(
+				_journArticle1,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle1.getArticleId()));
+			Assert.assertEquals(
+				_journArticle2,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle2.getArticleId()));
+			Assert.assertEquals(
+				_journArticle3,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle3.getArticleId()));
+			Assert.assertEquals(
+				_journArticle4,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle4.getArticleId()));
+		}
+
+		// Preview _journArticle1 -> _journArticle3
+
+		Long previewId3 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(
+				JournalArticle.class,
+				Map.of(_journArticle1.getId(), _journArticle3.getId())));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId3)) {
+
+			// _journArticle1 is swapped to _journArticle3
+
+			Assert.assertEquals(
+				_journArticle3,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle1.getArticleId()));
+
+			// _journArticle2, _journArticle3 and _journArticle4 are themselves
+
+			Assert.assertEquals(
+				_journArticle2,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle2.getArticleId()));
+			Assert.assertEquals(
+				_journArticle3,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle3.getArticleId()));
+			Assert.assertEquals(
+				_journArticle4,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle4.getArticleId()));
+
+			// Preview disabled method
+
+			Assert.assertEquals(
+				_journArticle1,
+				_journalArticleLocalService.fetchArticle(
+					_journArticle1.getId()));
+		}
+
+		// Preview _journArticle2 -> _journArticle4
+
+		Long previewId4 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(
+				JournalArticle.class,
+				Map.of(_journArticle2.getId(), _journArticle4.getId())));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId4)) {
+
+			// _journArticle2 is swapped to _journArticle4
+
+			Assert.assertEquals(
+				_journArticle4,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle2.getArticleId()));
+
+			// _journArticle1, _journArticle3 and _journArticle4 are themselves
+
+			Assert.assertEquals(
+				_journArticle1,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle1.getArticleId()));
+			Assert.assertEquals(
+				_journArticle3,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle3.getArticleId()));
+			Assert.assertEquals(
+				_journArticle4,
+				_journalArticleLocalService.fetchArticle(
+					_group.getGroupId(), _journArticle4.getArticleId()));
+
+			// Preview disabled method
+
+			Assert.assertEquals(
+				_journArticle2,
+				_journalArticleLocalService.fetchArticle(
+					_journArticle2.getId()));
+		}
+
+		// Preview with missing target
+
+		Long previewId5 = PreviewableResolverUtil.addPreviewableMap(
+			Map.of(JournalArticle.class, Map.of(_journArticle1.getId(), -1L)));
+
+		try (SafeCloseable safeCloseable =
+				PreviewableResolverUtil.setPreviewIdWithSafeCloseable(
+					previewId5)) {
+
+			_journalArticleLocalService.fetchArticle(
+				_group.getGroupId(), _journArticle1.getArticleId());
+
+			Assert.fail();
+		}
+		catch (UndeclaredThrowableException undeclaredThrowableException) {
+			Throwable throwable = undeclaredThrowableException.getCause();
+
+			Assert.assertSame(
+				NoSuchArticleException.class, throwable.getClass());
+			Assert.assertEquals(
+				"No JournalArticle exists with the primary key -1",
+				throwable.getMessage());
+		}
+
+		PreviewableResolverUtil.removePreviewableMap(previewId4);
+		PreviewableResolverUtil.removePreviewableMap(previewId4);
+	}
+
+	@Inject
+	private static JournalArticleLocalService _journalArticleLocalService;
+
+	@Inject
+	private static JournalFolderLocalService _journalFolderLocalService;
+
+	private Group _group;
+	private JournalFolder _journalFolder;
+	private final JournalFolderFixture _journalFolderFixture =
+		new JournalFolderFixture(_journalFolderLocalService);
+	private JournalArticle _journArticle1;
+	private JournalArticle _journArticle2;
+	private JournalArticle _journArticle3;
+	private JournalArticle _journArticle4;
+
+}
