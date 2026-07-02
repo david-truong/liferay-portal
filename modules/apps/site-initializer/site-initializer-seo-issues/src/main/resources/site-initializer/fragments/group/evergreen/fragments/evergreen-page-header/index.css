@@ -1,0 +1,72 @@
+.evg-ph {
+	--evg-campfire: #c9642a;
+	--evg-faded-ink: #6b675a;
+	--evg-ink: #26251f;
+	--evg-parchment: #f4efe3;
+
+	background-color: var(--evg-parchment);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='680' height='680' viewBox='0 0 680 680'%3E%3Cg fill='none' stroke='%231f4a3a' stroke-opacity='0.06' stroke-width='1.4'%3E%3Cpath d='M-40 90 C 110 30 240 150 380 95 S 620 140 740 70'/%3E%3Cpath d='M-40 160 C 120 100 250 210 390 160 S 610 210 740 140'/%3E%3Cpath d='M-40 235 C 100 180 260 285 400 230 S 600 280 740 215'/%3E%3Cpath d='M-40 320 C 130 265 240 370 390 315 S 620 355 740 295'/%3E%3Cpath d='M-40 410 C 110 355 260 455 400 400 S 610 440 740 385'/%3E%3Cpath d='M-40 500 C 120 450 250 545 390 495 S 600 530 740 475'/%3E%3Cpath d='M-40 590 C 100 540 260 635 400 585 S 620 615 740 565'/%3E%3C/g%3E%3C/svg%3E");
+	border-bottom: 1px solid rgba(38, 37, 31, 0.12);
+}
+
+.evg-ph-inner {
+	margin: 0 auto;
+	max-width: 1160px;
+	padding: 84px 32px 64px;
+}
+
+.evg-ph-eyebrow {
+	animation: evg-ph-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+	color: var(--evg-campfire);
+	font-family: "Avenir Next", Avenir, Seravek, "Gill Sans", "Trebuchet MS", sans-serif;
+	font-size: 0.78rem;
+	font-weight: 600;
+	letter-spacing: 0.26em;
+	text-transform: uppercase;
+}
+
+.evg-ph-title {
+	animation: evg-ph-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
+	color: var(--evg-ink);
+	font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+	font-size: clamp(2.4rem, 4.6vw, 3.6rem);
+	font-weight: 500;
+	line-height: 1.08;
+	margin: 16px 0 0;
+}
+
+.evg-ph-rule {
+	animation: evg-ph-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.18s both;
+	background-color: var(--evg-campfire);
+	height: 3px;
+	margin-top: 26px;
+	width: 64px;
+}
+
+.evg-ph-text {
+	animation: evg-ph-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.26s both;
+	color: var(--evg-faded-ink);
+	font-family: "Avenir Next", Avenir, Seravek, "Gill Sans", "Trebuchet MS", sans-serif;
+	font-size: 1.14rem;
+	line-height: 1.7;
+	margin-top: 24px;
+	max-width: 56ch;
+}
+
+@keyframes evg-ph-rise {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.evg-ph-eyebrow, .evg-ph-rule, .evg-ph-text, .evg-ph-title {
+		animation: none;
+	}
+}

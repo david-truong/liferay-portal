@@ -1,0 +1,9 @@
+{
+	"configurationPath": "index.json",
+	"cssPath": "index.css",
+	"htmlPath": "index.html",
+	"icon": "columns",
+	"jsPath": "index.js",
+	"name": "Evergreen Split",
+	"type": "component"
+}

@@ -1,0 +1,189 @@
+{
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-page-header"
+							},
+							"fragmentFields": [
+								{
+									"id": "header-eyebrow",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "The Workbench"
+											}
+										}
+									}
+								},
+								{
+									"id": "header-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Services"
+											}
+										}
+									}
+								},
+								{
+									"id": "header-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Buying gear is the easy part. We keep it working, and keep you moving, season after season."
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-split"
+							},
+							"fragmentFields": [
+								{
+									"id": "split-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "From boot fitting to full rebuilds."
+											}
+										}
+									}
+								},
+								{
+									"id": "split-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "<p>Our workbench started with a single vise and a jar of seam grip. Today four full-time techs handle boot fitting, ski and board tuning, pack repairs, and tent rebuilds, using the same thread, buckles, and fabrics the manufacturers use.</p><p>Walk-ins are welcome seven days a week. If we cannot fix it, we will tell you straight and help you find the right replacement.</p>"
+											}
+										}
+									}
+								},
+								{
+									"id": "panel-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Turnaround Times"
+											}
+										}
+									}
+								},
+								{
+									"id": "panel-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "<ul><li>Boot fitting — same day</li><li>Ski & board tune — 3 days</li><li>Pack & tent repair — 1 week</li><li>Full boot rebuild — 3 weeks</li></ul>"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-cta"
+							},
+							"fragmentFields": [
+								{
+									"id": "cta-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Drop your gear off on the way to work."
+											}
+										}
+									}
+								},
+								{
+									"id": "cta-button",
+									"value": {
+										"fragmentLink": {
+											"value_i18n": {
+											}
+										}
+									}
+								},
+								{
+									"id": "cta-note",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Open seven days a week · 1187 NW Alder St, Portland"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "evergreen"
+		}
+	}
+}

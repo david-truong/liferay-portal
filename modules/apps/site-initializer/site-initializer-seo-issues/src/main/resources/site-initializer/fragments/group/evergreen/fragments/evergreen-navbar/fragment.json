@@ -1,0 +1,9 @@
+{
+	"configurationPath": "index.json",
+	"cssPath": "index.css",
+	"htmlPath": "index.html",
+	"icon": "menu",
+	"jsPath": "index.js",
+	"name": "Evergreen Navbar",
+	"type": "section"
+}

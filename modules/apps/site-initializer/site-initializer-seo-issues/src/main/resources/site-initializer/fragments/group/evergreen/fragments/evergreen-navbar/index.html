@@ -1,0 +1,27 @@
+[#assign
+	currentFriendlyURL = themeDisplay.getLayout().getFriendlyURL()
+	publicFriendlyURL = themeDisplay.getPathFriendlyURLPublic() + themeDisplay.getSiteGroup().getFriendlyURL()
+/]
+
+<nav class="evg-navbar">
+	<div class="evg-navbar-inner">
+		<a class="evg-navbar-brand" href="${publicFriendlyURL}/home">
+			<span class="evg-navbar-mark">&#9670;</span><span class="evg-navbar-name" data-lfr-editable-id="brand-name" data-lfr-editable-type="text">Evergreen Outfitters</span>
+		</a>
+
+		<ul class="evg-navbar-links">
+			<li>
+				<a class="evg-navbar-link[#if currentFriendlyURL == "/home"] is-active[/#if]" href="${publicFriendlyURL}/home">Home</a>
+			</li>
+			<li>
+				<a class="evg-navbar-link[#if currentFriendlyURL == "/products"] is-active[/#if]" href="${publicFriendlyURL}/products">Products</a>
+			</li>
+			<li>
+				<a class="evg-navbar-link[#if currentFriendlyURL == "/services"] is-active[/#if]" href="${publicFriendlyURL}/services">Services</a>
+			</li>
+			<li>
+				<a class="evg-navbar-link[#if currentFriendlyURL == "/about-us"] is-active[/#if]" href="${publicFriendlyURL}/about-us">About Us</a>
+			</li>
+		</ul>
+	</div>
+</nav>

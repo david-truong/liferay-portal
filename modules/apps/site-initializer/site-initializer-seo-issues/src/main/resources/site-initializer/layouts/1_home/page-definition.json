@@ -1,0 +1,362 @@
+{
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-hero"
+							},
+							"fragmentFields": [
+								{
+									"id": "hero-eyebrow",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Pacific Northwest · Est. 1987"
+											}
+										}
+									}
+								},
+								{
+									"id": "hero-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Gear for the long trail."
+											}
+										}
+									}
+								},
+								{
+									"id": "hero-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Quality gear and honest advice for every trail, summit, and campsite. Family owned since 1987, outfitting adventurers across the Pacific Northwest."
+											}
+										}
+									}
+								},
+								{
+									"id": "hero-button",
+									"value": {
+										"fragmentLink": {
+											"value_i18n": {
+											}
+										}
+									}
+								},
+								{
+									"id": "hero-badges",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Family Owned ◆ Field Tested ◆ Portland, Oregon"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-cards"
+							},
+							"fragmentFields": [
+								{
+									"id": "card-1-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 01"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-1-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "The Shop"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-1-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Four floors of tents, packs, boots, and hardware in the old Alder Street cannery, plus the best gear wall in Portland."
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 02"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "The Workbench"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Boot fitting, ski tuning, and repairs done in-house. Most jobs are back on your feet inside a week."
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 03"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "The Guides"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Small-group trips and route advice from staff who spend their weekends on the trails they recommend."
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-stats"
+							},
+							"fragmentFields": [
+								{
+									"id": "stat-1-value",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "37"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-1-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Years on the Trail"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-2-value",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "2,400"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-2-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Products Field Tested"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-3-value",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "3"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-3-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Stores in the Northwest"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-cta"
+							},
+							"fragmentFields": [
+								{
+									"id": "cta-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Come see us before the season turns."
+											}
+										}
+									}
+								},
+								{
+									"id": "cta-button",
+									"value": {
+										"fragmentLink": {
+											"value_i18n": {
+											}
+										}
+									}
+								},
+								{
+									"id": "cta-note",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Open seven days a week · 1187 NW Alder St, Portland"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "evergreen"
+		}
+	}
+}

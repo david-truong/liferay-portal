@@ -1,0 +1,9 @@
+{
+	"configurationPath": "index.json",
+	"cssPath": "index.css",
+	"htmlPath": "index.html",
+	"icon": "h1",
+	"jsPath": "index.js",
+	"name": "Evergreen Page Header",
+	"type": "component"
+}

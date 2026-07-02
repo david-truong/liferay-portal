@@ -1,0 +1,92 @@
+.evg-split {
+	--evg-campfire: #c9642a;
+	--evg-cream: #faf7ee;
+	--evg-faded-ink: #6b675a;
+	--evg-ink: #26251f;
+	--evg-pine: #16342a;
+
+	background-color: var(--evg-cream);
+}
+
+.evg-split-inner {
+	display: grid;
+	gap: 48px;
+	grid-template-columns: 7fr 5fr;
+	margin: 0 auto;
+	max-width: 1160px;
+	padding: 76px 32px;
+}
+
+.evg-split-title {
+	color: var(--evg-ink);
+	font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 1.15;
+}
+
+.evg-split-text {
+	color: var(--evg-faded-ink);
+	font-family: "Avenir Next", Avenir, Seravek, "Gill Sans", "Trebuchet MS", sans-serif;
+	font-size: 1.05rem;
+	line-height: 1.75;
+	margin-top: 20px;
+}
+
+.evg-split-text p:first-of-type::first-letter {
+	color: var(--evg-campfire);
+	float: left;
+	font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+	font-size: 3.4rem;
+	line-height: 0.85;
+	padding-right: 10px;
+	padding-top: 5px;
+}
+
+.evg-split-panel {
+	align-self: start;
+	background-color: var(--evg-pine);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='680' height='680' viewBox='0 0 680 680'%3E%3Cg fill='none' stroke='%23f4efe3' stroke-opacity='0.07' stroke-width='1.4'%3E%3Cpath d='M-40 90 C 110 30 240 150 380 95 S 620 140 740 70'/%3E%3Cpath d='M-40 235 C 100 180 260 285 400 230 S 600 280 740 215'/%3E%3Cpath d='M-40 410 C 110 355 260 455 400 400 S 610 440 740 385'/%3E%3Cpath d='M-40 590 C 100 540 260 635 400 585 S 620 615 740 565'/%3E%3C/g%3E%3C/svg%3E");
+	border: 1px solid rgba(22, 52, 42, 0.9);
+	outline: 1px dashed rgba(250, 247, 238, 0.4);
+	outline-offset: -8px;
+	padding: 34px 32px 36px;
+}
+
+.evg-split-panel-title {
+	color: var(--evg-campfire);
+	font-family: "Avenir Next", Avenir, Seravek, "Gill Sans", "Trebuchet MS", sans-serif;
+	font-size: 0.78rem;
+	font-weight: 600;
+	letter-spacing: 0.26em;
+	text-transform: uppercase;
+}
+
+.evg-split-panel-text {
+	color: rgba(250, 247, 238, 0.85);
+	font-family: "Avenir Next", Avenir, Seravek, "Gill Sans", "Trebuchet MS", sans-serif;
+	font-size: 0.98rem;
+	line-height: 1.8;
+	margin-top: 18px;
+}
+
+.evg-split-panel-text ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.evg-split-panel-text li {
+	border-bottom: 1px solid rgba(250, 247, 238, 0.16);
+	padding: 9px 0;
+}
+
+.evg-split-panel-text li:last-child {
+	border-bottom: 0;
+}
+
+@media (max-width: 900px) {
+	.evg-split-inner {
+		grid-template-columns: 1fr;
+	}
+}

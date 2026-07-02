@@ -1,0 +1,11 @@
+{
+	"friendlyURL": "/services",
+	"hidden": false,
+	"name": "Services",
+	"name_i18n": {
+		"en_US": "Services"
+	},
+	"private": false,
+	"system": false,
+	"type": "Content"
+}

@@ -1,0 +1,63 @@
+.evg-cards {
+	--evg-campfire: #c9642a;
+	--evg-cream: #faf7ee;
+	--evg-faded-ink: #6b675a;
+	--evg-ink: #26251f;
+
+	background-color: var(--evg-cream);
+}
+
+.evg-cards-inner {
+	display: grid;
+	gap: 28px;
+	grid-template-columns: repeat(3, 1fr);
+	margin: 0 auto;
+	max-width: 1160px;
+	padding: 72px 32px;
+}
+
+.evg-card {
+	background-color: #fffdf6;
+	border: 1px solid rgba(38, 37, 31, 0.14);
+	border-top: 3px solid rgba(38, 37, 31, 0.14);
+	padding: 30px 28px 34px;
+	position: relative;
+	transition: border-top-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.evg-card:hover {
+	border-top-color: var(--evg-campfire);
+	box-shadow: 0 18px 34px -20px rgba(22, 52, 42, 0.45);
+	transform: translateY(-5px);
+}
+
+.evg-card-label {
+	color: var(--evg-campfire);
+	font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+	font-size: 0.95rem;
+	font-style: italic;
+	letter-spacing: 0.08em;
+}
+
+.evg-card-title {
+	color: var(--evg-ink);
+	font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+	font-size: 1.45rem;
+	font-weight: 600;
+	line-height: 1.2;
+	margin-top: 14px;
+}
+
+.evg-card-text {
+	color: var(--evg-faded-ink);
+	font-family: "Avenir Next", Avenir, Seravek, "Gill Sans", "Trebuchet MS", sans-serif;
+	font-size: 0.98rem;
+	line-height: 1.65;
+	margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+	.evg-cards-inner {
+		grid-template-columns: 1fr;
+	}
+}

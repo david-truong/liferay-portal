@@ -1,0 +1,228 @@
+{
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-page-header"
+							},
+							"fragmentFields": [
+								{
+									"id": "header-eyebrow",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Since 1987"
+											}
+										}
+									}
+								},
+								{
+									"id": "header-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "About Us"
+											}
+										}
+									}
+								},
+								{
+									"id": "header-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Three decades in, we are still guided by the same idea: the outdoors belongs to everyone, and the right gear should never stand in the way."
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-split"
+							},
+							"fragmentFields": [
+								{
+									"id": "split-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "It started with a rental counter in a garage."
+											}
+										}
+									}
+								},
+								{
+									"id": "split-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "<p>Evergreen Outfitters began as a single rental counter in a Portland garage, loaning out patched tents and third-hand stoves to neighbors headed for the Columbia Gorge. The gear came back muddy, the stories came back better, and the counter became a shop.</p><p>Three decades later the garage is a cannery building on Alder Street, but the deal is the same: honest advice, fair prices, and gear we would carry ourselves.</p>"
+											}
+										}
+									}
+								},
+								{
+									"id": "panel-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Fast Facts"
+											}
+										}
+									}
+								},
+								{
+									"id": "panel-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "<ul><li>Founded — 1987, in a Rainier Ave garage</li><li>Home — Portland, Oregon</li><li>Crew — 42 outfitters and techs</li><li>Motto — Carry less. Go farther.</li></ul>"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-stats"
+							},
+							"fragmentFields": [
+								{
+									"id": "stat-1-value",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "37"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-1-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Years on the Trail"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-2-value",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "2,400"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-2-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Products Field Tested"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-3-value",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "3"
+											}
+										}
+									}
+								},
+								{
+									"id": "stat-3-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Stores in the Northwest"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "evergreen"
+		}
+	}
+}

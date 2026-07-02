@@ -1,0 +1,367 @@
+{
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-page-header"
+							},
+							"fragmentFields": [
+								{
+									"id": "header-eyebrow",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "The Catalog"
+											}
+										}
+									}
+								},
+								{
+									"id": "header-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Products"
+											}
+										}
+									}
+								},
+								{
+									"id": "header-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Every product on our shelves earns its place the hard way: our staff carries it, camps with it, and climbs on it before you ever see it."
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-cards"
+							},
+							"fragmentFields": [
+								{
+									"id": "card-1-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 01"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-1-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Shelter & Sleep"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-1-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Tents, tarps, bags, and pads rated for real Cascade shoulder seasons, not just the label on the box."
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 02"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Packs & Bags"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Daypacks to expedition haulers, fitted to your torso by people who have carried them for miles."
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 03"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Footwear"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Trail runners, hikers, and mountaineering boots, with in-house fitting and honest break-in advice."
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					},
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-cards"
+							},
+							"fragmentFields": [
+								{
+									"id": "card-1-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 04"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-1-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Climbing"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-1-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Ropes, racks, and hardware from brands we trust on Smith Rock and beyond."
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 05"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Camp Kitchen"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-2-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Stoves, cookware, and coffee kits that turn a gravel bar into a dining room."
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-label",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "No. 06"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Apparel"
+											}
+										}
+									}
+								},
+								{
+									"id": "card-3-text",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Layers built for the wet side of the mountains, chosen for durability over fashion."
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"layout": {
+						"widthType": "Fluid"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "evergreen-cta"
+							},
+							"fragmentFields": [
+								{
+									"id": "cta-title",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Not sure what you need? Ask us."
+											}
+										}
+									}
+								},
+								{
+									"id": "cta-button",
+									"value": {
+										"fragmentLink": {
+											"value_i18n": {
+											}
+										}
+									}
+								},
+								{
+									"id": "cta-note",
+									"value": {
+										"fragmentLink": {
+										},
+										"text": {
+											"value_i18n": {
+												"en_US": "Gear wall consultations are free · No appointment needed"
+											}
+										}
+									}
+								}
+							]
+						},
+						"type": "Fragment"
+					}
+				],
+				"type": "Section"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "evergreen"
+		}
+	}
+}

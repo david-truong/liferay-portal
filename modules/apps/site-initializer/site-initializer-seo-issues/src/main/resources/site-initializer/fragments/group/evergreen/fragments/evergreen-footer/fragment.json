@@ -1,0 +1,9 @@
+{
+	"configurationPath": "index.json",
+	"cssPath": "index.css",
+	"htmlPath": "index.html",
+	"icon": "paragraph",
+	"jsPath": "index.js",
+	"name": "Evergreen Footer",
+	"type": "section"
+}

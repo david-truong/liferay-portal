@@ -1,0 +1,94 @@
+.evg-navbar {
+	--evg-campfire: #c9642a;
+	--evg-cream: #faf7ee;
+	--evg-pine: #16342a;
+
+	background-color: var(--evg-pine);
+	border-top: 3px solid var(--evg-campfire);
+}
+
+.evg-navbar-inner {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px 32px;
+	justify-content: space-between;
+	margin: 0 auto;
+	max-width: 1160px;
+	padding: 20px 32px;
+}
+
+.evg-navbar-brand {
+	align-items: baseline;
+	display: inline-flex;
+	gap: 12px;
+	text-decoration: none;
+}
+
+.evg-navbar-brand:hover {
+	text-decoration: none;
+}
+
+.evg-navbar-mark {
+	color: var(--evg-campfire);
+	font-size: 0.85rem;
+}
+
+.evg-navbar-name {
+	color: var(--evg-cream);
+	font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+	font-size: 1.3rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.evg-navbar-links {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 30px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.evg-navbar-link {
+	color: rgba(250, 247, 238, 0.75);
+	font-family: "Avenir Next", Avenir, Seravek, "Gill Sans", "Trebuchet MS", sans-serif;
+	font-size: 0.8rem;
+	font-weight: 600;
+	letter-spacing: 0.18em;
+	padding-bottom: 6px;
+	position: relative;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: color 0.2s ease;
+}
+
+.evg-navbar-link::after {
+	background-color: var(--evg-campfire);
+	bottom: 0;
+	content: "";
+	height: 2px;
+	left: 0;
+	position: absolute;
+	right: 100%;
+	transition: right 0.25s ease;
+}
+
+.evg-navbar-link:hover {
+	color: var(--evg-cream);
+	text-decoration: none;
+}
+
+.evg-navbar-link:hover::after {
+	right: 0;
+}
+
+.evg-navbar-link.is-active {
+	color: var(--evg-cream);
+}
+
+.evg-navbar-link.is-active::after {
+	right: 0;
+}
