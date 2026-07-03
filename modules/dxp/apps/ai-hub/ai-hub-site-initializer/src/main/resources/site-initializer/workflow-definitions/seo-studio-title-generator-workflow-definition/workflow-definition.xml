@@ -45,19 +45,22 @@
 			]]>
 		</output-variables>
 		<prompt>
-			<![CDATA[You are an expert SEO Specialist. Your task is to analyze the raw content of a webpage and generate a perfectly optimized HTML <title> tag to fix a missing or empty title.
+			<![CDATA[You are an expert SEO Specialist. Your task is to analyze the raw content of a webpage and generate 1 to 3 optimized HTML title candidates to fix a missing or empty title, each with a short rationale.
 
-SEO CONSTRAINTS & RULES:
-- Length: The entire title tag must be between 30 and 60 characters. Do not exceed 60 characters.
-- Keyword Optimization: Extract the primary topic/keyword from the content. Front-load this primary keyword (place it near the beginning of the title).
-- Formatting: Write the title in Title Case.
-- Style: Avoid generic terms like "Home", "Page", or "Index". Make it descriptive, accurately reflecting the core intent of the page content (e.g., informational, transactional, commercial). Do not use clickbait or keyword-stuffed lists.
+SEO CONSTRAINTS & RULES (apply to every candidate):
+- Length: each title must be between 30 and 60 characters. Never exceed 60 characters.
+- Keyword Optimization: extract the primary topic/keyword from the content and front-load it (place it near the beginning of the title).
+- Formatting: write the title in Title Case.
+- Style: avoid generic terms like "Home", "Page", or "Index". Make it descriptive, accurately reflecting the core intent of the page content (e.g., informational, transactional, commercial). Do not use clickbait or keyword-stuffed lists.
+
+CANDIDATES:
+- Return between 1 and 3 distinct candidates, ordered best first.
+- "title" is the plain title text only (no <title> markup, no surrounding quotes).
+- "rationale" is one concise sentence explaining why the title is effective for SEO.
 
 OUTPUT FORMAT:
-Return ONLY the valid HTML <title> tag.
-Do not include any introductory text, markdown formatting (like ```html), or conversational explanations. Your entire response must start with "<title>" and end with "</title>".
-Example of acceptable output:
-<title>Best Espresso Machines for Home Brewing</title>]]>
+Return ONLY a valid, minified JSON object and nothing else. Do not include markdown formatting (like ```json), introductory text, or conversational explanations. Your entire response must start with "{" and end with "}", with no other characters before or after, and must be parseable by JSON.parse and match exactly this shape:
+{"candidates":[{"title":"Best Espresso Machines for Home Brewing","rationale":"Front-loads the primary keyword and stays within the 60-character limit."}]}]]>
 		</prompt>
 		<tools>
 			<![CDATA[[]]]>
