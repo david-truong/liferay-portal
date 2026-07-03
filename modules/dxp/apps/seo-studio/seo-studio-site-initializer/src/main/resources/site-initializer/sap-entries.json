@@ -1,0 +1,14 @@
+[
+	{
+		"allowedServiceSignatures": [
+			"com.liferay.seo.studio.rest.internal.resource.v1_0.AgentInvocationResourceImpl#getAgentInvocationSubscribe",
+			"com.liferay.seo.studio.rest.internal.resource.v1_0.AgentInvocationResourceImpl#postAgentInvocation"
+		],
+		"defaultSAPEntry": true,
+		"enabled": true,
+		"name": "SEO_STUDIO_DEFAULT",
+		"title_i18n": {
+			"en_US": "SEO Studio Default"
+		}
+	}
+]
