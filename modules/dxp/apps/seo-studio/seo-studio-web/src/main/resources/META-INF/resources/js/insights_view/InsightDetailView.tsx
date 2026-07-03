@@ -9,9 +9,13 @@ import {openToast} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
+import AutoFixPanel from './AutoFixPanel';
 import AuthorCellRenderer from './cell_renderers/AuthorCellRenderer';
+import StateCellRenderer from './cell_renderers/StateCellRenderer';
 import TitleCellRenderer from './cell_renderers/TitleCellRenderer';
+import {WORKFLOW_STATUS_PENDING} from './services/AutoFixService';
 import {getInsightType} from './services/InsightTypeService';
+import {ScanInsightItem} from './types/AutoFix';
 import {InsightType} from './types/InsightType';
 
 import './InsightDetailView.scss';
@@ -19,6 +23,11 @@ import './InsightDetailView.scss';
 type BreadcrumbItem = {
 	href?: string;
 	label: string;
+};
+
+type AutoFixState = {
+	item: ScanInsightItem;
+	loadData: () => void;
 };
 
 export default function InsightDetailView({
@@ -34,6 +43,7 @@ export default function InsightDetailView({
 	fdsId: string;
 	views: any[];
 }) {
+	const [autoFix, setAutoFix] = useState<AutoFixState | null>(null);
 	const [data, setData] = useState<InsightType>({});
 
 	useEffect(() => {
@@ -108,6 +118,11 @@ export default function InsightDetailView({
 								type: 'internal',
 							},
 							{
+								component: StateCellRenderer,
+								name: 'stateCellRenderer',
+								type: 'internal',
+							},
+							{
 								component: TitleCellRenderer,
 								name: 'titleCellRenderer',
 								type: 'internal',
@@ -115,6 +130,21 @@ export default function InsightDetailView({
 						],
 					}}
 					id={fdsId}
+					itemsActions={[
+						{
+							icon: 'magic',
+							isVisible: (item: ScanInsightItem) =>
+								item.state === WORKFLOW_STATUS_PENDING,
+							label: Liferay.Language.get('auto-fix'),
+							onClick: ({
+								itemData,
+								loadData,
+							}: {
+								itemData: ScanInsightItem;
+								loadData: () => void;
+							}) => setAutoFix({item: itemData, loadData}),
+						},
+					]}
 					pagination={{initialDelta: 10}}
 					showManagementBar={false}
 					showPagination
@@ -122,6 +152,14 @@ export default function InsightDetailView({
 					views={views}
 				/>
 			</div>
+
+			{autoFix && (
+				<AutoFixPanel
+					item={autoFix.item}
+					onClose={() => setAutoFix(null)}
+					onResolved={() => autoFix.loadData()}
+				/>
+			)}
 		</>
 	);
 }
