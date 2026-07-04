@@ -7,13 +7,16 @@ import ClayBreadcrumb from '@clayui/breadcrumb';
 import {FrontendDataSet} from '@liferay/frontend-data-set-web';
 import {openToast} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import AutoFixPanel from './AutoFixPanel';
 import AuthorCellRenderer from './cell_renderers/AuthorCellRenderer';
 import StateCellRenderer from './cell_renderers/StateCellRenderer';
 import TitleCellRenderer from './cell_renderers/TitleCellRenderer';
-import {WORKFLOW_STATUS_PENDING} from './services/AutoFixService';
+import {
+	MISSING_OR_EMPTY_TITLE_TAG_INSIGHT_TYPE_NAME,
+	WORKFLOW_STATUS_PENDING,
+} from './services/AutoFixService';
 import {getInsightType} from './services/InsightTypeService';
 import {ScanInsightItem} from './types/AutoFix';
 import {InsightType} from './types/InsightType';
@@ -28,6 +31,26 @@ type BreadcrumbItem = {
 type AutoFixState = {
 	item: ScanInsightItem;
 	loadData: () => void;
+};
+
+const CUSTOM_RENDERERS = {
+	tableCell: [
+		{
+			component: AuthorCellRenderer,
+			name: 'authorCellRenderer',
+			type: 'internal' as const,
+		},
+		{
+			component: StateCellRenderer,
+			name: 'stateCellRenderer',
+			type: 'internal' as const,
+		},
+		{
+			component: TitleCellRenderer,
+			name: 'titleCellRenderer',
+			type: 'internal' as const,
+		},
+	],
 };
 
 export default function InsightDetailView({
@@ -45,6 +68,26 @@ export default function InsightDetailView({
 }) {
 	const [autoFix, setAutoFix] = useState<AutoFixState | null>(null);
 	const [data, setData] = useState<InsightType>({});
+
+	const itemsActions = useMemo(
+		() => [
+			{
+				icon: 'magic',
+				isVisible: (item: ScanInsightItem) =>
+					item.state === WORKFLOW_STATUS_PENDING &&
+					data.name === MISSING_OR_EMPTY_TITLE_TAG_INSIGHT_TYPE_NAME,
+				label: Liferay.Language.get('auto-fix'),
+				onClick: ({
+					itemData,
+					loadData,
+				}: {
+					itemData: ScanInsightItem;
+					loadData: () => void;
+				}) => setAutoFix({item: itemData, loadData}),
+			},
+		],
+		[data.name]
+	);
 
 	useEffect(() => {
 		if (!externalReferenceCode) {
@@ -110,41 +153,9 @@ export default function InsightDetailView({
 				<FrontendDataSet
 					apiURL={apiURL}
 					appURL={`${Liferay.ThemeDisplay.getPortalURL()}/o/frontend-data-set-taglib/app`}
-					customRenderers={{
-						tableCell: [
-							{
-								component: AuthorCellRenderer,
-								name: 'authorCellRenderer',
-								type: 'internal',
-							},
-							{
-								component: StateCellRenderer,
-								name: 'stateCellRenderer',
-								type: 'internal',
-							},
-							{
-								component: TitleCellRenderer,
-								name: 'titleCellRenderer',
-								type: 'internal',
-							},
-						],
-					}}
+					customRenderers={CUSTOM_RENDERERS}
 					id={fdsId}
-					itemsActions={[
-						{
-							icon: 'magic',
-							isVisible: (item: ScanInsightItem) =>
-								item.state === WORKFLOW_STATUS_PENDING,
-							label: Liferay.Language.get('auto-fix'),
-							onClick: ({
-								itemData,
-								loadData,
-							}: {
-								itemData: ScanInsightItem;
-								loadData: () => void;
-							}) => setAutoFix({item: itemData, loadData}),
-						},
-					]}
+					itemsActions={itemsActions}
 					pagination={{initialDelta: 10}}
 					showManagementBar={false}
 					showPagination

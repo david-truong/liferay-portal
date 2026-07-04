@@ -16,6 +16,11 @@ const SEO_STUDIO_TITLE_GENERATOR_ERC = 'L_SEO_STUDIO_TITLE_GENERATOR';
 export const WORKFLOW_STATUS_APPROVED = 0;
 export const WORKFLOW_STATUS_PENDING = 1;
 
+// The only insight type the Title Generator agent knows how to fix.
+
+export const MISSING_OR_EMPTY_TITLE_TAG_INSIGHT_TYPE_NAME =
+	'missingOrEmptyTitleTag';
+
 /**
  * Extracts the {"candidates":[...]} object from the agent's raw response,
  * tolerating a markdown code fence and any leading/trailing prose around it.
