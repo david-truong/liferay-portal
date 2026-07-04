@@ -92,6 +92,53 @@ describe('invokeAgent', () => {
 		await expect(promise).rejects.toThrow('Unable to connect to the agent');
 	});
 
+	it('rejects immediately when postAgentInvocation rejects', async () => {
+		mockPostAgentInvocation.mockRejectedValue(
+			new Error('Agent invocation failed with status 404: Not Found')
+		);
+
+		const fakeEventSource = createFakeEventSource();
+
+		mockCreateAgentInvocationEventSource.mockReturnValue(
+			fakeEventSource as never
+		);
+
+		const promise = invokeAgent({
+			agentExternalReferenceCode: AGENT_EXTERNAL_REFERENCE_CODE,
+			context: {},
+		});
+
+		fakeEventSource.emit('Subscribe', 'sink-1');
+
+		await expect(promise).rejects.toThrow(
+			'Agent invocation failed with status 404: Not Found'
+		);
+		expect(fakeEventSource.close).toHaveBeenCalledTimes(1);
+	});
+
+	it('closes the event source and stops waiting when the signal is aborted', async () => {
+		const fakeEventSource = createFakeEventSource();
+
+		mockCreateAgentInvocationEventSource.mockReturnValue(
+			fakeEventSource as never
+		);
+
+		const controller = new AbortController();
+
+		const promise = invokeAgent({
+			agentExternalReferenceCode: AGENT_EXTERNAL_REFERENCE_CODE,
+			context: {},
+			signal: controller.signal,
+		});
+
+		controller.abort();
+
+		await expect(promise).rejects.toThrow(
+			'The agent invocation was cancelled'
+		);
+		expect(fakeEventSource.close).toHaveBeenCalledTimes(1);
+	});
+
 	it('rejects when no response arrives before the timeout', async () => {
 		jest.useFakeTimers();
 

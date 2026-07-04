@@ -57,6 +57,31 @@ describe('generateTitleCandidates', () => {
 		expect(candidates[0]).toEqual({rationale: 'r1', title: 'A'});
 	});
 
+	it('parses candidates wrapped in a code fence with trailing prose', async () => {
+		mockInvokeAgent.mockResolvedValue(
+			'```json\n' +
+				JSON.stringify({
+					candidates: [{rationale: 'r1', title: 'A'}],
+				}) +
+				'\n```\nLet me know if you need more options!'
+		);
+
+		const candidates = await generateTitleCandidates('content');
+
+		expect(candidates).toHaveLength(1);
+		expect(candidates[0]).toEqual({rationale: 'r1', title: 'A'});
+	});
+
+	it('throws with the raw response text when the response is not JSON', async () => {
+		mockInvokeAgent.mockResolvedValue(
+			'You have exceeded your monthly token quota.'
+		);
+
+		await expect(generateTitleCandidates('content')).rejects.toThrow(
+			'You have exceeded your monthly token quota.'
+		);
+	});
+
 	it('filters out candidates without a title', async () => {
 		mockInvokeAgent.mockResolvedValue(
 			JSON.stringify({

@@ -120,6 +120,64 @@ describe('AutoFixPanel', () => {
 		expect(screen.getByText('generating')).toBeInTheDocument();
 	});
 
+	it('cancels the in-flight generation when the item changes', () => {
+		let capturedSignal: AbortSignal | undefined;
+
+		(generateTitleCandidates as jest.Mock).mockImplementation(
+			(_pageContent: string, signal: AbortSignal) => {
+				capturedSignal = signal;
+
+				return new Promise(() => {});
+			}
+		);
+
+		const {rerender} = renderPanel();
+
+		const firstSignal = capturedSignal;
+
+		expect(firstSignal?.aborted).toBe(false);
+
+		rerender(
+			<AutoFixPanel
+				item={{...item, id: 456}}
+				onClose={jest.fn()}
+				onResolved={jest.fn()}
+			/>
+		);
+
+		expect(firstSignal?.aborted).toBe(true);
+	});
+
+	it('shows a distinct message when the title applies but resolving fails', async () => {
+		(generateTitleCandidates as jest.Mock).mockResolvedValue([
+			{rationale: 'r1', title: 'Option A'},
+		]);
+		(applyTitle as jest.Mock).mockResolvedValue(undefined);
+		(resolveInsight as jest.Mock).mockRejectedValue(new Error('nope'));
+
+		const onClose = jest.fn();
+		const onResolved = jest.fn();
+
+		renderPanel({onClose, onResolved});
+
+		fireEvent.click(
+			await screen.findByRole('button', {name: /apply-option-x/})
+		);
+
+		await waitFor(() =>
+			expect(openToast).toHaveBeenCalledWith(
+				expect.objectContaining({
+					message:
+						'the-title-tag-was-applied-but-the-insight-could-not-be-marked-as-resolved',
+					type: 'danger',
+				})
+			)
+		);
+
+		expect(onResolved).not.toHaveBeenCalled();
+		expect(onClose).not.toHaveBeenCalled();
+	});
+
 	it('shows an error and keeps the insight open when applying fails', async () => {
 		(generateTitleCandidates as jest.Mock).mockResolvedValue([
 			{rationale: 'r1', title: 'Option A'},
