@@ -83,7 +83,7 @@ export default function AutoFixPanel({
 		};
 	}, [item]);
 
-	const handleApply = (htmlTitle: string) => {
+	const handleApply = async (htmlTitle: string) => {
 		const pageURL =
 			item.r_seoStudioPageToSEOStudioScanInsights_seoStudioPage?.pageURL;
 
@@ -98,27 +98,45 @@ export default function AutoFixPanel({
 
 		setApplying(true);
 
-		applyTitle({htmlTitle, pageURL})
-			.then(() => resolveInsight(item.id))
-			.then(() => {
-				openToast({
-					message: Liferay.Language.get(
-						'the-title-tag-was-applied-and-the-insight-was-resolved'
-					),
-					type: 'success',
-				});
+		try {
+			await applyTitle({htmlTitle, pageURL});
+		}
+		catch {
+			setApplying(false);
 
-				onResolved();
-				onClose();
-			})
-			.catch(() => {
-				setApplying(false);
-
-				openToast({
-					message: Liferay.Language.get('unable-to-apply-the-title'),
-					type: 'danger',
-				});
+			openToast({
+				message: Liferay.Language.get('unable-to-apply-the-title'),
+				type: 'danger',
 			});
+
+			return;
+		}
+
+		try {
+			await resolveInsight(item.id);
+		}
+		catch {
+			setApplying(false);
+
+			openToast({
+				message: Liferay.Language.get(
+					'the-title-tag-was-applied-but-the-insight-could-not-be-marked-as-resolved'
+				),
+				type: 'danger',
+			});
+
+			return;
+		}
+
+		openToast({
+			message: Liferay.Language.get(
+				'the-title-tag-was-applied-and-the-insight-was-resolved'
+			),
+			type: 'success',
+		});
+
+		onResolved();
+		onClose();
 	};
 
 	return (
