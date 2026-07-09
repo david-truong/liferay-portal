@@ -56,6 +56,9 @@ public class CrawlerRestController extends BaseRestController {
 		long seoStudioScanId = objectEntryJSONObject.getLong("objectEntryId");
 
 		try {
+			_seoStudioService.updateScan(
+				null, seoStudioScanId, SEOStudioScanConstants.STATE_RUNNING);
+
 			JSONObject valuesJSONObject = objectEntryJSONObject.getJSONObject(
 				"values");
 
@@ -117,9 +120,6 @@ public class CrawlerRestController extends BaseRestController {
 						"Unable to reach the sitemap at " + sitemapURL,
 						seoStudioScanId, SEOStudioScanConstants.STATE_FAILED));
 			}
-
-			_seoStudioService.updateScan(
-				null, seoStudioScanId, SEOStudioScanConstants.STATE_RUNNING);
 
 			JSONObject scopeConfigJSONObject = new JSONObject(
 				valuesJSONObject.getString("scopeConfig"));
