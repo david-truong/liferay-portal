@@ -91,7 +91,7 @@ public abstract class BaseDetectionCrawler {
 
 			Thread.sleep(_PAGE_FETCH_POLL_INTERVAL);
 
-			pageIdsByURLMap = _readPages(seoStudioScanId);
+			pageIdsByURLMap.putAll(_readPages(seoStudioScanId));
 		}
 
 		return pageIdsByURLMap;
@@ -151,7 +151,7 @@ public abstract class BaseDetectionCrawler {
 		);
 
 		return new JSONObject(
-			_seoStudioService.createInsightType(bodyJSONObject)
+			_seoStudioService.postInsightType(bodyJSONObject)
 		).getLong(
 			"id"
 		);
@@ -173,7 +173,7 @@ public abstract class BaseDetectionCrawler {
 						accountEntryId, pageURL, seoStudioScanId));
 			}
 
-			_seoStudioService.createPagesBatch(pagesJSONArray);
+			_seoStudioService.postPagesBatch(pagesJSONArray);
 		}
 	}
 
@@ -218,7 +218,7 @@ public abstract class BaseDetectionCrawler {
 				continue;
 			}
 
-			_seoStudioService.createScanInsightsBatch(scanInsightsJSONArray);
+			_seoStudioService.postScanInsightsBatch(scanInsightsJSONArray);
 		}
 	}
 
