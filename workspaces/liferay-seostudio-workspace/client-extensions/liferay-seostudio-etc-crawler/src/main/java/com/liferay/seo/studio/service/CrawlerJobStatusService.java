@@ -9,6 +9,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.seo.studio.constants.SEOStudioScanConstants;
 import com.liferay.seo.studio.crawler.OrphanPagesDetectionCrawler;
+import com.liferay.seo.studio.crawler.TitleTagDetectionCrawler;
 import com.liferay.seo.studio.model.CrawlHit;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -71,7 +72,7 @@ public class CrawlerJobStatusService {
 				}
 
 				if (state.equals(SEOStudioScanConstants.STATE_COMPLETED)) {
-					String errorMessage = _detectOrphanPages(
+					String errorMessage = _detect(
 						scanJSONObject, seoStudioScanId);
 
 					if (Validator.isNotNull(errorMessage)) {
@@ -99,8 +100,7 @@ public class CrawlerJobStatusService {
 		}
 	}
 
-	private String _detectOrphanPages(
-			JSONObject scanJSONObject, long seoStudioScanId)
+	private String _detect(JSONObject scanJSONObject, long seoStudioScanId)
 		throws Exception {
 
 		long seoStudioDomainId = scanJSONObject.getLong(
@@ -121,6 +121,9 @@ public class CrawlerJobStatusService {
 				seoStudioDomainId;
 		}
 
+		long accountEntryId = scanJSONObject.getLong(
+			"r_accountToSEOStudioScans_accountEntryId");
+
 		URI hostname = SEOStudioService.toCrawlURI(
 			new JSONObject(
 				domainJSON
@@ -129,8 +132,10 @@ public class CrawlerJobStatusService {
 			));
 
 		_orphanPagesDetectionCrawler.detect(
-			scanJSONObject.getLong("r_accountToSEOStudioScans_accountEntryId"),
-			crawlHits, hostname, seoStudioScanId);
+			accountEntryId, crawlHits, hostname, seoStudioScanId);
+
+		_titleTagDetectionCrawler.detect(
+			accountEntryId, crawlHits, hostname, seoStudioScanId);
 
 		return null;
 	}
@@ -208,5 +213,8 @@ public class CrawlerJobStatusService {
 
 	@Autowired
 	private SEOStudioService _seoStudioService;
+
+	@Autowired
+	private TitleTagDetectionCrawler _titleTagDetectionCrawler;
 
 }

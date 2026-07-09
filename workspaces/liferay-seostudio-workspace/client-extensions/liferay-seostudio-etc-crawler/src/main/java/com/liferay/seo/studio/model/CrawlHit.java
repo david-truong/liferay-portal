@@ -29,6 +29,7 @@ public class CrawlHit {
 			}
 		}
 
+		_title = jsonObject.optString("title", null);
 		_url = jsonObject.optString("url", null);
 	}
 
@@ -40,12 +41,17 @@ public class CrawlHit {
 		return _links;
 	}
 
+	public String getTitle() {
+		return _title;
+	}
+
 	public String getURL() {
 		return _url;
 	}
 
 	private final String _canonicalURL;
 	private final List<String> _links = new ArrayList<>();
+	private final String _title;
 	private final String _url;
 
 }
