@@ -59,8 +59,14 @@ public class CrawlerRestController extends BaseRestController {
 			JSONObject valuesJSONObject = objectEntryJSONObject.getJSONObject(
 				"values");
 
-			long seoStudioDomainId = valuesJSONObject.getLong(
-				"r_seoStudioDomainToSEOStudioScans_seoStudioDomainId");
+			long seoStudioScanRunId = valuesJSONObject.getLong(
+				"r_seoStudioScanRunToSEOStudioScans_seoStudioScanRunId");
+
+			JSONObject scanRunJSONObject = new JSONObject(
+				_seoStudioService.fetchScanRun(seoStudioScanRunId));
+
+			long seoStudioDomainId = scanRunJSONObject.getLong(
+				"r_seoStudioDomainToSEOStudioScanRuns_seoStudioDomainId");
 
 			String domainJSON = _seoStudioService.fetchDomain(
 				seoStudioDomainId);
@@ -122,8 +128,11 @@ public class CrawlerRestController extends BaseRestController {
 				valuesJSONObject.getLong(
 					"r_accountToSEOStudioScans_accountEntryId"),
 				canonicalDomainURL,
-				scopeConfigJSONObject.getInt("maxCrawlDepth"),
-				scopeConfigJSONObject.getInt("maxDuration"),
+				scopeConfigJSONObject.optString("excludedPaths"),
+				scopeConfigJSONObject.optString("includedPaths"),
+				scopeConfigJSONObject.optInt("maxCrawlDepth", 3),
+				scopeConfigJSONObject.optInt("maxDuration", 300),
+				scopeConfigJSONObject.optInt("maxPagesPerScan", 100),
 				SEOStudioService.toIndexName(seoStudioDomainId), sitemapURL);
 
 			ObjectMeta objectMeta = job.getMetadata();

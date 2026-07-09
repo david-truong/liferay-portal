@@ -103,8 +103,14 @@ public class CrawlerJobStatusService {
 	private String _detect(JSONObject scanJSONObject, long seoStudioScanId)
 		throws Exception {
 
-		long seoStudioDomainId = scanJSONObject.getLong(
-			"r_seoStudioDomainToSEOStudioScans_seoStudioDomainId");
+		long seoStudioScanRunId = scanJSONObject.getLong(
+			"r_seoStudioScanRunToSEOStudioScans_seoStudioScanRunId");
+
+		JSONObject scanRunJSONObject = new JSONObject(
+			_seoStudioService.fetchScanRun(seoStudioScanRunId));
+
+		long seoStudioDomainId = scanRunJSONObject.getLong(
+			"r_seoStudioDomainToSEOStudioScanRuns_seoStudioDomainId");
 
 		String domainJSON = _seoStudioService.fetchDomain(seoStudioDomainId);
 

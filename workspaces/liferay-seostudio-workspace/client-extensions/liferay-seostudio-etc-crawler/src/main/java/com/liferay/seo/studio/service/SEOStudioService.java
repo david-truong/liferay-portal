@@ -139,6 +139,14 @@ public class SEOStudioService extends BaseService {
 		return get(_getAuthorization(), uriComponents.toUri());
 	}
 
+	public String fetchScanRun(long seoStudioScanRunId) {
+		UriComponents uriComponents = UriComponentsBuilder.fromPath(
+			"/o/seo-studio/scan-runs/" + seoStudioScanRunId
+		).build();
+
+		return get(_getAuthorization(), uriComponents.toUri());
+	}
+
 	public String postInsightType(JSONObject jsonObject) {
 		UriComponents uriComponents = UriComponentsBuilder.fromPath(
 			"/o/seo-studio/insight-types"
