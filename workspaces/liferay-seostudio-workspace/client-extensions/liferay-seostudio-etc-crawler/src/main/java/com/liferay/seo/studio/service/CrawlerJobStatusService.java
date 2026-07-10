@@ -84,6 +84,12 @@ public class CrawlerJobStatusService {
 						_seoStudioService.updateScan(
 							null, seoStudioScanId,
 							SEOStudioScanConstants.STATE_COMPLETED);
+
+						_seoStudioService.updateScanRun(
+							scanJSONObject.getLong(
+								"r_seoStudioScanRunToSEOStudioScans_" +
+									"seoStudioScanRunId"),
+							SEOStudioScanConstants.STATE_COMPLETED);
 					}
 				}
 				else if (state.equals(SEOStudioScanConstants.STATE_FAILED)) {

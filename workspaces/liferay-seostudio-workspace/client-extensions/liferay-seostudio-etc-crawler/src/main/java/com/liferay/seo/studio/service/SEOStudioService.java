@@ -206,6 +206,19 @@ public class SEOStudioService extends BaseService {
 		return updateScan(jsonObject, seoStudioScanId);
 	}
 
+	public String updateScanRun(long seoStudioScanRunId, String state) {
+		JSONObject jsonObject = new JSONObject();
+
+		jsonObject.put("state", state);
+
+		UriComponents uriComponents = UriComponentsBuilder.fromPath(
+			"/o/seo-studio/scan-runs/" + seoStudioScanRunId
+		).build();
+
+		return patch(
+			_getAuthorization(), jsonObject.toString(), uriComponents.toUri());
+	}
+
 	private String _fetchCrawlHits(
 		String lastURL, int pageSize, long seoStudioDomainId) {
 
