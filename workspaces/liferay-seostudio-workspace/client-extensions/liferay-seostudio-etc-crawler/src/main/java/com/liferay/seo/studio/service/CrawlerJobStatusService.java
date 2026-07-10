@@ -8,8 +8,8 @@ package com.liferay.seo.studio.service;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.seo.studio.constants.SEOStudioScanConstants;
+import com.liferay.seo.studio.crawler.MetadataDetectionCrawler;
 import com.liferay.seo.studio.crawler.OrphanPagesDetectionCrawler;
-import com.liferay.seo.studio.crawler.TitleTagDetectionCrawler;
 import com.liferay.seo.studio.model.CrawlHit;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -137,10 +137,10 @@ public class CrawlerJobStatusService {
 				"hostname"
 			));
 
-		_orphanPagesDetectionCrawler.detect(
+		_metadataDetectionCrawler.detect(
 			accountEntryId, crawlHits, hostname, seoStudioScanId);
 
-		_titleTagDetectionCrawler.detect(
+		_orphanPagesDetectionCrawler.detect(
 			accountEntryId, crawlHits, hostname, seoStudioScanId);
 
 		return null;
@@ -215,12 +215,12 @@ public class CrawlerJobStatusService {
 	private KubernetesJobService _kubernetesJobService;
 
 	@Autowired
+	private MetadataDetectionCrawler _metadataDetectionCrawler;
+
+	@Autowired
 	private OrphanPagesDetectionCrawler _orphanPagesDetectionCrawler;
 
 	@Autowired
 	private SEOStudioService _seoStudioService;
-
-	@Autowired
-	private TitleTagDetectionCrawler _titleTagDetectionCrawler;
 
 }

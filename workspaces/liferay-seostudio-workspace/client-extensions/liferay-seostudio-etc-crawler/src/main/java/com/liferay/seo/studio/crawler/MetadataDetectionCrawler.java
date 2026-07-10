@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
  * @author Noor Najjar
  */
 @Component
-public class TitleTagDetectionCrawler extends BaseDetectionCrawler {
+public class MetadataDetectionCrawler extends BaseDetectionCrawler {
 
 	@Override
 	public void detect(
@@ -35,39 +35,76 @@ public class TitleTagDetectionCrawler extends BaseDetectionCrawler {
 			long seoStudioScanId)
 		throws Exception {
 
-		Set<String> pageURLs = new LinkedHashSet<>();
+		Set<String> missingMetaDescriptionPageURLs = new LinkedHashSet<>();
+		Set<String> missingTitlePageURLs = new LinkedHashSet<>();
 
 		for (CrawlHit crawlHit : crawlHits) {
-			if (Validator.isNotNull(crawlHit.getTitle())) {
+			String pageURL = getPageURL(crawlHit);
+
+			if (pageURL == null) {
 				continue;
 			}
 
-			String pageURL = getPageURL(crawlHit);
+			if (Validator.isNull(crawlHit.getMetaDescription())) {
+				missingMetaDescriptionPageURLs.add(pageURL);
+			}
 
-			if (pageURL != null) {
-				pageURLs.add(pageURL);
+			if (Validator.isNull(crawlHit.getTitle())) {
+				missingTitlePageURLs.add(pageURL);
 			}
 		}
+
+		_writeInsights(
+			accountEntryId, _DESCRIPTION_JSON_OBJECT,
+			missingMetaDescriptionPageURLs, seoStudioScanId);
+		_writeInsights(
+			accountEntryId, _TITLE_JSON_OBJECT, missingTitlePageURLs,
+			seoStudioScanId);
+	}
+
+	private void _writeInsights(
+			long accountEntryId, JSONObject definitionJSONObject,
+			Set<String> pageURLs, long seoStudioScanId)
+		throws Exception {
 
 		if (pageURLs.isEmpty()) {
 			if (_log.isInfoEnabled()) {
 				_log.info(
-					"No missing or empty title tags were detected for scan " +
-						seoStudioScanId);
+					StringBundler.concat(
+						"No ", definitionJSONObject.getString("name"),
+						" issues were detected for scan ", seoStudioScanId));
 			}
 
 			return;
 		}
 
-		List<String> titleTagPageURLs = new ArrayList<>(pageURLs);
+		List<String> affectedPageURLs = new ArrayList<>(pageURLs);
 
 		writeInsights(
-			accountEntryId, _DEFINITION_JSON_OBJECT,
-			ensurePages(accountEntryId, titleTagPageURLs, seoStudioScanId),
-			titleTagPageURLs, seoStudioScanId);
+			accountEntryId, definitionJSONObject,
+			ensurePages(accountEntryId, affectedPageURLs, seoStudioScanId),
+			affectedPageURLs, seoStudioScanId);
 	}
 
-	private static final JSONObject _DEFINITION_JSON_OBJECT = new JSONObject(
+	private static final JSONObject _DESCRIPTION_JSON_OBJECT = new JSONObject(
+	).put(
+		"category", "metadata"
+	).put(
+		"classification", "opportunity"
+	).put(
+		"description",
+		StringBundler.concat(
+			"One or more pages are missing a meta description or have an ",
+			"empty one. Search engines use it for the results snippet; ",
+			"without it they auto-generate one, reducing control over how the ",
+			"page is presented and its click-through rate.")
+	).put(
+		"name", "missingMetaDescription"
+	).put(
+		"severity", "2"
+	);
+
+	private static final JSONObject _TITLE_JSON_OBJECT = new JSONObject(
 	).put(
 		"category", "metadata"
 	).put(
@@ -86,6 +123,6 @@ public class TitleTagDetectionCrawler extends BaseDetectionCrawler {
 	);
 
 	private static final Log _log = LogFactory.getLog(
-		TitleTagDetectionCrawler.class);
+		MetadataDetectionCrawler.class);
 
 }

@@ -29,6 +29,7 @@ public class CrawlHit {
 			}
 		}
 
+		_metaDescription = jsonObject.optString("metaDescription", null);
 		_title = jsonObject.optString("title", null);
 		_url = jsonObject.optString("url", null);
 	}
@@ -41,6 +42,10 @@ public class CrawlHit {
 		return _links;
 	}
 
+	public String getMetaDescription() {
+		return _metaDescription;
+	}
+
 	public String getTitle() {
 		return _title;
 	}
@@ -51,6 +56,7 @@ public class CrawlHit {
 
 	private final String _canonicalURL;
 	private final List<String> _links = new ArrayList<>();
+	private final String _metaDescription;
 	private final String _title;
 	private final String _url;
 
