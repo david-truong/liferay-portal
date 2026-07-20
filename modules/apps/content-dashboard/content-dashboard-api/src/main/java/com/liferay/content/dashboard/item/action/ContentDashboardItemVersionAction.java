@@ -26,7 +26,7 @@ public interface ContentDashboardItemVersionAction {
 
 	public enum Type {
 
-		BLANK, NAVIGATE, SUBMIT_FORM
+		ADD_TO_LAUNCH, BLANK, NAVIGATE, SUBMIT_FORM
 
 	}
 
