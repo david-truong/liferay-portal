@@ -10,6 +10,19 @@ import {navigate} from 'frontend-js-web';
 import React from 'react';
 
 const availableActionMethods: IAvailableActionMethods = {
+	ADD_TO_LAUNCH: (url: string) => {
+		const searchParams = new URLSearchParams(url.replace(/^\?/, ''));
+
+		document.dispatchEvent(
+			new CustomEvent('addToLaunch', {
+				detail: {
+					className: searchParams.get('className'),
+					classPK: searchParams.get('classPK'),
+					classVersion: searchParams.get('classVersion'),
+				},
+			})
+		);
+	},
 	BLANK: (url: string) => {
 		window.open(url, '_blank', 'noopener');
 	},
@@ -98,6 +111,7 @@ declare global {
 }
 
 interface IAvailableActionMethods {
+	ADD_TO_LAUNCH: (url: string) => void;
 	BLANK: (url: string) => void;
 	NAVIGATE: (url: string) => void;
 	SUBMIT_FORM: (url: string) => void;

@@ -132,6 +132,21 @@ public class ContentDashboardDropdownItemsProvider {
 		).build();
 	}
 
+	private long _getClassPK(InfoItemReference infoItemReference) {
+		InfoItemIdentifier infoItemIdentifier =
+			infoItemReference.getInfoItemIdentifier();
+
+		if (infoItemIdentifier instanceof ClassPKInfoItemIdentifier) {
+			ClassPKInfoItemIdentifier classPKInfoItemIdentifier =
+				(ClassPKInfoItemIdentifier)
+					infoItemReference.getInfoItemIdentifier();
+
+			return classPKInfoItemIdentifier.getClassPK();
+		}
+
+		return 0;
+	}
+
 	private DropdownItem _toAddToLaunchDropdownItem(
 		ContentDashboardItem<?> contentDashboardItem,
 		ContentDashboardItemAction contentDashboardItemAction, Locale locale) {
@@ -142,8 +157,7 @@ public class ContentDashboardDropdownItemsProvider {
 		String classVersion = StringPool.BLANK;
 
 		List<ContentDashboardItemVersion> contentDashboardItemVersions =
-			contentDashboardItem.getLatestContentDashboardItemVersions(
-				locale);
+			contentDashboardItem.getLatestContentDashboardItemVersions(locale);
 
 		if (ListUtil.isNotEmpty(contentDashboardItemVersions)) {
 			ContentDashboardItemVersion contentDashboardItemVersion =
@@ -169,21 +183,6 @@ public class ContentDashboardDropdownItemsProvider {
 		).setQuickAction(
 			true
 		).build();
-	}
-
-	private long _getClassPK(InfoItemReference infoItemReference) {
-		InfoItemIdentifier infoItemIdentifier =
-			infoItemReference.getInfoItemIdentifier();
-
-		if (infoItemIdentifier instanceof ClassPKInfoItemIdentifier) {
-			ClassPKInfoItemIdentifier classPKInfoItemIdentifier =
-				(ClassPKInfoItemIdentifier)
-					infoItemReference.getInfoItemIdentifier();
-
-			return classPKInfoItemIdentifier.getClassPK();
-		}
-
-		return 0;
 	}
 
 	private DropdownItem _toDropdownItem(
