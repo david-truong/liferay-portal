@@ -6,6 +6,7 @@
 import {fetch} from 'frontend-js-web';
 
 const BASE_URL = '/o/launch-sets';
+const LAUNCH_ENTRIES_BASE_URL = '/o/launch-entries';
 
 const DEFAULT_HEADERS = {
 	'Content-Type': 'application/json',
@@ -17,6 +18,14 @@ export interface Launch {
 	id: number;
 	name: string;
 	status?: {code: number};
+}
+
+export interface LaunchEntry {
+	className: string;
+	classPK: number;
+	classVersion: string;
+	id: number;
+	r_launchSetToLaunchEntries_c_launchSetId: number;
 }
 
 export async function createLaunch({
@@ -64,6 +73,68 @@ export async function listLaunches({
 
 	if (!response.ok) {
 		throw new Error(Liferay.Language.get('unable-to-list-launches'));
+	}
+
+	const data = await response.json();
+
+	return data.items || [];
+}
+
+export async function createLaunchEntry({
+	className,
+	classPK,
+	classVersion,
+	launchSetId,
+}: {
+	className: string;
+	classPK: number;
+	classVersion: string;
+	launchSetId: number;
+}): Promise<LaunchEntry> {
+	const response = await fetch(LAUNCH_ENTRIES_BASE_URL, {
+		body: JSON.stringify({
+			className,
+			classPK,
+			classVersion,
+			r_launchSetToLaunchEntries_c_launchSetId: launchSetId,
+		}),
+		headers: DEFAULT_HEADERS,
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		const error = await response.json().catch(() => ({}));
+
+		throw new Error(
+			error.title || Liferay.Language.get('unable-to-add-to-a-launch')
+		);
+	}
+
+	return response.json();
+}
+
+export async function listLaunchEntriesFor({
+	className,
+	classPK,
+	classVersion,
+}: {
+	className: string;
+	classPK: number;
+	classVersion: string;
+}): Promise<LaunchEntry[]> {
+	const filter = encodeURIComponent(
+		`className eq '${className}' and classPK eq ${classPK} and classVersion eq '${classVersion}'`
+	);
+
+	const response = await fetch(
+		`${LAUNCH_ENTRIES_BASE_URL}?filter=${filter}`,
+		{
+			headers: DEFAULT_HEADERS,
+		}
+	);
+
+	if (!response.ok) {
+		throw new Error(Liferay.Language.get('unable-to-list-launch-entries'));
 	}
 
 	const data = await response.json();

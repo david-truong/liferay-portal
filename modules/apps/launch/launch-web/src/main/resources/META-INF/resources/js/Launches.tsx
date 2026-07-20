@@ -10,6 +10,8 @@ import LaunchDetails from './components/LaunchDetails';
 import LaunchesLanding from './components/LaunchesLanding';
 import NewLaunchForm from './components/NewLaunchForm';
 
+export {default as AddToLaunchModal} from './components/AddToLaunchModal';
+
 type View =
 	| {type: 'landing'}
 	| {type: 'new'}
