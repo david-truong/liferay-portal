@@ -326,5 +326,12 @@ ContentDashboardAdminDisplayContext contentDashboardAdminDisplayContext = (Conte
 				/>
 			</liferay-ui:search-container>
 		</clay:sheet>
+
+		<div id="<portlet:namespace />addToLaunchModal">
+			<react:component
+				componentId="addToLaunchModal"
+				module="{AddToLaunchModal} from launch-web"
+			/>
+		</div>
 	</clay:container-fluid>
 </div>

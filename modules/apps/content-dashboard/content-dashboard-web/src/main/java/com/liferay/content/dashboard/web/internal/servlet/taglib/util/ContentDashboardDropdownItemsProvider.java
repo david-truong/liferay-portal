@@ -6,6 +6,7 @@
 package com.liferay.content.dashboard.web.internal.servlet.taglib.util;
 
 import com.liferay.content.dashboard.item.ContentDashboardItem;
+import com.liferay.content.dashboard.item.ContentDashboardItemVersion;
 import com.liferay.content.dashboard.item.action.ContentDashboardItemAction;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
@@ -15,11 +16,13 @@ import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemIdentifier;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.url.builder.ResourceURLBuilder;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -119,6 +122,52 @@ public class ContentDashboardDropdownItemsProvider {
 					ContentDashboardItemAction.Type.VIEW_IN_PANEL),
 				contentDashboardItemAction -> _toViewInPanelDropdownItem(
 					contentDashboardItem, contentDashboardItemAction, locale))
+		).addAll(
+			TransformUtil.transform(
+				contentDashboardItem.getContentDashboardItemActions(
+					httpServletRequest,
+					ContentDashboardItemAction.Type.ADD_TO_LAUNCH),
+				contentDashboardItemAction -> _toAddToLaunchDropdownItem(
+					contentDashboardItem, contentDashboardItemAction, locale))
+		).build();
+	}
+
+	private DropdownItem _toAddToLaunchDropdownItem(
+		ContentDashboardItem<?> contentDashboardItem,
+		ContentDashboardItemAction contentDashboardItemAction, Locale locale) {
+
+		InfoItemReference infoItemReference =
+			contentDashboardItem.getInfoItemReference();
+
+		String classVersion = StringPool.BLANK;
+
+		List<ContentDashboardItemVersion> contentDashboardItemVersions =
+			contentDashboardItem.getLatestContentDashboardItemVersions(
+				locale);
+
+		if (ListUtil.isNotEmpty(contentDashboardItemVersions)) {
+			ContentDashboardItemVersion contentDashboardItemVersion =
+				contentDashboardItemVersions.get(0);
+
+			classVersion = contentDashboardItemVersion.getVersion();
+		}
+
+		return DropdownItemBuilder.setData(
+			HashMapBuilder.<String, Object>put(
+				"action", "addToLaunch"
+			).put(
+				"className", infoItemReference.getClassName()
+			).put(
+				"classPK", _getClassPK(infoItemReference)
+			).put(
+				"classVersion", classVersion
+			).build()
+		).setIcon(
+			contentDashboardItemAction.getIcon()
+		).setLabel(
+			contentDashboardItemAction.getLabel(locale)
+		).setQuickAction(
+			true
 		).build();
 	}
 

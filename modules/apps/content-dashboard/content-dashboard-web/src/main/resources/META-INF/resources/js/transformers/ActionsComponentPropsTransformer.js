@@ -84,6 +84,13 @@ const showSidebar = ({
 };
 
 const actions = {
+	addToLaunch({className, classPK, classVersion}) {
+		document.dispatchEvent(
+			new CustomEvent('addToLaunch', {
+				detail: {className, classPK, classVersion},
+			})
+		);
+	},
 	showInfo({
 		contentPerformanceDataFetchURL,
 		fetchURL,
@@ -152,6 +159,9 @@ export default function propsTransformer({
 						event.preventDefault();
 
 						actions[action]({
+							className: item.data.className,
+							classPK: item.data.classPK,
+							classVersion: item.data.classVersion,
 							contentPerformanceDataFetchURL:
 								item.data.contentPerformanceDataFetchURL,
 							fetchURL: item.data.fetchURL,
