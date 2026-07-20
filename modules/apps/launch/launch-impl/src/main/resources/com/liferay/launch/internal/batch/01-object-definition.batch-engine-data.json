@@ -91,6 +91,22 @@
 					"unique": false
 				}
 			],
+			"objectValidationRules": [
+				{
+					"active": true,
+					"engine": "javaDelegate#LaunchEntry#duplicate",
+					"engineLabel": "Launch Entry Duplicate",
+					"errorLabel": {
+						"en_US": "This item already belongs to a launch."
+					},
+					"name": {
+						"en_US": "LaunchEntryDuplicate"
+					},
+					"objectDefinitionExternalReferenceCode": "L_LAUNCH_ENTRY",
+					"outputType": "fullValidation",
+					"system": true
+				}
+			],
 			"panelCategoryKey": "",
 			"parameterRequired": false,
 			"pluralLabel": {
