@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {AUTO_FIX_DEFINITIONS} from '../../../../js/components/insights_view/auto_fix_definitions/AutoFixDefinitions';
+import {DESCRIPTION_AUTO_FIX_DEFINITION} from '../../../../js/components/insights_view/auto_fix_definitions/DescriptionAutoFixDefinition';
 import {TITLE_AUTO_FIX_DEFINITION} from '../../../../js/components/insights_view/auto_fix_definitions/TitleAutoFixDefinition';
 import {
 	WORKFLOW_STATUS_APPROVED,
@@ -139,6 +141,45 @@ describe('generateCandidates', () => {
 			context: {pageContent: 'my page content'},
 		});
 	});
+
+	it('resolves the description definition from the registry and parses its candidates', async () => {
+		expect(AUTO_FIX_DEFINITIONS.missingMetaDescription).toBe(
+			DESCRIPTION_AUTO_FIX_DEFINITION
+		);
+
+		mockInvokeAgent.mockResolvedValue(
+			JSON.stringify({
+				candidates: [{rationale: 'r1', title: 'A description'}],
+			})
+		);
+
+		const candidates = await generateCandidates(
+			DESCRIPTION_AUTO_FIX_DEFINITION,
+			'content'
+		);
+
+		expect(candidates).toHaveLength(1);
+		expect(candidates[0]).toEqual({
+			rationale: 'r1',
+			value: 'A description',
+		});
+	});
+
+	it('invokes the description generator agent with the page content', async () => {
+		mockInvokeAgent.mockResolvedValue(
+			JSON.stringify({candidates: [{title: 'A description'}]})
+		);
+
+		await generateCandidates(
+			DESCRIPTION_AUTO_FIX_DEFINITION,
+			'my page content'
+		);
+
+		expect(mockInvokeAgent).toHaveBeenCalledWith({
+			agentExternalReferenceCode: 'L_SEO_STUDIO_DESCRIPTION_GENERATOR',
+			context: {pageContent: 'my page content'},
+		});
+	});
 });
 
 describe('applyFix', () => {
@@ -178,6 +219,22 @@ describe('applyFix', () => {
 				value: 't',
 			})
 		).rejects.toThrow();
+	});
+
+	it('posts the description insight type to the SEO Studio Auto Fix backend', async () => {
+		mockFetch.mockResolvedValue({ok: true});
+
+		await applyFix({
+			insightType: DESCRIPTION_AUTO_FIX_DEFINITION.insightTypeName,
+			pageURL: 'http://example.com/web/customer/products',
+			value: 'A new description',
+		});
+
+		const [, options] = mockFetch.mock.calls[0];
+
+		expect(options.body.get('insightType')).toBe(
+			DESCRIPTION_AUTO_FIX_DEFINITION.insightTypeName
+		);
 	});
 });
 

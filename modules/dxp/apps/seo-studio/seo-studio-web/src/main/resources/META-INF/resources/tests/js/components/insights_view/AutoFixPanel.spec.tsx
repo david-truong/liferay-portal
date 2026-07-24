@@ -9,6 +9,7 @@ import {openToast} from 'frontend-js-components-web';
 import React from 'react';
 
 import AutoFixPanel from '../../../../js/components/insights_view/AutoFixPanel';
+import {DESCRIPTION_AUTO_FIX_DEFINITION} from '../../../../js/components/insights_view/auto_fix_definitions/DescriptionAutoFixDefinition';
 import {TITLE_AUTO_FIX_DEFINITION} from '../../../../js/components/insights_view/auto_fix_definitions/TitleAutoFixDefinition';
 import {
 	applyFix,
@@ -216,5 +217,24 @@ describe('AutoFixPanel', () => {
 		expect(resolveInsight).not.toHaveBeenCalled();
 		expect(onResolved).not.toHaveBeenCalled();
 		expect(onClose).not.toHaveBeenCalled();
+	});
+
+	it('renders the description flow when the insight type is missingMetaDescription', async () => {
+		(generateCandidates as jest.Mock).mockResolvedValue([
+			{rationale: 'r1', value: 'A great description'},
+		]);
+
+		renderPanel({
+			insightTypeName: DESCRIPTION_AUTO_FIX_DEFINITION.insightTypeName,
+		});
+
+		expect(
+			await screen.findByText('A great description')
+		).toBeInTheDocument();
+		expect(generateCandidates).toHaveBeenCalledWith(
+			DESCRIPTION_AUTO_FIX_DEFINITION,
+			expect.any(String),
+			expect.any(Object)
+		);
 	});
 });
