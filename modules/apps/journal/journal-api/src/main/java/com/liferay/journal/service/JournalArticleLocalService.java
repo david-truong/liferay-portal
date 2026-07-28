@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
+import com.liferay.portal.kernel.preview.Previewable;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalService;
@@ -660,6 +661,7 @@ public interface JournalArticleLocalService
 	 * @param id the primary key of the web content article
 	 * @return the web content article with the ID
 	 */
+	@Previewable(enabled = false)
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public JournalArticle fetchArticle(long id);
 
@@ -2631,4 +2633,4 @@ public interface JournalArticleLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1488310260
+// LIFERAY-SERVICE-BUILDER-HASH:250075089
