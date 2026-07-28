@@ -24,7 +24,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author David Truong
  */
-@Component(service = {})
+@Component(service = SEOStudioObjectEntryResolver.class)
 public class SEOStudioObjectEntryResolver {
 
 	public ObjectEntry getObjectEntryByHostname(
