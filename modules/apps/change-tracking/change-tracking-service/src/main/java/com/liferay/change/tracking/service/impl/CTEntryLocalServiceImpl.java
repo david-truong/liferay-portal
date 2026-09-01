@@ -336,17 +336,6 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 		return ctEntryPersistence.update(ctEntry);
 	}
 
-	@Override
-	public CTEntry updateUserId(long ctEntryId, long userId)
-		throws PortalException {
-
-		CTEntry ctEntry = ctEntryPersistence.findByPrimaryKey(ctEntryId);
-
-		ctEntry.setUserId(userId);
-
-		return ctEntryPersistence.update(ctEntry);
-	}
-
 	@Reference
 	private CTCollectionPersistence _ctCollectionPersistence;
 
