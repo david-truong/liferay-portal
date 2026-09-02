@@ -430,12 +430,6 @@ public class CTEntryLocalServiceUtil {
 		return getService().updateModelMvccVersion(ctEntryId, modelMvccVersion);
 	}
 
-	public static CTEntry updateUserId(long ctEntryId, long userId)
-		throws PortalException {
-
-		return getService().updateUserId(ctEntryId, userId);
-	}
-
 	public static CTEntryLocalService getService() {
 		return _serviceSnapshot.get();
 	}
@@ -445,4 +439,4 @@ public class CTEntryLocalServiceUtil {
 			CTEntryLocalServiceUtil.class, CTEntryLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-968130037
+// LIFERAY-SERVICE-BUILDER-HASH:1313114781

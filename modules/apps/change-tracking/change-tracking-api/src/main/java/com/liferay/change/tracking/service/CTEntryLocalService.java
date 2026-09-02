@@ -350,8 +350,5 @@ public interface CTEntryLocalService
 	public CTEntry updateModelMvccVersion(long ctEntryId, long modelMvccVersion)
 		throws PortalException;
 
-	public CTEntry updateUserId(long ctEntryId, long userId)
-		throws PortalException;
-
 }
-// LIFERAY-SERVICE-BUILDER-HASH:908398977
+// LIFERAY-SERVICE-BUILDER-HASH:269734215
