@@ -403,12 +403,6 @@ public class CTEntryLocalServiceUtil {
 			modelClassNameId, modelClassPK, changeType);
 	}
 
-	public static CTEntry updateChangeType(long ctEntryId, int changeType)
-		throws PortalException {
-
-		return getService().updateChangeType(ctEntryId, changeType);
-	}
-
 	/**
 	 * Updates the ct entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -439,4 +433,4 @@ public class CTEntryLocalServiceUtil {
 			CTEntryLocalServiceUtil.class, CTEntryLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1313114781
+// LIFERAY-SERVICE-BUILDER-HASH:625168210

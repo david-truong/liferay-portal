@@ -331,9 +331,6 @@ public interface CTEntryLocalService
 	public boolean hasUnpublishedCTEntries(
 		long modelClassNameId, long modelClassPK, int changeType);
 
-	public CTEntry updateChangeType(long ctEntryId, int changeType)
-		throws PortalException;
-
 	/**
 	 * Updates the ct entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -351,4 +348,4 @@ public interface CTEntryLocalService
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:269734215
+// LIFERAY-SERVICE-BUILDER-HASH:-1049296968
