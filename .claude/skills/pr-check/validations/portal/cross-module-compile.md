@@ -1,5 +1,13 @@
 # Cross-Module Compile
 
+## Contents
+
+- [Trigger](#trigger)
+- [Match](#match)
+- [Command](#command)
+- [Checklist](#checklist)
+- [Time Estimate](#time-estimate)
+
 ## Trigger
 
 A `*-api`, `portal-impl`, or `portal-kernel` signature changed (or a `*Constants`, `*Service`, or `*Util` class). Two kinds of consumer are not compiled by any other validation:

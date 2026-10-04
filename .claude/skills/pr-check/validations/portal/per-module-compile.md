@@ -1,5 +1,13 @@
 # Per-Module Compile
 
+## Contents
+
+- [Trigger](#trigger)
+- [Match](#match)
+- [Command](#command)
+- [Checklist](#checklist)
+- [Time Estimate](#time-estimate)
+
 ## Trigger
 
 A module is in the deploy set AND **Full Portal Build** did not deploy it. The latter holds when:

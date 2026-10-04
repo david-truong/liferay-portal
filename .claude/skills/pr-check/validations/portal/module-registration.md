@@ -1,5 +1,13 @@
 # Module Registration
 
+## Contents
+
+- [Trigger](#trigger)
+- [Match](#match)
+- [Command](#command)
+- [Checklist](#checklist)
+- [Time Estimate](#time-estimate)
+
 ## Trigger
 
 A `.lfrbuild-portal` or `.lfrbuild-ci` marker is added or removed. Either direction changes which modules a build deploys, and a marker only diff touches no source, so [per-module-compile.md](per-module-compile.md) does not fire.

@@ -1,5 +1,19 @@
 # Liferay Portal Test Organization Reference
 
+## Contents
+
+- [Module Structure](#module-structure)
+- [Test Type Details](#test-type-details)
+	- [Unit Tests](#unit-tests)
+	- [Integration Tests](#integration-tests)
+	- [Playwright Tests](#playwright-tests)
+	- [Poshi Functional Tests](#poshi-functional-tests)
+- [Mapping Source Changes to Tests](#mapping-source-changes-to-tests)
+	- [Direct Mapping (Same Module)](#direct-mapping-same-module)
+	- [Cross-Module Mapping (Test Module)](#cross-module-mapping-test-module)
+	- [Using test.properties for Broader Mapping](#using-testproperties-for-broader-mapping)
+	- [Playwright Mapping](#playwright-mapping)
+
 ## Module Structure
 
 Standard module layout:

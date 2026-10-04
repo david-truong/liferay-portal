@@ -1,5 +1,16 @@
 # Baseline
 
+## Contents
+
+- [Trigger](#trigger)
+- [Match](#match)
+- [Command](#command)
+	- [Interpretation](#interpretation)
+	- [Local Version Check](#local-version-check)
+- [Autocommit](#autocommit)
+- [Checklist](#checklist)
+- [Time Estimate](#time-estimate)
+
 ## Trigger
 
 Always, apart from a diff confined to the trees **Match** excludes. None of those trees can require a version bump. The bnd baseline task diffs each exported API against the last release and fails on a missing, excessive, or insufficient `Bundle-Version` or `packageinfo` bump. `maven-executor` is the one module under `modules/test` the baseline task actually runs, so it stays selected.

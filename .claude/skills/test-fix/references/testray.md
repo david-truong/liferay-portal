@@ -1,5 +1,19 @@
 # Fetch Failure Data From Testray
 
+## Contents
+
+- [Preconditions](#preconditions)
+- [Authentication](#authentication)
+- [Resolve a Test Name to a Case Result ID](#resolve-a-test-name-to-a-case-result-id)
+- [Resolve a Build URL to a Case Result ID](#resolve-a-build-url-to-a-case-result-id)
+- [Derive the Failure Data](#derive-the-failure-data)
+	- [Name](#name)
+	- [Type](#type)
+	- [Error Trace](#error-trace)
+	- [Failure Date](#failure-date)
+	- [Last Pass SHA and First Fail SHA](#last-pass-sha-and-first-fail-sha)
+	- [Build SHA](#build-sha)
+
 Pull a single Testray case result through the REST API at `https://testray.liferay.com`. The caller supplies a positive integer case result ID, a test name, or a Testray build URL as `${ARGUMENTS}`.
 
 ## Preconditions
