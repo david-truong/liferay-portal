@@ -263,15 +263,13 @@ public class CTConflictChecker<T extends CTModel<T>> {
 				constraintResolver.isModificationConflictCheckEnabled();
 		}
 
-		String constraintConflictsSQL = CTRowUtil.getConstraintConflictsSQL(
-			ctPersistence.getTableName(), primaryKeyName, columnNames,
-			_targetCTCollectionId);
+		Map<String, Integer> tableColumnsMap =
+			ctPersistence.getTableColumnsMap();
 
 		List<Map.Entry<Long, Long>> nextPrimaryKeys =
 			_getConflictingPrimaryKeys(
 				connection, ctPersistence.getTableName(), primaryKeyName,
-				columnNames, constraintConflictsSQL,
-				modificationConflictCheckEnabled);
+				columnNames, tableColumnsMap, modificationConflictCheckEnabled);
 
 		if (nextPrimaryKeys.isEmpty()) {
 			return;
@@ -325,8 +323,7 @@ public class CTConflictChecker<T extends CTModel<T>> {
 
 			nextPrimaryKeys = _getConflictingPrimaryKeys(
 				connection, ctPersistence.getTableName(), primaryKeyName,
-				columnNames, constraintConflictsSQL,
-				modificationConflictCheckEnabled);
+				columnNames, tableColumnsMap, modificationConflictCheckEnabled);
 
 			resolvedPrimaryKeys.addAll(nextPrimaryKeys);
 
@@ -336,8 +333,7 @@ public class CTConflictChecker<T extends CTModel<T>> {
 		List<Map.Entry<Long, Long>> unresolvedPrimaryKeys =
 			_getConflictingPrimaryKeys(
 				connection, ctPersistence.getTableName(), primaryKeyName,
-				columnNames, constraintConflictsSQL,
-				modificationConflictCheckEnabled);
+				columnNames, tableColumnsMap, modificationConflictCheckEnabled);
 
 		resolvedPrimaryKeys.removeAll(unresolvedPrimaryKeys);
 
@@ -675,7 +671,7 @@ public class CTConflictChecker<T extends CTModel<T>> {
 
 	private List<Map.Entry<Long, Long>> _getConflictingPrimaryKeys(
 		Connection connection, String tableName, String primaryKeyName,
-		String[] columnNames, String constraintConflictsSQL,
+		String[] columnNames, Map<String, Integer> tableColumnsMap,
 		boolean modificationConflictCheckEnabled) {
 
 		Set<Long> verifyPrimaryKeys = new HashSet<>();
@@ -714,14 +710,33 @@ public class CTConflictChecker<T extends CTModel<T>> {
 			while (resultSet1.next()) {
 				long sourcePK = resultSet1.getLong(1);
 
+				Object[] uniqueIndexValues = new Object[columnNames.length];
+
+				for (int i = 0; i < columnNames.length; i++) {
+					uniqueIndexValues[i] = resultSet1.getObject(i + 2);
+				}
+
+				String constraintConflictsSQL =
+					CTRowUtil.getConstraintConflictsSQL(
+						tableName, primaryKeyName, columnNames,
+						uniqueIndexValues, tableColumnsMap,
+						_targetCTCollectionId);
+
 				try (PreparedStatement preparedStatement2 =
 						connection.prepareStatement(constraintConflictsSQL)) {
 
 					preparedStatement2.setObject(1, sourcePK);
 
-					for (int i = 2; i < (columnNames.length + 2); i++) {
-						preparedStatement2.setObject(
-							i, resultSet1.getObject(i));
+					int index = 2;
+
+					for (int i = 0; i < columnNames.length; i++) {
+						Object value = uniqueIndexValues[i];
+
+						if (!CTRowUtil.isBlank(
+								value, tableColumnsMap.get(columnNames[i]))) {
+
+							preparedStatement2.setObject(index++, value);
+						}
 					}
 
 					try (ResultSet resultSet2 =
